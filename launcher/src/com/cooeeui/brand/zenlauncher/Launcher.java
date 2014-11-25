@@ -28,7 +28,6 @@ public class Launcher extends Activity implements LauncherModel.Callbacks {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // git commit test.
         if (DEBUG_STRICT_MODE) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
                     .detectDiskReads().detectDiskWrites().detectNetwork() // or
