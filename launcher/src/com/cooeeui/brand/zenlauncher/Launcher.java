@@ -5,16 +5,16 @@ import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
-import com.cooeeui.brand.zenlauncher.apps.AppInfo;
-import com.cooeeui.brand.zenlauncher.apps.IconCache;
-import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
-import com.cooeeui.brand.zenlauncher.debug.Logger;
-
 import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.StrictMode;
+
+import com.cooeeui.brand.zenlauncher.apps.AppInfo;
+import com.cooeeui.brand.zenlauncher.apps.IconCache;
+import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
+import com.cooeeui.brand.zenlauncher.debug.Logger;
 
 public class Launcher extends Activity implements LauncherModel.Callbacks {
 
@@ -28,6 +28,7 @@ public class Launcher extends Activity implements LauncherModel.Callbacks {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        // git commit test.
         if (DEBUG_STRICT_MODE) {
             StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
                     .detectDiskReads().detectDiskWrites().detectNetwork() // or
