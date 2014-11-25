@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.cooeeui.brand.zenlauncher"
+    android:versionCode="1"
+    android:versionName="0.1" >
+
+    <uses-sdk
+        android:minSdkVersion="14"
+        android:targetSdkVersion="19" />
+
+    <application
+        android:name=".LauncherApplication"
+        android:hardwareAccelerated="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/application_name"
+        android:largeHeap="true"
+        android:supportsRtl="true" >
+        <activity
+            android:name=".Launcher"
+            android:clearTaskOnLaunch="true"
+            android:launchMode="singleTask"
+            android:screenOrientation="nosensor"
+            android:stateNotNeeded="true"
+            android:theme="@style/Theme"
+            android:windowSoftInputMode="adjustPan" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.HOME" />
+                <category android:name="android.intent.category.LAUNCHER" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.MONKEY" />
+            </intent-filter>
+        </activity>
+
+        <!-- The settings provider contains Home's data, like the workspace favorites -->
+        <provider
+            android:name=".LauncherProvider"
+            android:authorities="com.cooeeui.brand.zenlauncher.settings"
+            android:exported="true"
+            android:readPermission="com.cooeeui.brand.zenlauncher.permission.READ_SETTINGS"
+            android:writePermission="com.cooeeui.brand.zenlauncher.permission.WRITE_SETTINGS" />
+    </application>
+
+</manifest>
