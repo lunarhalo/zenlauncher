@@ -234,10 +234,6 @@ public class LauncherModel extends BroadcastReceiver {
         }
     }
 
-    static boolean findNextAvailableIconSpace(ArrayList<ItemInfo> items, int[] index) {
-        return true;
-    }
-
     public void addAndBindAddedApps(final Context context, final ArrayList<AppInfo> allAddedApps) {
         Callbacks cb = mCallbacks != null ? mCallbacks.get() : null;
         addAndBindAddedApps(context, cb, allAddedApps);

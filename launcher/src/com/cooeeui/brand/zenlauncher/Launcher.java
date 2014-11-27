@@ -10,13 +10,18 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.util.Log;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
+import android.widget.Button;
 
 import com.cooeeui.brand.zenlauncher.apps.AppInfo;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
 
-public class Launcher extends Activity implements LauncherModel.Callbacks {
+public class Launcher extends Activity implements OnLongClickListener, LauncherModel.Callbacks {
 
     public static final String TAG = "Launcher";
     public static final String EXTRA_SHORTCUT_DUPLICATE = "duplicate";
@@ -25,6 +30,12 @@ public class Launcher extends Activity implements LauncherModel.Callbacks {
     SharedPreferences mSharedPrefs;
     LauncherModel mModel;
     IconCache mIconCache;
+
+    private Workspace mWorkspace;
+    private DragLayer mDragLayer;
+    private DragController mDragController;
+
+    Button mBtn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,8 +66,57 @@ public class Launcher extends Activity implements LauncherModel.Callbacks {
                 Context.MODE_PRIVATE);
         mModel = app.setLauncher(this);
         mIconCache = app.getIconCache();
+        mDragController = new DragController(this);
+
+        setContentView(R.layout.launcher);
+        mDragLayer = (DragLayer) findViewById(R.id.drag_layer);
+        mWorkspace = (Workspace) mDragLayer.findViewById(R.id.workspace);
+        mDragLayer.setup(this, mDragController);
+        mWorkspace.setup(mDragController);
+
+        mWorkspace.setOnLongClickListener(this);
+
+        mBtn = (Button) mWorkspace.findViewById(R.id.btn);
+        mBtn.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                Log.e("launcher123", "onClick button");
+                mWorkspace.startDrag();
+            }
+        });
 
         mModel.startLoader(true);
+    }
+
+    @Override
+    public boolean onLongClick(View v) {
+        // TODO Auto-generated method stub
+        Log.e("launcher123", "onlongclick launcher");
+        mWorkspace.startDrag();
+        return true;
+    }
+
+    public DragLayer getDragLayer() {
+        return mDragLayer;
+    }
+
+    @Override
+    public void onBackPressed() {
+        // TODO Auto-generated method stub
+
+        int childCount = mDragLayer.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View v = mDragLayer.getChildAt(i);
+            if (v instanceof DragView) {
+                DragView dv = (DragView) v;
+                dv.remove();
+                break;
+            }
+        }
+        Log.e("launcher123", "onBackPressed launcher childCount = " + childCount);
+        // super.onBackPressed();
     }
 
     @Override
