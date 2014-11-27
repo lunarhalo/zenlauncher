@@ -9,7 +9,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -25,7 +24,6 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
 
     public static final String TAG = "Launcher";
     public static final String EXTRA_SHORTCUT_DUPLICATE = "duplicate";
-    static final boolean DEBUG_STRICT_MODE = true;
 
     SharedPreferences mSharedPrefs;
     LauncherModel mModel;
@@ -39,20 +37,6 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        // git commit test.
-        if (DEBUG_STRICT_MODE) {
-            StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
-                    .detectDiskReads().detectDiskWrites().detectNetwork() // or
-                                                                          // .detectAll()
-                                                                          // for
-                                                                          // all
-                                                                          // detectable
-                                                                          // problems
-                    .penaltyLog().build());
-            StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-                    .detectLeakedSqlLiteObjects().detectLeakedClosableObjects()
-                    .penaltyLog().penaltyDeath().build());
-        }
 
         super.onCreate(savedInstanceState);
 
