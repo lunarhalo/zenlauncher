@@ -10,7 +10,6 @@ import android.util.Log;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.View;
 
 public class DragController {
 
@@ -65,50 +64,10 @@ public class DragController {
 
         mLauncher.getDragLayer().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
         mDragObject.show(mMotionDownX, mMotionDownY);
-        // handleMoveEvent(mMotionDownX, mMotionDownY);
-    }
-
-    Bitmap getViewBitmap(View v) {
-        v.clearFocus();
-        v.setPressed(false);
-
-        boolean willNotCache = v.willNotCacheDrawing();
-        v.setWillNotCacheDrawing(false);
-
-        // Reset the drawing cache background color to fully transparent
-        // for the duration of this operation
-        int color = v.getDrawingCacheBackgroundColor();
-        v.setDrawingCacheBackgroundColor(0);
-        float alpha = v.getAlpha();
-        v.setAlpha(1.0f);
-
-        if (color != 0) {
-            v.destroyDrawingCache();
-        }
-        v.buildDrawingCache();
-        Bitmap cacheBitmap = v.getDrawingCache();
-        if (cacheBitmap == null) {
-            return null;
-        }
-
-        Bitmap bitmap = Bitmap.createBitmap(cacheBitmap);
-
-        // Restore the view
-        v.destroyDrawingCache();
-        v.setAlpha(alpha);
-        v.setWillNotCacheDrawing(willNotCache);
-        v.setDrawingCacheBackgroundColor(color);
-
-        return bitmap;
     }
 
     public boolean isDragging() {
         return mDragging;
-    }
-
-    public void cancelDrag() {
-
-        endDrag();
     }
 
     private void endDrag() {
@@ -127,35 +86,26 @@ public class DragController {
     }
 
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-
         final int action = ev.getAction();
         final int[] dragLayerPos = getClampedDragLayerPos(ev.getX(), ev.getY());
         final int dragLayerX = dragLayerPos[0];
         final int dragLayerY = dragLayerPos[1];
 
         switch (action) {
-            case MotionEvent.ACTION_MOVE:
-                break;
             case MotionEvent.ACTION_DOWN:
-                // Remember location of down touch
                 mMotionDownX = dragLayerX;
                 mMotionDownY = dragLayerY;
-
                 break;
             case MotionEvent.ACTION_UP:
+            case MotionEvent.ACTION_CANCEL:
                 endDrag();
                 break;
-            case MotionEvent.ACTION_CANCEL:
-                cancelDrag();
-                break;
         }
-
         return mDragging;
     }
 
     private void handleMoveEvent(int x, int y) {
         mDragObject.move(x, y);
-
     }
 
     public boolean onTouchEvent(MotionEvent ev) {
@@ -183,11 +133,10 @@ public class DragController {
                 // Ensure that we've processed a move event at the current
                 // pointer location.
                 handleMoveEvent(dragLayerX, dragLayerY);
-
                 endDrag();
                 break;
             case MotionEvent.ACTION_CANCEL:
-                cancelDrag();
+                endDrag();
                 break;
         }
 

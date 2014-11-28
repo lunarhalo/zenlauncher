@@ -6,6 +6,7 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 
 import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -13,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
+import android.view.ViewGroup.LayoutParams;
 import android.widget.Button;
 
 import com.cooeeui.brand.zenlauncher.apps.AppInfo;
@@ -34,6 +36,8 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
     private DragController mDragController;
 
     Button mBtn;
+
+    Dialog mLoading;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,7 +75,45 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
             }
         });
 
+        showLoadingView();
+
         mModel.startLoader(true);
+    }
+
+    void showLoadingView() {
+        // mLoading = new AlertDialog.Builder(this).setView(new
+        // LoadingView(this)).create();
+        // mLoading.show();
+
+        LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
+        mLoading = new Dialog(this, R.style.LoadingViewStyle);
+        mLoading.setContentView(new LoadingView(this), params);
+        mLoading.setCancelable(false);
+        mLoading.setCanceledOnTouchOutside(false);
+        mLoading.show();
+    }
+
+    void closeLoadingView() {
+        if (mLoading != null && mLoading.isShowing()) {
+            mLoading.dismiss();
+            mLoading = null;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        // TODO Auto-generated method stub
+        super.onPause();
+        Log.e("launcher123", "--- onPause ---");
+
+        closeLoadingView();
+    }
+
+    @Override
+    protected void onResume() {
+        // TODO Auto-generated method stub
+        super.onResume();
+        Log.e("launcher123", "--- onResume ---");
     }
 
     @Override
@@ -89,7 +131,6 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
     @Override
     public void onBackPressed() {
         // TODO Auto-generated method stub
-
         int childCount = mDragLayer.getChildCount();
         for (int i = 0; i < childCount; i++) {
             View v = mDragLayer.getChildAt(i);

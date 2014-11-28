@@ -39,19 +39,18 @@ public class DragView extends View {
     public void show(int touchX, int touchY) {
         mDragLayer.addView(this);
 
-        // Start the pick-up animation
         DragLayer.LayoutParams lp = new DragLayer.LayoutParams(0, 0);
         lp.width = mBitmap.getWidth();
         lp.height = mBitmap.getHeight();
         setLayoutParams(lp);
-        setTranslationX(touchX);
-        setTranslationY(touchY);
+        setTranslationX(touchX - mBitmap.getWidth() / 2);
+        setTranslationY(touchY - mBitmap.getHeight() / 2);
 
     }
 
     void move(int touchX, int touchY) {
-        setTranslationX(touchX);
-        setTranslationY(touchY);
+        setTranslationX(touchX - mBitmap.getWidth() / 2);
+        setTranslationY(touchY - mBitmap.getHeight() / 2);
     }
 
     void remove() {
