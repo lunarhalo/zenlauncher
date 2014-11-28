@@ -16,11 +16,12 @@
 
 package com.cooeeui.brand.zenlauncher;
 
-import android.annotation.SuppressLint;
-import android.app.SearchManager;
-import android.appwidget.AppWidgetHost;
-import android.appwidget.AppWidgetManager;
-import android.appwidget.AppWidgetProviderInfo;
+import java.io.IOException;
+import java.net.URISyntaxException;
+
+import org.xmlpull.v1.XmlPullParser;
+import org.xmlpull.v1.XmlPullParserException;
+
 import android.content.ComponentName;
 import android.content.ContentProvider;
 import android.content.ContentResolver;
@@ -35,33 +36,18 @@ import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.content.res.XmlResourceParser;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
-import android.database.sqlite.SQLiteStatement;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
-import android.os.Bundle;
 import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.util.Xml;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-
 import com.cooeeui.brand.zenlauncher.LauncherSettings.Favorites;
-import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
-import com.cooeeui.brand.zenlauncher.apps.Utilities;
 import com.cooeeui.brand.zenlauncher.config.ProviderConfig;
-
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class LauncherProvider extends ContentProvider {
     private static final String TAG = "Launcher.LauncherProvider";

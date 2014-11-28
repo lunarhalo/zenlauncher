@@ -1,10 +1,11 @@
 
 package com.cooeeui.brand.zenlauncher;
 
+import com.cooeeui.brand.zenlauncher.debug.Logger;
+
 import android.content.Context;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
@@ -28,13 +29,13 @@ public class DragLayer extends FrameLayout {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        Log.e("launcher123", "dispatchKeyEvent " + mDragController.dragging());
+        Logger.error("launcher123", "dispatchKeyEvent " + mDragController.dragging());
         return mDragController.dispatchKeyEvent(event) || super.dispatchKeyEvent(event);
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        Log.e("launcher123", "onInterceptTouchEvent " + mDragController.dragging());
+        Logger.error("launcher123", "onInterceptTouchEvent " + mDragController.dragging());
         return mDragController.onInterceptTouchEvent(ev);
     }
 
@@ -52,7 +53,7 @@ public class DragLayer extends FrameLayout {
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        Log.e("launcher123", "onTouchEvent " + mDragController.dragging());
+        Logger.error("launcher123", "onTouchEvent " + mDragController.dragging());
 
         return mDragController.onTouchEvent(ev);
     }
@@ -65,13 +66,10 @@ public class DragLayer extends FrameLayout {
 
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
-
     }
 
     @Override
     protected void dispatchDraw(Canvas canvas) {
         super.dispatchDraw(canvas);
-
     }
-
 }

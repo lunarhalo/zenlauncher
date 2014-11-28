@@ -1,12 +1,13 @@
 
 package com.cooeeui.brand.zenlauncher;
 
+import com.cooeeui.brand.zenlauncher.debug.Logger;
+
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.os.Handler;
-import android.util.Log;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -27,7 +28,6 @@ public class DragController {
     private DragView mDragObject;
 
     interface DragListener {
-
         void onDragStart();
 
         void onDragEnd();
@@ -56,7 +56,7 @@ public class DragController {
     }
 
     public void startDrag() {
-        Log.e("launcher123", "onlongclick dragcontroller");
+        Logger.error("launcher123", "onlongclick dragcontroller");
         Bitmap b = makeDefaultIcon();
         mDragging = true;
         mDragObject = new DragView(mLauncher, b, 0,

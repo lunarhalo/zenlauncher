@@ -31,9 +31,7 @@ public class DragView extends View {
 
     @Override
     protected void onDraw(Canvas canvas) {
-
         canvas.drawBitmap(mBitmap, 0.0f, 0.0f, mPaint);
-
     }
 
     public void show(int touchX, int touchY) {
@@ -45,7 +43,6 @@ public class DragView extends View {
         setLayoutParams(lp);
         setTranslationX(touchX - mBitmap.getWidth() / 2);
         setTranslationY(touchY - mBitmap.getHeight() / 2);
-
     }
 
     void move(int touchX, int touchY) {

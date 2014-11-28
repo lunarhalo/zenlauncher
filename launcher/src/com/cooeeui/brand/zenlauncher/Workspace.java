@@ -3,12 +3,12 @@ package com.cooeeui.brand.zenlauncher;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
+import com.cooeeui.brand.zenlauncher.debug.Logger;
 
 public class Workspace extends ViewGroup {
 
@@ -33,7 +33,6 @@ public class Workspace extends ViewGroup {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // TODO Auto-generated method stub
         // int childCount = getChildCount();
         //
         // if (childCount == 0) {
@@ -100,12 +99,11 @@ public class Workspace extends ViewGroup {
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
-        // TODO Auto-generated method stub
         int childCount = getChildCount();
 
-        Log.e("launcher123", "onLayout workspace - l = " + left + " t = " + top);
-        Log.e("launcher123", "onLayout workspace - r = " + right + " b = " + bottom);
-        Log.e("launcher123", "workspace onLayout childCount = " + childCount);
+        Logger.error("launcher123", "onLayout workspace - l = " + left + " t = " + top);
+        Logger.error("launcher123", "onLayout workspace - r = " + right + " b = " + bottom);
+        Logger.error("launcher123", "workspace onLayout childCount = " + childCount);
 
         for (int i = 0; i < childCount; i++) {
             View v = getChildAt(i);
@@ -115,14 +113,14 @@ public class Workspace extends ViewGroup {
                     (int) v.getTranslationY() + (int) v.getMeasuredHeight());
 
             // v.layout(left, top, right, bottom);
-            Log.e("launcher123", "onLayout workspace l = " + v.getLeft() + " t = " + v.getTop());
-            Log.e("launcher123", "onLayout workspace r = " + v.getRight() + " b = " + v.getBottom());
-            Log.e("launcher123",
+            Logger.error("launcher123", "onLayout workspace l = " + v.getLeft() + " t = " + v.getTop());
+            Logger.error("launcher123", "onLayout workspace r = " + v.getRight() + " b = " + v.getBottom());
+            Logger.error("launcher123",
                     "onLayout workspace w = " + v.getMeasuredWidth() + " h = "
                             + v.getMeasuredHeight());
-            Log.e("launcher123",
+            Logger.error("launcher123",
                     "onLayout workspace x = " + v.getTranslationX() + " y = " + v.getTranslationY());
-            Log.e("launcher123",
+            Logger.error("launcher123",
                     "onLayout workspace sx = " + v.getScrollX() + " sy = " + v.getScrollY());
 
         }
@@ -133,7 +131,7 @@ public class Workspace extends ViewGroup {
     }
 
     void startDrag() {
-        Log.e("launcher123", "onlongclick workspace");
+        Logger.error("launcher123", "onlongclick workspace");
         mDragController.startDrag();
     }
 }
