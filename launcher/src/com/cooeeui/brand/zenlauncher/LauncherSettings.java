@@ -114,20 +114,93 @@ public class LauncherSettings {
          * </P>
          */
         public static final String ICON = "icon";
+    }
 
+    /**
+     * Applications.
+     */
+    public static final class Applications implements BaseLauncherColumns {
         /**
-         * The launch times of icon.
+         * The category id of icon.
          * <p>
          * Type: INTEGER
          * </p>
          */
-        public static final String LAUNCH_TIMES = "launchTimes";
+        public static final String CATEGORY = "category";
+
+        /**
+         * The priority of icon, calculate it from launch times and duration.
+         * <p>
+         * Type: INTEGER
+         * </p>
+         */
+        public static final String PRIORITY = "priority";
+
+        /**
+         * The visibility of icon, 0 when visible.
+         * <p>
+         * Type: INTEGER
+         * </p>
+         */
+        public static final String HIDE = "hide";
+
+        /**
+         * Whether the icon is not opened yet after installed, 1 when new.
+         * <p>
+         * Type: INTEGER
+         * </p>
+         */
+        public static final String NEW = "new";
+
+        /**
+         * Whether the icon is classify, 1 when classify.
+         * <p>
+         * Type: INTEGER
+         * </p>
+         */
+        public static final String CATEGORIZED = "categorized";
+
+        /**
+         * The content:// style URL for this table
+         */
+        public static final Uri CONTENT_URI = Uri.parse("content://" +
+                LauncherProvider.AUTHORITY + "/" + LauncherProvider.TABLE_APPS +
+                "?" + LauncherProvider.PARAMETER_NOTIFY + "=true");
+
+        /**
+         * The content:// style URL for this table. When this Uri is used, no
+         * notification is sent if the content changes.
+         */
+        public static final Uri CONTENT_URI_NO_NOTIFICATION = Uri.parse("content://" +
+                LauncherProvider.AUTHORITY + "/" + LauncherProvider.TABLE_APPS +
+                "?" + LauncherProvider.PARAMETER_NOTIFY + "=false");
+
+        /**
+         * The content:// style URL for a given row, identified by its id.
+         * 
+         * @param id The row id.
+         * @param notify True to send a notification is the content changes.
+         * @return The unique content URL for the specified row.
+         */
+        public static Uri getContentUri(long id, boolean notify) {
+            return Uri.parse("content://" + LauncherProvider.AUTHORITY +
+                    "/" + LauncherProvider.TABLE_APPS + "/" + id + "?" +
+                    LauncherProvider.PARAMETER_NOTIFY + "=" + notify);
+        }
     }
 
     /**
      * Favorites.
      */
     public static final class Favorites implements BaseLauncherColumns {
+        /**
+         * The position of the cell holding the favorite
+         * <P>
+         * Type: INTEGER
+         * </P>
+         */
+        public static final String POSITION = "position";
+
         /**
          * The content:// style URL for this table
          */
@@ -155,41 +228,5 @@ public class LauncherSettings {
                     "/" + LauncherProvider.TABLE_FAVORITES + "/" + id + "?" +
                     LauncherProvider.PARAMETER_NOTIFY + "=" + notify);
         }
-
-        /**
-         * The container holding the favorite
-         * <P>
-         * Type: INTEGER
-         * </P>
-         */
-        public static final String CONTAINER = "container";
-
-        /**
-         * The internal container.
-         */
-        public static final int CONTAINER_DESKTOP = -100;
-        public static final int CONTAINER_PAGE_FAVORITE = -101;
-        public static final int CONTAINER_PAGE_COMMUNICATION = -102;
-        public static final int CONTAINER_PAGE_GAME = -103;
-        public static final int CONTAINER_PAGE_LIFESTYLE = -104;
-        public static final int CONTAINER_PAGE_TOOL = -105;
-        public static final int CONTAINER_PAGE_SYSTEM = -106;
-
-        /**
-         * The index of the cell holding the favorite
-         * <P>
-         * Type: INTEGER
-         * </P>
-         */
-        public static final String INDEX = "cellIndex";
-
-        /**
-         * The URI associated with the favorite. It is used, for instance, by
-         * live folders to find the content provider.
-         * <P>
-         * Type: TEXT
-         * </P>
-         */
-        public static final String URI = "uri";
     }
 }

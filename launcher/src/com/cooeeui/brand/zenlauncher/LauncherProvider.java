@@ -60,6 +60,7 @@ public class LauncherProvider extends ContentProvider {
     static final String AUTHORITY = ProviderConfig.AUTHORITY;
 
     static final String TABLE_FAVORITES = "favorites";
+    static final String TABLE_APPS = "apps";
     static final String PARAMETER_NOTIFY = "notify";
     static final String UPGRADED_FROM_OLD_DATABASE =
             "UPGRADED_FROM_OLD_DATABASE";
@@ -281,18 +282,29 @@ public class LauncherProvider extends ContentProvider {
 
             mMaxItemId = 1;
 
+            // Create table favorites.
             db.execSQL("CREATE TABLE favorites (" +
                     "_id INTEGER PRIMARY KEY," +
                     "title TEXT," +
                     "intent TEXT," +
-                    "container INTEGER," +
-                    "cellIndex INTEGER," +
+                    "position INTEGER," +
                     "itemType INTEGER," +
                     "iconType INTEGER," +
                     "iconPackage TEXT," +
                     "iconResource TEXT," +
                     "icon BLOB," +
                     "uri TEXT," +
+                    "modified INTEGER NOT NULL DEFAULT 0" +
+                    ");");
+
+            // Create table apps.
+            db.execSQL("CREATE TABLE apps (" +
+                    "_id INTEGER PRIMARY KEY," +
+                    "component TEXT," +
+                    "priority INTEGER," +
+                    "category INTEGER," +
+                    "hide INTEGER," +
+                    "opened INTEGER," +
                     "modified INTEGER NOT NULL DEFAULT 0" +
                     ");");
 
@@ -440,6 +452,7 @@ public class LauncherProvider extends ContentProvider {
             if (version != DATABASE_VERSION) {
                 Log.w(TAG, "Destroying all old data.");
                 db.execSQL("DROP TABLE IF EXISTS " + TABLE_FAVORITES);
+                db.execSQL("DROP TABLE IF EXISTS " + TABLE_APPS);
 
                 onCreate(db);
             }
