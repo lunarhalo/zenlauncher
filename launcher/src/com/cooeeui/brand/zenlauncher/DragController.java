@@ -1,7 +1,7 @@
 
 package com.cooeeui.brand.zenlauncher;
 
-import com.cooeeui.brand.zenlauncher.debug.Logger;
+import java.util.ArrayList;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
@@ -25,21 +25,25 @@ public class DragController {
 
     private int mMotionDownY;
 
-    private DragView mDragObject;
+    private Rect mRectTemp = new Rect();
 
-    interface DragListener {
-        void onDragStart();
+    private DropTarget.DragObject mDragObject;
 
-        void onDragEnd();
-    }
+    private ArrayList<DropTarget> mDropTargets = new ArrayList<DropTarget>();
+
+    private DropTarget mLastDropTarget;
 
     public DragController(Launcher launcher) {
         mLauncher = launcher;
         mHandler = new Handler();
     }
 
-    public boolean dragging() {
-        return mDragging;
+    public void addDropTarget(DropTarget target) {
+        mDropTargets.add(target);
+    }
+
+    public void removeDropTarget(DropTarget target) {
+        mDropTargets.remove(target);
     }
 
     private Bitmap makeDefaultIcon() {
@@ -55,15 +59,15 @@ public class DragController {
         return b;
     }
 
-    public void startDrag() {
-        Logger.error("launcher123", "onlongclick dragcontroller");
+    public void startDrag(DragSource source, BubbleView view) {
         Bitmap b = makeDefaultIcon();
         mDragging = true;
-        mDragObject = new DragView(mLauncher, b, 0,
-                0, 0, 0, b.getWidth(), b.getHeight(), 0);
-
+        mDragObject = new DropTarget.DragObject();
+        mDragObject.dragView = view;
+        mLauncher.getDragLayer().addView(view);
+        mDragObject.dragSource = source;
         mLauncher.getDragLayer().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-        mDragObject.show(mMotionDownX, mMotionDownY);
+        mDragObject.dragView.move(mMotionDownX, mMotionDownY);
     }
 
     public boolean isDragging() {
@@ -74,6 +78,43 @@ public class DragController {
         if (mDragging) {
             mDragging = false;
         }
+    }
+
+    public void cancelDrag() {
+        if (mDragging) {
+            if (mLastDropTarget != null) {
+                mLastDropTarget.onDragExit(mDragObject);
+            }
+            mDragObject.dragSource.onDropCompleted(null, mDragObject);
+        }
+        endDrag();
+    }
+
+    private DropTarget findDropTarget(int x, int y) {
+        final Rect r = mRectTemp;
+
+        final ArrayList<DropTarget> dropTargets = mDropTargets;
+        final int count = dropTargets.size();
+        for (int i = 0; i < count; i++) {
+            DropTarget target = dropTargets.get(i);
+
+            target.getHitRectRelativeToDragLayer(r);
+
+            if (r.contains(x, y)) {
+                return target;
+            }
+        }
+        return null;
+    }
+
+    private void drop(int x, int y) {
+        final DropTarget dropTarget = findDropTarget(x, y);
+
+        if (dropTarget != null) {
+            dropTarget.onDragExit(mDragObject);
+            dropTarget.onDrop(mDragObject);
+        }
+        mDragObject.dragSource.onDropCompleted((BubbleView) dropTarget, mDragObject);
     }
 
     private int[] getClampedDragLayerPos(float x, float y) {
@@ -95,17 +136,45 @@ public class DragController {
             case MotionEvent.ACTION_DOWN:
                 mMotionDownX = dragLayerX;
                 mMotionDownY = dragLayerY;
+                mLastDropTarget = null;
                 break;
             case MotionEvent.ACTION_UP:
-            case MotionEvent.ACTION_CANCEL:
+                if (mDragging) {
+                    drop(dragLayerX, dragLayerY);
+                }
                 endDrag();
                 break;
+            case MotionEvent.ACTION_CANCEL:
+                cancelDrag();
+                break;
         }
+
         return mDragging;
     }
 
+    private void checkTouchMove(DropTarget dropTarget) {
+        if (dropTarget != null) {
+            if (mLastDropTarget != dropTarget) {
+                if (mLastDropTarget != null) {
+                    mLastDropTarget.onDragExit(mDragObject);
+                }
+                dropTarget.onDragEnter(mDragObject);
+            }
+            dropTarget.onDragOver(mDragObject);
+        } else {
+            if (mLastDropTarget != null) {
+                mLastDropTarget.onDragExit(mDragObject);
+            }
+        }
+        mLastDropTarget = dropTarget;
+    }
+
     private void handleMoveEvent(int x, int y) {
-        mDragObject.move(x, y);
+        mDragObject.dragView.move(x, y);
+
+        DropTarget dropTarget = findDropTarget(x, y);
+        checkTouchMove(dropTarget);
+
     }
 
     public boolean onTouchEvent(MotionEvent ev) {
@@ -133,18 +202,17 @@ public class DragController {
                 // Ensure that we've processed a move event at the current
                 // pointer location.
                 handleMoveEvent(dragLayerX, dragLayerY);
+                if (mDragging) {
+                    drop(dragLayerX, dragLayerY);
+                }
                 endDrag();
                 break;
             case MotionEvent.ACTION_CANCEL:
-                endDrag();
+                cancelDrag();
                 break;
         }
 
         return true;
-    }
-
-    DragView getDragView() {
-        return mDragObject;
     }
 
     public boolean dispatchKeyEvent(KeyEvent event) {

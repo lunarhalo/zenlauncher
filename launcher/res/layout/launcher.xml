@@ -9,26 +9,11 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
-        <ImageView
-            android:id="@+id/longimg"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:clickable="true"
-            android:src="@drawable/ic_launcher_trashcan_normal_holo" />
-
         <com.cooeeui.brand.zenlauncher.Workspace
             android:id="@+id/workspace"
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
 
-            <Button
-                android:id="@+id/btn"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="click"
-                android:translationX="50dp"
-                android:translationY="90dp" />
         </com.cooeeui.brand.zenlauncher.Workspace>
     </com.cooeeui.brand.zenlauncher.DragLayer>
 
