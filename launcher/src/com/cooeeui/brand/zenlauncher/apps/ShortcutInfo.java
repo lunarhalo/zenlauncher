@@ -36,11 +36,6 @@ import com.cooeeui.brand.zenlauncher.LauncherSettings;
 public class ShortcutInfo extends ItemInfo {
 
     /**
-     * The intent used to start the application.
-     */
-    public Intent intent;
-
-    /**
      * Indicates whether the icon comes from an application's resource (if
      * false) or from a custom Bitmap (if true.)
      */
@@ -63,20 +58,27 @@ public class ShortcutInfo extends ItemInfo {
      */
     private Bitmap mIcon;
 
+    /**
+     * The time at which the application was first installed.
+     */
     long firstInstallTime;
+
+    /**
+     * The flag of this application.
+     */
     int flags = 0;
 
-    public ShortcutInfo() {
-        itemType = LauncherSettings.BaseLauncherColumns.ITEM_TYPE_SHORTCUT;
-    }
-
+    @Override
     public Intent getIntent() {
         return intent;
+    }
+    
+    public ShortcutInfo() {
+        super();
     }
 
     public ShortcutInfo(Context context, ShortcutInfo info) {
         super(info);
-        title = info.title.toString();
         intent = new Intent(info.intent);
         if (info.iconResource != null) {
             iconResource = new Intent.ShortcutIconResource();
@@ -92,7 +94,6 @@ public class ShortcutInfo extends ItemInfo {
     /** TODO: Remove this. It's only called by ApplicationInfo.makeShortcut. */
     public ShortcutInfo(AppInfo info) {
         super(info);
-        title = info.title.toString();
         intent = new Intent(info.intent);
         customIcon = false;
         flags = info.flags;
@@ -176,12 +177,15 @@ public class ShortcutInfo extends ItemInfo {
             }
         }
     }
+    
+    public void updateValuesWithPosition(ContentValues values, int position) {
+        values.put(LauncherSettings.Favorites.POSITION, position);
+    }
 
     @Override
     public String toString() {
         return "ShortcutInfo(title=" + title.toString() + "intent=" + intent + "id=" + this.id
-                + " type=" + this.itemType + " container=" + this.container + " index="
-                + this.index + ")";
+                + " type=" + this.itemType + " position=" + this.position + ")";
     }
 
     public static void dumpShortcutInfoList(String tag, String label,

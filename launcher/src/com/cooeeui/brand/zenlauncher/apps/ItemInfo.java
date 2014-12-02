@@ -16,13 +16,13 @@
 
 package com.cooeeui.brand.zenlauncher.apps;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
 import android.content.ContentValues;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.util.Log;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 
 import com.cooeeui.brand.zenlauncher.LauncherModel;
 import com.cooeeui.brand.zenlauncher.LauncherSettings;
@@ -40,23 +40,15 @@ public class ItemInfo {
     public long id = NO_ID;
 
     /**
-     * One of {@link LauncherSettings.Favorites#ITEM_TYPE_APPLICATION},
-     * {@link LauncherSettings.Favorites#ITEM_TYPE_SHORTCUT}
+     * One of {@link LauncherSettings.BaseLauncherColumns#ITEM_TYPE_APPLICATION}
+     * , {@link LauncherSettings.BaseLauncherColumns#ITEM_TYPE_SHORTCUT}
      */
     public int itemType;
 
     /**
-     * The id of the container that holds this item. For the desktop, this will
-     * be {@link LauncherSettings.Favorites#CONTAINER_DESKTOP}. For the
-     * applications it will be
-     * {@link LauncherSettings.Favorites#CONTAINER_PAGE_SYSTEM} or other pages.
+     * Title of the item
      */
-    public long container = NO_ID;
-
-    /**
-     * Indicates the index of the associated cell.
-     */
-    public int index = -1;
+    public CharSequence title;
 
     /**
      * Indicates that this item needs to be updated in the db
@@ -64,9 +56,14 @@ public class ItemInfo {
     public boolean requiresDbUpdate = false;
 
     /**
-     * Title of the item
+     * The intent used to start the application.
      */
-    public CharSequence title;
+    public Intent intent;
+
+    /**
+     * The position of the item.
+     */
+    public int position;
 
     public ItemInfo() {
     }
@@ -74,8 +71,8 @@ public class ItemInfo {
     ItemInfo(ItemInfo info) {
         id = info.id;
         itemType = info.itemType;
-        container = info.container;
-        index = info.index;
+        title = info.title.toString();
+        intent = info.intent;
         // temporary debug:
         LauncherModel.checkItemInfo(this);
     }
@@ -91,12 +88,13 @@ public class ItemInfo {
      */
     public void onAddToDatabase(ContentValues values) {
         values.put(LauncherSettings.BaseLauncherColumns.ITEM_TYPE, itemType);
-        values.put(LauncherSettings.Favorites.CONTAINER, container);
-        values.put(LauncherSettings.Favorites.INDEX, index);
     }
 
-    public void updateValuesWithIndex(ContentValues values, int index) {
-        values.put(LauncherSettings.Favorites.INDEX, index);
+    /**
+     * Write the position field of this item to the DB
+     */
+    public void updateValues(ContentValues values, int position) {
+        values.put(LauncherSettings.Favorites.POSITION, position);
     }
 
     public static byte[] flattenBitmap(Bitmap bitmap) {
@@ -134,7 +132,6 @@ public class ItemInfo {
 
     @Override
     public String toString() {
-        return "Item(id=" + this.id + " type=" + this.itemType + " container=" + this.container
-                + " index=" + index + ")";
+        return "Item(id=" + this.id + " type=" + this.itemType + ")";
     }
 }

@@ -137,8 +137,7 @@ public class LauncherModel extends BroadcastReceiver {
     static final HashMap<Long, ItemInfo> sBgItemsIdMap = new HashMap<Long, ItemInfo>();
 
     // sBgWorkspaceItems is passed to bindItems, which expects a list of all
-    // folders and shortcuts created by LauncherModel that are directly on the
-    // home screen (however, no widgets or shortcuts within folders).
+    // shortcuts created by LauncherModel that are directly on the home screen.
     static final ArrayList<ItemInfo> sBgWorkspaceItems = new ArrayList<ItemInfo>();
 
     // sBgDbIconCache is the set of ItemInfos that need to have their icons
@@ -234,6 +233,10 @@ public class LauncherModel extends BroadcastReceiver {
         }
     }
 
+    static boolean findNextAvailableIconSpace(ArrayList<ItemInfo> items, int[] index) {
+        return true;
+    }
+
     public void addAndBindAddedApps(final Context context, final ArrayList<AppInfo> allAddedApps) {
         Callbacks cb = mCallbacks != null ? mCallbacks.get() : null;
         addAndBindAddedApps(context, cb, allAddedApps);
@@ -274,7 +277,7 @@ public class LauncherModel extends BroadcastReceiver {
         unbindWorkspaceItemsOnMainThread();
     }
 
-    /** Unbinds all the sBgWorkspaceItems and sBgAppWidgets on the main thread */
+    /** Unbinds all the sBgWorkspaceItems on the main thread */
     void unbindWorkspaceItemsOnMainThread() {
         // Ensure that we don't use the same workspace items data structure on
         // the main thread by making a copy of workspace items first.
@@ -294,6 +297,14 @@ public class LauncherModel extends BroadcastReceiver {
         runOnMainThread(r);
     }
 
+    /**
+     * Check whether the item and the item id are matched, and this function
+     * should be run on work thread and with synchronized sBgLock.
+     * 
+     * @param itemId item id in database
+     * @param item ItemInfo object
+     * @param stackTrace stack trace for save exception
+     */
     static void checkItemInfoLocked(
             final long itemId, final ItemInfo item, StackTraceElement[] stackTrace) {
         ItemInfo modelItem = sBgItemsIdMap.get(itemId);
@@ -306,16 +317,14 @@ public class LauncherModel extends BroadcastReceiver {
                         modelShortcut.intent.filterEquals(shortcut.intent) &&
                         modelShortcut.id == shortcut.id &&
                         modelShortcut.itemType == shortcut.itemType &&
-                        modelShortcut.container == shortcut.container &&
-                        modelShortcut.index == shortcut.index) {
+                        modelShortcut.position == shortcut.position) {
                     // For all intents and purposes, this is the same object
                     return;
                 }
             }
 
             // the modelItem needs to match up perfectly with item if our model
-            // is
-            // to be consistent with the database-- for now, just require
+            // is to be consistent with the database-- for now, just require
             // modelItem == item or the equality check above
             String msg = "item: " + ((item != null) ? item.toString() : "null") +
                     "modelItem: " +
@@ -398,18 +407,11 @@ public class LauncherModel extends BroadcastReceiver {
             // Items are added/removed from the corresponding FolderInfo
             // elsewhere, such as in Workspace.onDrop. Here, we just add/remove
             // them from the list of items that are on the desktop, as
-            // appropriate
+            // appropriate.
             ItemInfo modelItem = sBgItemsIdMap.get(itemId);
-            if (modelItem.container == LauncherSettings.Favorites.CONTAINER_DESKTOP) {
-                switch (modelItem.itemType) {
-                    case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
-                    case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
-                        if (!sBgWorkspaceItems.contains(modelItem)) {
-                            sBgWorkspaceItems.add(modelItem);
-                        }
-                        break;
-                    default:
-                        break;
+            if (modelItem.itemType == LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT) {
+                if (!sBgWorkspaceItems.contains(modelItem)) {
+                    sBgWorkspaceItems.add(modelItem);
                 }
             } else {
                 sBgWorkspaceItems.remove(modelItem);
@@ -450,17 +452,14 @@ public class LauncherModel extends BroadcastReceiver {
     }
 
     /**
-     * Move and/or resize item in the DB to a new <container, screen, cellX,
-     * cellY, spanX, spanY>
+     * Move item in the DB to a new position
      */
-    static void modifyItemInDatabase(Context context, final ItemInfo item, final long container,
-            int index) {
-        item.container = container;
-        item.index = index;
+    static void modifyItemInDatabase(Context context, final ItemInfo item, int position) {
+        ShortcutInfo shortcut = (ShortcutInfo) item;
+        shortcut.position = position;
 
         final ContentValues values = new ContentValues();
-        values.put(LauncherSettings.Favorites.CONTAINER, item.container);
-        values.put(LauncherSettings.Favorites.INDEX, item.index);
+        values.put(LauncherSettings.Favorites.POSITION, shortcut.position);
 
         updateItemInDatabaseHelper(context, values, item, "modifyItemInDatabase");
     }
@@ -468,11 +467,11 @@ public class LauncherModel extends BroadcastReceiver {
     /**
      * Update an item to the database in a specified container.
      */
-    static void updateItemInDatabase(Context context, final ItemInfo item) {
+    static void updateShortcutInDatabase(Context context, final ShortcutInfo shortcut) {
         final ContentValues values = new ContentValues();
-        item.onAddToDatabase(values);
-        item.updateValuesWithIndex(values, item.index);
-        updateItemInDatabaseHelper(context, values, item, "updateItemInDatabase");
+        shortcut.onAddToDatabase(values);
+        shortcut.updateValuesWithPosition(values, shortcut.position);
+        updateItemInDatabaseHelper(context, values, shortcut, "updateItemInDatabase");
     }
 
     /**
@@ -505,20 +504,18 @@ public class LauncherModel extends BroadcastReceiver {
         ArrayList<ItemInfo> items = new ArrayList<ItemInfo>();
         final ContentResolver cr = context.getContentResolver();
         Cursor c = cr.query(LauncherSettings.Favorites.CONTENT_URI, new String[] {
-                LauncherSettings.Favorites.ITEM_TYPE, LauncherSettings.Favorites.CONTAINER,
-                LauncherSettings.Favorites.INDEX
+                LauncherSettings.Favorites.ITEM_TYPE,
+                LauncherSettings.Favorites.POSITION
         }, null, null, null);
 
         final int itemTypeIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites.ITEM_TYPE);
-        final int containerIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites.CONTAINER);
-        final int index = c.getColumnIndexOrThrow(LauncherSettings.Favorites.INDEX);
+        final int positionIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites.POSITION);
 
         try {
             while (c.moveToNext()) {
                 ItemInfo item = new ItemInfo();
-                item.container = c.getInt(containerIndex);
                 item.itemType = c.getInt(itemTypeIndex);
-                item.index = c.getInt(index);
+                item.position = c.getInt(positionIndex);
 
                 items.add(item);
             }
@@ -532,64 +529,13 @@ public class LauncherModel extends BroadcastReceiver {
     }
 
     /**
-     * Find a folder in the db, creating the FolderInfo if necessary, and adding
-     * it to folderList.
-     */
-    // FolderInfo getFolderById(Context context, HashMap<Long,FolderInfo>
-    // folderList, long id) {
-    // final ContentResolver cr = context.getContentResolver();
-    // Cursor c = cr.query(LauncherSettings.Favorites.CONTENT_URI, null,
-    // "_id=? and (itemType=? or itemType=?)",
-    // new String[] { String.valueOf(id),
-    // String.valueOf(LauncherSettings.Favorites.ITEM_TYPE_FOLDER)}, null);
-    //
-    // try {
-    // if (c.moveToFirst()) {
-    // final int itemTypeIndex =
-    // c.getColumnIndexOrThrow(LauncherSettings.Favorites.ITEM_TYPE);
-    // final int titleIndex =
-    // c.getColumnIndexOrThrow(LauncherSettings.Favorites.TITLE);
-    // final int containerIndex =
-    // c.getColumnIndexOrThrow(LauncherSettings.Favorites.CONTAINER);
-    // final int screenIndex =
-    // c.getColumnIndexOrThrow(LauncherSettings.Favorites.SCREEN);
-    // final int cellXIndex =
-    // c.getColumnIndexOrThrow(LauncherSettings.Favorites.CELLX);
-    // final int cellYIndex =
-    // c.getColumnIndexOrThrow(LauncherSettings.Favorites.CELLY);
-    //
-    // FolderInfo folderInfo = null;
-    // switch (c.getInt(itemTypeIndex)) {
-    // case LauncherSettings.Favorites.ITEM_TYPE_FOLDER:
-    // folderInfo = findOrMakeFolder(folderList, id);
-    // break;
-    // }
-    //
-    // folderInfo.title = c.getString(titleIndex);
-    // folderInfo.id = id;
-    // folderInfo.container = c.getInt(containerIndex);
-    // folderInfo.screenId = c.getInt(screenIndex);
-    // folderInfo.cellX = c.getInt(cellXIndex);
-    // folderInfo.cellY = c.getInt(cellYIndex);
-    //
-    // return folderInfo;
-    // }
-    // } finally {
-    // c.close();
-    // }
-    //
-    // return null;
-    // }
-
-    /**
      * Add an item to the database in a specified container. Sets the container,
      * screen, cellX and cellY fields of the item. Also assigns an ID to the
      * item.
      */
-    static void addItemToDatabase(Context context, final ItemInfo item, final long container,
-            final int index, final boolean notify) {
-        item.container = container;
-        item.index = index;
+    static void addItemToDatabase(Context context, final ItemInfo item, final int position,
+            final boolean notify) {
+        item.position = position;
 
         final ContentValues values = new ContentValues();
         final ContentResolver cr = context.getContentResolver();
@@ -597,7 +543,7 @@ public class LauncherModel extends BroadcastReceiver {
 
         item.id = LauncherAppState.getLauncherProvider().generateNewItemId();
         values.put(LauncherSettings.Favorites._ID, item.id);
-        item.updateValuesWithIndex(values, item.index);
+        item.updateValues(values, item.position);
 
         Runnable r = new Runnable() {
             public void run() {
@@ -609,11 +555,8 @@ public class LauncherModel extends BroadcastReceiver {
                     checkItemInfoLocked(item.id, item, null);
                     sBgItemsIdMap.put(item.id, item);
                     switch (item.itemType) {
-                        case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
                         case LauncherSettings.Favorites.ITEM_TYPE_SHORTCUT:
-                            if (item.container == LauncherSettings.Favorites.CONTAINER_DESKTOP) {
-                                sBgWorkspaceItems.add(item);
-                            }
+                            sBgWorkspaceItems.add(item);
                             break;
                     }
                 }
@@ -1169,9 +1112,6 @@ public class LauncherModel extends BroadcastReceiver {
             // Make sure the default workspace is loaded, if needed
             LauncherAppState.getLauncherProvider().loadDefaultFavoritesIfNecessary(0);
 
-            // Check if we need to do any upgrade-path logic
-            boolean loadedOldDb = LauncherAppState.getLauncherProvider().justLoadedOldDb();
-
             synchronized (sBgLock) {
                 clearSBgDataStructures();
 
@@ -1183,8 +1123,7 @@ public class LauncherModel extends BroadcastReceiver {
 
                 // +1 for the hotseat (it can be larger than the workspace)
                 // Load workspace in reverse order to ensure that latest items
-                // are loaded first (and
-                // before any earlier duplicates)
+                // are loaded first (and before any earlier duplicates)
                 final HashMap<Long, ItemInfo[][]> occupied = new HashMap<Long, ItemInfo[][]>();
 
                 try {
@@ -1200,18 +1139,13 @@ public class LauncherModel extends BroadcastReceiver {
                             LauncherSettings.Favorites.ICON_PACKAGE);
                     final int iconResourceIndex = c.getColumnIndexOrThrow(
                             LauncherSettings.Favorites.ICON_RESOURCE);
-                    final int containerIndex = c.getColumnIndexOrThrow(
-                            LauncherSettings.Favorites.CONTAINER);
                     final int itemTypeIndex = c.getColumnIndexOrThrow(
                             LauncherSettings.Favorites.ITEM_TYPE);
-                    final int index = c.getColumnIndexOrThrow(
-                            LauncherSettings.Favorites.INDEX);
-                    final int uriIndex =
-                            c.getColumnIndexOrThrow(LauncherSettings.Favorites.URI);
+                    final int positionIndex = c.getColumnIndexOrThrow(
+                            LauncherSettings.Favorites.POSITION);
 
                     ShortcutInfo info;
                     String intentDescription;
-                    int container;
                     long id;
                     Intent intent;
 
@@ -1219,6 +1153,7 @@ public class LauncherModel extends BroadcastReceiver {
                         AtomicBoolean deleteOnItemOverlap = new AtomicBoolean(false);
                         try {
                             int itemType = c.getInt(itemTypeIndex);
+                            int position = c.getInt(positionIndex);
 
                             switch (itemType) {
                                 case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
@@ -1284,27 +1219,23 @@ public class LauncherModel extends BroadcastReceiver {
                                     if (info != null) {
                                         info.id = id;
                                         info.intent = intent;
-                                        container = c.getInt(containerIndex);
-                                        info.container = container;
-                                        info.index = index;
+                                        info.position = position;
                                         // Skip loading items that are out of
                                         // bounds
-                                        if (container == LauncherSettings.Favorites.CONTAINER_DESKTOP) {
-                                            if (checkItemDimensions(info)) {
-                                                Logger.addDumpLog(TAG,
-                                                        "Skipped loading out of bounds shortcut: "
-                                                                + info + ", " + 4/*
-                                                                                  * grid
-                                                                                  * .
-                                                                                  * numColumns
-                                                                                  */+ "x" + 4/*
-                                                                                              * grid
-                                                                                              * .
-                                                                                              * numRows
-                                                                                              */,
-                                                        true);
-                                                continue;
-                                            }
+                                        if (checkItemDimensions(info)) {
+                                            Logger.addDumpLog(TAG,
+                                                    "Skipped loading out of bounds shortcut: "
+                                                            + info + ", " + 4/*
+                                                                              * grid
+                                                                              * .
+                                                                              * numColumns
+                                                                              */+ "x" + 4/*
+                                                                                          * grid
+                                                                                          * .
+                                                                                          * numRows
+                                                                                          */,
+                                                    true);
+                                            continue;
                                         }
                                         // check & update map of what's occupied
                                         deleteOnItemOverlap.set(false);
@@ -1315,13 +1246,7 @@ public class LauncherModel extends BroadcastReceiver {
                                             break;
                                         }
 
-                                        switch (container) {
-                                            case LauncherSettings.Favorites.CONTAINER_DESKTOP:
-                                                sBgWorkspaceItems.add(info);
-                                                break;
-                                            default:
-                                                break;
-                                        }
+                                        sBgWorkspaceItems.add(info);
                                         sBgItemsIdMap.put(info.id, info);
 
                                         // now that we've loaded everything
@@ -1368,7 +1293,7 @@ public class LauncherModel extends BroadcastReceiver {
                     }
                 }
 
-                if (loadedOldDb) {
+                if (true) {
                     // Update the max item id after we load an old db
                     long maxItemId = 0;
                     // If we're importing we use the old screen order.
@@ -1384,7 +1309,7 @@ public class LauncherModel extends BroadcastReceiver {
                     Logger.debug(TAG, "workspace layout: ");
                 }
             }
-            return loadedOldDb;
+            return false;
         }
 
         /**
@@ -1392,11 +1317,14 @@ public class LauncherModel extends BroadcastReceiver {
          * left to right)
          */
         private void sortWorkspaceItemsSpatially(ArrayList<ItemInfo> workspaceItems) {
-            // Sort items by index.
+            // Sort items by position.
             Collections.sort(workspaceItems, new Comparator<ItemInfo>() {
                 @Override
                 public int compare(ItemInfo lhs, ItemInfo rhs) {
-                    return (int) (lhs.index - rhs.index);
+                    // There are only ShortcutInfo in workspaceItems.
+                    ShortcutInfo left = (ShortcutInfo) lhs;
+                    ShortcutInfo right = (ShortcutInfo) rhs;
+                    return (int) (left.position - right.position);
                 }
             });
         }
@@ -1668,8 +1596,6 @@ public class LauncherModel extends BroadcastReceiver {
                         if (DEBUG_LOADERS)
                             Log.d(TAG, "mAllAppsList.updatePackage " + packages[i]);
                         mBgAllAppsList.updatePackage(context, packages[i]);
-                        // WidgetPreviewLoader.removePackageFromDb(
-                        // mApp.getWidgetPreviewCacheDb(), packages[i]);
                     }
                     break;
                 case OP_REMOVE:
@@ -1678,8 +1604,6 @@ public class LauncherModel extends BroadcastReceiver {
                         if (DEBUG_LOADERS)
                             Log.d(TAG, "mAllAppsList.removePackage " + packages[i]);
                         mBgAllAppsList.removePackage(packages[i]);
-                        // WidgetPreviewLoader.removePackageFromDb(
-                        // mApp.getWidgetPreviewCacheDb(), packages[i]);
                     }
                     break;
             }
@@ -1952,6 +1876,16 @@ public class LauncherModel extends BroadcastReceiver {
         return new ArrayList<ItemInfo>(filtered);
     }
 
+    /**
+     * Update an item to the database in a specified container.
+     */
+    static void updateItemInDatabase(Context context, final ItemInfo item) {
+        final ContentValues values = new ContentValues();
+        item.onAddToDatabase(values);
+        item.updateValues(values, item.position);
+        updateItemInDatabaseHelper(context, values, item, "updateItemInDatabase");
+    }
+
     private ArrayList<ItemInfo> getItemInfoForPackageName(final String pn) {
         ItemInfoFilter filter = new ItemInfoFilter() {
             @Override
@@ -2069,12 +2003,12 @@ public class LauncherModel extends BroadcastReceiver {
         }
     }
 
-    ShortcutInfo addShortcut(Context context, Intent data, long container, int index, boolean notify) {
+    ShortcutInfo addShortcut(Context context, Intent data, int position, boolean notify) {
         final ShortcutInfo info = infoFromShortcutIntent(context, data, null);
         if (info == null) {
             return null;
         }
-        addItemToDatabase(context, info, container, index, notify);
+        addItemToDatabase(context, info, position, notify);
 
         return info;
     }
@@ -2188,7 +2122,7 @@ public class LauncherModel extends BroadcastReceiver {
             Log.d(TAG, "going to save icon bitmap for info=" + info);
             // This is slower than is ideal, but this only happens once
             // or when the app is updated with a new icon.
-            updateItemInDatabase(context, info);
+            updateShortcutInDatabase(context, info);
         }
     }
 
