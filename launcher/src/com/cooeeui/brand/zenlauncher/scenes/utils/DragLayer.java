@@ -1,7 +1,7 @@
 
-package com.cooeeui.brand.zenlauncher;
+package com.cooeeui.brand.zenlauncher.scenes.utils;
 
-import com.cooeeui.brand.zenlauncher.debug.Logger;
+import com.cooeeui.brand.zenlauncher.Launcher;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -19,7 +19,6 @@ public class DragLayer extends FrameLayout {
 
     public DragLayer(Context context, AttributeSet attrs) {
         super(context, attrs);
-
     }
 
     public void setup(Launcher launcher, DragController controller) {
@@ -29,13 +28,11 @@ public class DragLayer extends FrameLayout {
 
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
-        Logger.error("launcher123", "dispatchKeyEvent " + mDragController.dragging());
         return mDragController.dispatchKeyEvent(event) || super.dispatchKeyEvent(event);
     }
 
     @Override
     public boolean onInterceptTouchEvent(MotionEvent ev) {
-        Logger.error("launcher123", "onInterceptTouchEvent " + mDragController.dragging());
         return mDragController.onInterceptTouchEvent(ev);
     }
 
@@ -47,14 +44,11 @@ public class DragLayer extends FrameLayout {
 
     @Override
     public boolean onRequestSendAccessibilityEvent(View child, AccessibilityEvent event) {
-
         return super.onRequestSendAccessibilityEvent(child, event);
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent ev) {
-        Logger.error("launcher123", "onTouchEvent " + mDragController.dragging());
-
         return mDragController.onTouchEvent(ev);
     }
 

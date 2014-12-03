@@ -1,5 +1,8 @@
 
-package com.cooeeui.brand.zenlauncher;
+package com.cooeeui.brand.zenlauncher.scenes.ui;
+
+import com.cooeeui.brand.zenlauncher.Launcher;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;

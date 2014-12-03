@@ -10,17 +10,19 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.Button;
 
 import com.cooeeui.brand.zenlauncher.apps.AppInfo;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
+import com.cooeeui.brand.zenlauncher.scenes.LoadingView;
+import com.cooeeui.brand.zenlauncher.scenes.Workspace;
+import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer;
 
 public class Launcher extends Activity implements OnLongClickListener, LauncherModel.Callbacks {
 
@@ -34,8 +36,6 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
     private Workspace mWorkspace;
     private DragLayer mDragLayer;
     private DragController mDragController;
-
-    Button mBtn;
 
     Dialog mLoading;
 
@@ -60,31 +60,16 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
         mDragLayer = (DragLayer) findViewById(R.id.drag_layer);
         mWorkspace = (Workspace) mDragLayer.findViewById(R.id.workspace);
         mDragLayer.setup(this, mDragController);
-        mWorkspace.setup(mDragController);
+        mWorkspace.setup(this, mDragController);
 
         mWorkspace.setOnLongClickListener(this);
 
-        mBtn = (Button) mWorkspace.findViewById(R.id.btn);
-        mBtn.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                // TODO Auto-generated method stub
-                Log.e("launcher123", "onClick button");
-                mWorkspace.startDrag();
-            }
-        });
-
-        showLoadingView();
+        // showLoadingView();
 
         mModel.startLoader(true);
     }
 
     void showLoadingView() {
-        // mLoading = new AlertDialog.Builder(this).setView(new
-        // LoadingView(this)).create();
-        // mLoading.show();
-
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         mLoading = new Dialog(this, R.style.LoadingViewStyle);
         mLoading.setContentView(new LoadingView(this), params);
@@ -102,25 +87,26 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
 
     @Override
     protected void onPause() {
-        // TODO Auto-generated method stub
         super.onPause();
-        Log.e("launcher123", "--- onPause ---");
 
-        closeLoadingView();
+        mDragController.cancelDrag();
+        // closeLoadingView();
     }
 
     @Override
     protected void onResume() {
-        // TODO Auto-generated method stub
         super.onResume();
-        Log.e("launcher123", "--- onResume ---");
     }
 
     @Override
     public boolean onLongClick(View v) {
-        // TODO Auto-generated method stub
-        Log.e("launcher123", "onlongclick launcher");
-        mWorkspace.startDrag();
+        if (v instanceof Workspace) {
+            // mWorkspace.startDrag();
+        } else if (v instanceof BubbleView) {
+            BubbleView view = (BubbleView) v;
+            // mWorkspace.removeIcon(view);
+            mWorkspace.startDrag(view);
+        }
         return true;
     }
 
@@ -130,17 +116,19 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
 
     @Override
     public void onBackPressed() {
-        // TODO Auto-generated method stub
-        int childCount = mDragLayer.getChildCount();
+        int childCount = mWorkspace.getChildCount();
         for (int i = 0; i < childCount; i++) {
-            View v = mDragLayer.getChildAt(i);
-            if (v instanceof DragView) {
-                DragView dv = (DragView) v;
-                dv.remove();
+            View v = mWorkspace.getChildAt(i);
+            if (v instanceof BubbleView) {
+                BubbleView bv = (BubbleView) v;
+                mWorkspace.removeView(bv);
+                mWorkspace.mApps.remove(bv);
+                mDragController.removeDropTarget(bv);
+                mWorkspace.update();
                 break;
             }
         }
-        Log.e("launcher123", "onBackPressed launcher childCount = " + childCount);
+
         // super.onBackPressed();
     }
 
@@ -152,7 +140,6 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
 
     @Override
     public boolean setLoadOnResume() {
-        // TODO Auto-generated method stub
         return false;
     }
 
