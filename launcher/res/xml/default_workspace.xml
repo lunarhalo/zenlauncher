@@ -1,3 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
-<favorites xmlns:launcher="http://schemas.android.com/apk/res-auto/com.cooee.zenlauncher">
+<favorites xmlns:launcher="http://schemas.android.com/apk/res-auto/com.cooee.zenlauncher" >
+
+    <favorite
+        launcher:iconName="camera"
+        launcher:intent="intent:#Intent;action=android.intent.action.MAIN;component=com.android.gallery3d/com.android.camera.CameraLauncher;end"
+        launcher:position="0" />
+    <favorite
+        launcher:iconName="contacts"
+        launcher:intent="intent:content://com.android.contacts/contacts#Intent;action=android.intent.action.VIEW;end"
+        launcher:position="1" />
+    <favorite
+        launcher:iconName="setting"
+        launcher:intent="intent:#Intent;action=android.intent.action.MAIN;component=com.android.settings/com.android.settings.Settings;end"
+        launcher:position="2" />
+    <favorite
+        launcher:iconName="dial"
+        launcher:intent="intent:#Intent;action=android.intent.action.DIAL;end"
+        launcher:position="3" />
+    <favorite
+        launcher:iconName="sms"
+        launcher:intent="intent:#Intent;action=android.intent.action.MAIN;type=vnd.android-dir/mms-sms;end"
+        launcher:position="4" />
+    <favorite
+        launcher:iconName="browser"
+        launcher:intent="*BROWSER*"
+        launcher:position="5" />
+
 </favorites>

@@ -179,6 +179,7 @@ public class LauncherProvider extends ContentProvider {
 
     /**
      * Delete a shortcut from table favorites by id.
+     * 
      * @param db
      * @param id id of shortcut
      */
@@ -287,6 +288,15 @@ public class LauncherProvider extends ContentProvider {
                     "opened INTEGER," +
                     "modified INTEGER NOT NULL DEFAULT 0" +
                     ");");
+            setFlagEmptyDbCreated();
+        }
+
+        private void setFlagEmptyDbCreated() {
+            String spKey = LauncherAppState.getSharedPreferencesKey();
+            SharedPreferences sp = mContext.getSharedPreferences(spKey, Context.MODE_PRIVATE);
+            SharedPreferences.Editor editor = sp.edit();
+            editor.putBoolean(EMPTY_DATABASE_CREATED, true);
+            editor.commit();
         }
 
         @Override
@@ -372,20 +382,16 @@ public class LauncherProvider extends ContentProvider {
             Intent intent = new Intent(Intent.ACTION_MAIN, null);
             intent.addCategory(Intent.CATEGORY_LAUNCHER);
             ContentValues values = new ContentValues();
-
             if (LOGD)
                 Log.v(TAG,
                         String.format("Loading favorites from resid=0x%08x", workspaceResourceId));
 
-            PackageManager packageManager = mContext.getPackageManager();
             int i = 0;
             try {
                 XmlResourceParser parser = mContext.getResources().getXml(workspaceResourceId);
                 AttributeSet attrs = Xml.asAttributeSet(parser);
                 beginDocument(parser, TAG_FAVORITES);
-
                 final int depth = parser.getDepth();
-
                 int type;
                 while (((type = parser.next()) != XmlPullParser.END_TAG ||
                         parser.getDepth() > depth) && type != XmlPullParser.END_DOCUMENT) {
@@ -393,10 +399,8 @@ public class LauncherProvider extends ContentProvider {
                     if (type != XmlPullParser.START_TAG) {
                         continue;
                     }
-
                     boolean added = false;
                     final String name = parser.getName();
-
                     // Assuming it's a <favorite> at this point
                     TypedArray a = mContext.obtainStyledAttributes(attrs, R.styleable.Favorite);
 
@@ -413,11 +417,10 @@ public class LauncherProvider extends ContentProvider {
                                 ("%" + (2 * (depth + 1)) + "s<%s%s pos=%s>"),
                                 "", name,
                                 (something == null ? "" : (" \"" + something + "\"")),
-                                position));
+                                ""));
                     }
-
                     if (TAG_FAVORITE.equals(name)) {
-                        long id = addAppShortcut(db, values, a, packageManager, intent);
+                        long id = addAppShortcut(db, values, a);
                         added = id >= 0;
                     } else if (TAG_SHORTCUT.equals(name)) {
                         long id = addUriShortcut(db, values, a);
@@ -434,48 +437,27 @@ public class LauncherProvider extends ContentProvider {
             } catch (RuntimeException e) {
                 Log.w(TAG, "Got exception parsing favorites.", e);
             }
-
             // Update the max item id after we have loaded the database
             if (mMaxItemId == -1) {
                 mMaxItemId = initializeMaxItemId(db);
             }
-
             return i;
         }
 
-        private long addAppShortcut(SQLiteDatabase db, ContentValues values, TypedArray a,
-                PackageManager packageManager, Intent intent) {
+        private long addAppShortcut(SQLiteDatabase db, ContentValues values, TypedArray a) {
+
             long id = -1;
-            ActivityInfo info;
-            String packageName = a.getString(R.styleable.Favorite_packageName);
-            String className = a.getString(R.styleable.Favorite_className);
-            try {
-                ComponentName cn;
-                try {
-                    cn = new ComponentName(packageName, className);
-                    info = packageManager.getActivityInfo(cn, 0);
-                } catch (PackageManager.NameNotFoundException nnfe) {
-                    String[] packages = packageManager.currentToCanonicalPackageNames(
-                            new String[] {
-                                    packageName
-                            });
-                    cn = new ComponentName(packages[0], className);
-                    info = packageManager.getActivityInfo(cn, 0);
-                }
-                id = generateNewItemId();
-                intent.setComponent(cn);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
-                        Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
-                values.put(Favorites.INTENT, intent.toUri(0));
-                values.put(Favorites.TITLE, info.loadLabel(packageManager).toString());
-                values.put(Favorites.ITEM_TYPE, Favorites.ITEM_TYPE_APPLICATION);
-                values.put(Favorites._ID, generateNewItemId());
-                if (dbInsertAndCheck(this, db, TABLE_FAVORITES, null, values) < 0) {
-                    return -1;
-                }
-            } catch (PackageManager.NameNotFoundException e) {
-                Log.w(TAG, "Unable to add favorite: " + packageName +
-                        "/" + className, e);
+            String intentName = a.getString(R.styleable.Favorite_intent);
+            String position = a.getString(R.styleable.Favorite_position);
+            String iconName = a.getString(R.styleable.Favorite_iconName);
+            String pkgName = mContext.getPackageName();
+            values.put(Favorites.ICON_PACKAGE, pkgName);
+            values.put(Favorites.ICON_RESOURCE, iconName);
+            values.put(Favorites.POSITION, position);
+            values.put(Favorites.INTENT, intentName);
+            values.put(Favorites._ID, generateNewItemId());
+            if (dbInsertAndCheck(this, db, TABLE_FAVORITES, null, values) < 0) {
+                return -1;
             }
             return id;
         }
