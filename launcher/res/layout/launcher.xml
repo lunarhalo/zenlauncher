@@ -4,17 +4,17 @@
     android:layout_height="match_parent"
     android:background="@drawable/workspace_bg" >
 
-    <com.cooeeui.brand.zenlauncher.DragLayer
+    <com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer
         android:id="@+id/drag_layer"
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
-        <com.cooeeui.brand.zenlauncher.Workspace
+        <com.cooeeui.brand.zenlauncher.scenes.Workspace
             android:id="@+id/workspace"
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
 
-        </com.cooeeui.brand.zenlauncher.Workspace>
-    </com.cooeeui.brand.zenlauncher.DragLayer>
+        </com.cooeeui.brand.zenlauncher.scenes.Workspace>
+    </com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer>
 
 </FrameLayout>

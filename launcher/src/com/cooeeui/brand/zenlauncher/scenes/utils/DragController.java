@@ -1,7 +1,10 @@
 
-package com.cooeeui.brand.zenlauncher;
+package com.cooeeui.brand.zenlauncher.scenes.utils;
 
 import java.util.ArrayList;
+
+import com.cooeeui.brand.zenlauncher.Launcher;
+import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 
 import android.graphics.Rect;
 import android.view.HapticFeedbackConstants;

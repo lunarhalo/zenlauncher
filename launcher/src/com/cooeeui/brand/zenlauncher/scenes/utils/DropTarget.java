@@ -1,5 +1,7 @@
 
-package com.cooeeui.brand.zenlauncher;
+package com.cooeeui.brand.zenlauncher.scenes.utils;
+
+import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 
 import android.graphics.Rect;
 

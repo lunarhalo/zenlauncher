@@ -18,6 +18,11 @@ import com.cooeeui.brand.zenlauncher.apps.AppInfo;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
+import com.cooeeui.brand.zenlauncher.scenes.LoadingView;
+import com.cooeeui.brand.zenlauncher.scenes.Workspace;
+import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer;
 
 public class Launcher extends Activity implements OnLongClickListener, LauncherModel.Callbacks {
 
@@ -82,7 +87,6 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
 
     @Override
     protected void onPause() {
-        // TODO Auto-generated method stub
         super.onPause();
 
         mDragController.cancelDrag();
@@ -91,13 +95,11 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
 
     @Override
     protected void onResume() {
-        // TODO Auto-generated method stub
         super.onResume();
     }
 
     @Override
     public boolean onLongClick(View v) {
-        // TODO Auto-generated method stub
         if (v instanceof Workspace) {
             // mWorkspace.startDrag();
         } else if (v instanceof BubbleView) {
@@ -114,7 +116,6 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
 
     @Override
     public void onBackPressed() {
-        // TODO Auto-generated method stub
         int childCount = mWorkspace.getChildCount();
         for (int i = 0; i < childCount; i++) {
             View v = mWorkspace.getChildAt(i);
@@ -139,7 +140,6 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
 
     @Override
     public boolean setLoadOnResume() {
-        // TODO Auto-generated method stub
         return false;
     }
 

@@ -1,5 +1,5 @@
 
-package com.cooeeui.brand.zenlauncher;
+package com.cooeeui.brand.zenlauncher.scenes;
 
 import java.util.ArrayList;
 
@@ -11,8 +11,14 @@ import android.util.AttributeSet;
 import android.util.DisplayMetrics;
 import android.widget.FrameLayout;
 
-import com.cooeeui.brand.zenlauncher.DropTarget.DragObject;
+import com.cooeeui.brand.zenlauncher.Launcher;
+import com.cooeeui.brand.zenlauncher.LauncherAppState;
+import com.cooeeui.brand.zenlauncher.R;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
+import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DragSource;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DropTarget.DragObject;
 
 public class Workspace extends FrameLayout implements DragSource {
 
@@ -36,22 +42,19 @@ public class Workspace extends FrameLayout implements DragSource {
             R.drawable.icon9,
     };
 
-    ArrayList<BubbleView> mApps = new ArrayList<BubbleView>();
+    public ArrayList<BubbleView> mApps = new ArrayList<BubbleView>();
     BubbleView mSelected;
 
     public Workspace(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
-        // TODO Auto-generated constructor stub
     }
 
     public Workspace(Context context, AttributeSet attrs) {
         super(context, attrs);
-        // TODO Auto-generated constructor stub
     }
 
     public Workspace(Context context) {
         super(context);
-        // TODO Auto-generated constructor stub
     }
 
     public void setup(Launcher launcher, DragController controller) {
@@ -151,7 +154,7 @@ public class Workspace extends FrameLayout implements DragSource {
         }
     }
 
-    void update() {
+    public void update() {
         int count = mApps.size();
 
         float startX = mMidPoint[0];
@@ -196,7 +199,7 @@ public class Workspace extends FrameLayout implements DragSource {
         setMeasuredDimension(widthSize, heightSize);
     }
 
-    void startDrag(BubbleView view) {
+    public void startDrag(BubbleView view) {
         removeView(view);
         mDragController.removeDropTarget(view);
         mDragController.startDrag(this, view);
@@ -204,8 +207,6 @@ public class Workspace extends FrameLayout implements DragSource {
 
     @Override
     public void onDropCompleted(BubbleView target, DragObject d) {
-        // TODO Auto-generated method stub
-
         if (target != null) {
             int tIndex = mApps.indexOf(target);
             int sIndex = mApps.indexOf(d.dragView);

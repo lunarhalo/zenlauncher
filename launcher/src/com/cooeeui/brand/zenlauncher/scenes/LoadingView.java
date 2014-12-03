@@ -1,5 +1,5 @@
 
-package com.cooeeui.brand.zenlauncher;
+package com.cooeeui.brand.zenlauncher.scenes;
 
 import android.content.Context;
 import android.graphics.Canvas;

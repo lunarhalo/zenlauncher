@@ -153,7 +153,7 @@ public class LauncherAppState {
         return mModel;
     }
 
-    IconCache getIconCache() {
+    public IconCache getIconCache() {
         return mIconCache;
     }
 
