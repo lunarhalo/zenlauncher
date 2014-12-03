@@ -62,15 +62,12 @@ public class LauncherProvider extends ContentProvider {
     static final String TABLE_FAVORITES = "favorites";
     static final String TABLE_APPS = "apps";
     static final String PARAMETER_NOTIFY = "notify";
-    static final String UPGRADED_FROM_OLD_DATABASE =
-            "UPGRADED_FROM_OLD_DATABASE";
     static final String EMPTY_DATABASE_CREATED =
             "EMPTY_DATABASE_CREATED";
     static final String DEFAULT_WORKSPACE_RESOURCE_ID =
             "DEFAULT_WORKSPACE_RESOURCE_ID";
 
     private DatabaseHelper mOpenHelper;
-    private static boolean sJustLoadedFromOldDb;
 
     @Override
     public boolean onCreate() {
@@ -103,20 +100,6 @@ public class LauncherProvider extends ContentProvider {
         result.setNotificationUri(getContext().getContentResolver(), uri);
 
         return result;
-    }
-
-    private static long dbInsertAndCheck(DatabaseHelper helper,
-            SQLiteDatabase db, String table, String nullColumnHack, ContentValues values) {
-        if (!values.containsKey(LauncherSettings.Favorites._ID)) {
-            throw new RuntimeException("Error: attempting to add item without specifying an id");
-        }
-        return db.insert(table, nullColumnHack, values);
-    }
-
-    private static void deleteId(SQLiteDatabase db, long id) {
-        Uri uri = LauncherSettings.Favorites.getContentUri(id, false);
-        SqlArguments args = new SqlArguments(uri, null, null);
-        db.delete(args.table, args.where, args.args);
     }
 
     @Override
@@ -183,6 +166,28 @@ public class LauncherProvider extends ContentProvider {
         return count;
     }
 
+    /**
+     * Insert values to database with _id column check.
+     */
+    private static long dbInsertAndCheck(DatabaseHelper helper,
+            SQLiteDatabase db, String table, String nullColumnHack, ContentValues values) {
+        if (!values.containsKey(LauncherSettings.Favorites._ID)) {
+            throw new RuntimeException("Error: attempting to add item without specifying an id");
+        }
+        return db.insert(table, nullColumnHack, values);
+    }
+
+    /**
+     * Delete a shortcut from table favorites by id.
+     * @param db
+     * @param id id of shortcut
+     */
+    private static void deleteId(SQLiteDatabase db, long id) {
+        Uri uri = LauncherSettings.Favorites.getContentUri(id, false);
+        SqlArguments args = new SqlArguments(uri, null, null);
+        db.delete(args.table, args.where, args.args);
+    }
+
     private void sendNotify(Uri uri) {
         String notify = uri.getQueryParameter(PARAMETER_NOTIFY);
         if (notify == null || "true".equals(notify)) {
@@ -200,26 +205,6 @@ public class LauncherProvider extends ContentProvider {
 
     public void updateMaxItemId(long id) {
         mOpenHelper.updateMaxItemId(id);
-    }
-
-    /**
-     * @param Should we load the old db for upgrade? first run only.
-     */
-    synchronized public boolean justLoadedOldDb() {
-        String spKey = LauncherAppState.getSharedPreferencesKey();
-        SharedPreferences sp = getContext().getSharedPreferences(spKey, Context.MODE_PRIVATE);
-
-        boolean loadedOldDb = false || sJustLoadedFromOldDb;
-
-        sJustLoadedFromOldDb = false;
-        if (sp.getBoolean(UPGRADED_FROM_OLD_DATABASE, false)) {
-
-            SharedPreferences.Editor editor = sp.edit();
-            editor.remove(UPGRADED_FROM_OLD_DATABASE);
-            editor.commit();
-            loadedOldDb = true;
-        }
-        return loadedOldDb;
     }
 
     /**
@@ -246,13 +231,8 @@ public class LauncherProvider extends ContentProvider {
             }
 
             mOpenHelper.loadFavorites(mOpenHelper.getWritableDatabase(), workspaceResId);
-            mOpenHelper.setFlagJustLoadedOldDb();
             editor.commit();
         }
-    }
-
-    private static interface ContentValuesCallback {
-        public void onRow(ContentValues values);
     }
 
     private static class DatabaseHelper extends SQLiteOpenHelper {
@@ -307,139 +287,6 @@ public class LauncherProvider extends ContentProvider {
                     "opened INTEGER," +
                     "modified INTEGER NOT NULL DEFAULT 0" +
                     ");");
-
-            // Try converting the old database
-            ContentValuesCallback permuteScreensCb = new ContentValuesCallback() {
-                public void onRow(ContentValues values) {
-                    // The database is the first version, Do nothing.
-                }
-            };
-            Uri uri = Uri.parse("content://" + Settings.AUTHORITY +
-                    "/old_favorites?notify=true");
-            if (!convertDatabase(db, uri, permuteScreensCb, true)) {
-                // If we fail, then set a flag to load the default workspace
-                setFlagEmptyDbCreated();
-                return;
-            }
-            // Right now, in non-default workspace cases, we want to run the
-            // final upgrade code (ie. to fix workspace screen indices -> ids,
-            // etc.), so set that flag too.
-            setFlagJustLoadedOldDb();
-        }
-
-        private void setFlagJustLoadedOldDb() {
-            String spKey = LauncherAppState.getSharedPreferencesKey();
-            SharedPreferences sp = mContext.getSharedPreferences(spKey, Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sp.edit();
-            editor.putBoolean(UPGRADED_FROM_OLD_DATABASE, true);
-            editor.putBoolean(EMPTY_DATABASE_CREATED, false);
-            editor.commit();
-        }
-
-        private void setFlagEmptyDbCreated() {
-            String spKey = LauncherAppState.getSharedPreferencesKey();
-            SharedPreferences sp = mContext.getSharedPreferences(spKey, Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sp.edit();
-            editor.putBoolean(EMPTY_DATABASE_CREATED, true);
-            editor.putBoolean(UPGRADED_FROM_OLD_DATABASE, false);
-            editor.commit();
-        }
-
-        private boolean convertDatabase(SQLiteDatabase db, Uri uri,
-                ContentValuesCallback cb, boolean deleteRows) {
-            if (LOGD)
-                Log.d(TAG, "converting database from an older format, but not onUpgrade");
-            boolean converted = false;
-
-            final ContentResolver resolver = mContext.getContentResolver();
-            Cursor cursor = null;
-
-            try {
-                cursor = resolver.query(uri, null, null, null, null);
-            } catch (Exception e) {
-                // Ignore
-            }
-
-            // We already have a favorites database in the old provider
-            if (cursor != null) {
-                try {
-                    if (cursor.getCount() > 0) {
-                        converted = copyFromCursor(db, cursor, cb) > 0;
-                        if (converted && deleteRows) {
-                            resolver.delete(uri, null, null);
-                        }
-                    }
-                } finally {
-                    cursor.close();
-                }
-            }
-
-            if (converted) {
-                // Update max item id
-                mMaxItemId = initializeMaxItemId(db);
-                if (LOGD)
-                    Log.d(TAG, "mMaxItemId: " + mMaxItemId);
-            }
-
-            return converted;
-        }
-
-        private int copyFromCursor(SQLiteDatabase db, Cursor c, ContentValuesCallback cb) {
-            final int idIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites._ID);
-            final int intentIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites.INTENT);
-            final int titleIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites.TITLE);
-            final int iconTypeIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites.ICON_TYPE);
-            final int iconIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites.ICON);
-            final int iconPackageIndex = c
-                    .getColumnIndexOrThrow(LauncherSettings.Favorites.ICON_PACKAGE);
-            final int iconResourceIndex = c
-                    .getColumnIndexOrThrow(LauncherSettings.Favorites.ICON_RESOURCE);
-            final int containerIndex = c
-                    .getColumnIndexOrThrow(LauncherSettings.Favorites.CONTAINER);
-            final int itemTypeIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites.ITEM_TYPE);
-            final int index = c.getColumnIndexOrThrow(LauncherSettings.Favorites.INDEX);
-            final int uriIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites.URI);
-
-            ContentValues[] rows = new ContentValues[c.getCount()];
-            int i = 0;
-            while (c.moveToNext()) {
-                ContentValues values = new ContentValues(c.getColumnCount());
-                values.put(LauncherSettings.Favorites._ID, c.getLong(idIndex));
-                values.put(LauncherSettings.Favorites.INTENT, c.getString(intentIndex));
-                values.put(LauncherSettings.Favorites.TITLE, c.getString(titleIndex));
-                values.put(LauncherSettings.Favorites.ICON_TYPE, c.getInt(iconTypeIndex));
-                values.put(LauncherSettings.Favorites.ICON, c.getBlob(iconIndex));
-                values.put(LauncherSettings.Favorites.ICON_PACKAGE, c.getString(iconPackageIndex));
-                values.put(LauncherSettings.Favorites.ICON_RESOURCE, c.getString(iconResourceIndex));
-                values.put(LauncherSettings.Favorites.CONTAINER, c.getInt(containerIndex));
-                values.put(LauncherSettings.Favorites.ITEM_TYPE, c.getInt(itemTypeIndex));
-                values.put(LauncherSettings.Favorites.INDEX, c.getInt(index));
-                values.put(LauncherSettings.Favorites.URI, c.getString(uriIndex));
-                if (cb != null) {
-                    cb.onRow(values);
-                }
-                rows[i++] = values;
-            }
-
-            int total = 0;
-            if (i > 0) {
-                db.beginTransaction();
-                try {
-                    int numValues = rows.length;
-                    for (i = 0; i < numValues; i++) {
-                        if (dbInsertAndCheck(this, db, TABLE_FAVORITES, null, rows[i]) < 0) {
-                            return 0;
-                        } else {
-                            total++;
-                        }
-                    }
-                    db.setTransactionSuccessful();
-                } finally {
-                    db.endTransaction();
-                }
-            }
-
-            return total;
         }
 
         @Override
@@ -518,6 +365,8 @@ public class LauncherProvider extends ContentProvider {
          * Loads the default set of favorite packages from an xml file.
          * 
          * @param db The database to write the values into
+         * @param workspaceResourceId the xml resource id, chould not be 0
+         * @return the item count be loaded
          */
         private int loadFavorites(SQLiteDatabase db, int workspaceResourceId) {
             Intent intent = new Intent(Intent.ACTION_MAIN, null);
@@ -551,26 +400,20 @@ public class LauncherProvider extends ContentProvider {
                     // Assuming it's a <favorite> at this point
                     TypedArray a = mContext.obtainStyledAttributes(attrs, R.styleable.Favorite);
 
-                    long container = LauncherSettings.Favorites.CONTAINER_DESKTOP;
-                    if (a.hasValue(R.styleable.Favorite_container)) {
-                        container = Long.valueOf(a.getString(R.styleable.Favorite_container));
-                    }
-
-                    String index = a.getString(R.styleable.Favorite_index);
+                    String position = a.getString(R.styleable.Favorite_position);
 
                     values.clear();
-                    values.put(LauncherSettings.Favorites.CONTAINER, container);
-                    values.put(LauncherSettings.Favorites.INDEX, index);
+                    values.put(LauncherSettings.Favorites.POSITION, position);
 
                     if (LOGD) {
                         final String title = a.getString(R.styleable.Favorite_title);
                         final String pkg = a.getString(R.styleable.Favorite_packageName);
                         final String something = title != null ? title : pkg;
                         Log.v(TAG, String.format(
-                                ("%" + (2 * (depth + 1)) + "s<%s%s c=%d i=%s>"),
+                                ("%" + (2 * (depth + 1)) + "s<%s%s pos=%s>"),
                                 "", name,
                                 (something == null ? "" : (" \"" + something + "\"")),
-                                container, index));
+                                position));
                     }
 
                     if (TAG_FAVORITE.equals(name)) {

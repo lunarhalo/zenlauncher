@@ -139,8 +139,7 @@ public class LauncherAppState {
         @Override
         public void onChange(boolean selfChange) {
             // If the database has ever changed, then we really need to force a
-            // reload of the
-            // workspace on the next load
+            // reload of the workspace on the next load
             mModel.resetLoadedState(false, true);
             mModel.startLoaderFromBackground();
         }
