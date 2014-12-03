@@ -115,7 +115,7 @@ public class Workspace extends FrameLayout implements DragSource {
         mIconSize = metrics.widthPixels * 96 / 720;
         mPadding = metrics.widthPixels * 36 / 720;
         mMidPoint[0] = metrics.widthPixels * 180 / 720;
-        mMidPoint[1] = metrics.heightPixels * 832 / 1280;
+        mMidPoint[1] = metrics.heightPixels - mIconSize * 4 - mPadding * 2;
 
         int count = 9;
 
