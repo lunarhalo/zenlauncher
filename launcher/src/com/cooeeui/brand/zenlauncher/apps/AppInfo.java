@@ -37,33 +37,60 @@ public class AppInfo extends ItemInfo {
     private static final String TAG = "ZenLauncher.AppInfo";
 
     /**
-     * The intent used to start the application.
-     */
-    Intent intent;
-
-    /**
      * A bitmap version of the application icon.
      */
     public Bitmap iconBitmap;
 
     /**
-     * The time at which the app was first installed.
+     * Whether the application is opened at least once.
+     */
+    public boolean isOpened;
+
+    /**
+     * The priority of the application on favorite page.
+     */
+    public long priority;
+
+    /**
+     * Whether the application is hide.
+     */
+    public boolean hide;
+
+    /**
+     * The time at which the application was first installed.
      */
     public long firstInstallTime;
+
+    /**
+     * The category of the application.
+     */
+    public int category;
 
     public ComponentName componentName;
 
     public static final int DOWNLOADED_FLAG = 1;
-    static final int UPDATED_SYSTEM_APP_FLAG = 2;
-
+    public static final int UPDATED_SYSTEM_APP_FLAG = 2;
+    /**
+     * The flag of this application.
+     */
     public int flags = 0;
 
-    AppInfo() {
-        itemType = LauncherSettings.BaseLauncherColumns.ITEM_TYPE_SHORTCUT;
-    }
-
+    @Override
     public Intent getIntent() {
         return intent;
+    }
+
+    public AppInfo(AppInfo info) {
+        super(info);
+        intent = new Intent(info.intent);
+        // TODO: How do we handle the icon bitmap?
+        isOpened = info.isOpened;
+        priority = info.priority;
+        hide = info.hide;
+        firstInstallTime = info.firstInstallTime;
+        componentName = info.componentName;
+        flags = info.flags;
+        category = info.category;
     }
 
     /**
@@ -74,7 +101,6 @@ public class AppInfo extends ItemInfo {
         final String packageName = info.activityInfo.applicationInfo.packageName;
 
         this.componentName = new ComponentName(packageName, info.activityInfo.name);
-        this.container = ItemInfo.NO_ID;
         this.setActivity(componentName,
                 Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
 
@@ -89,6 +115,9 @@ public class AppInfo extends ItemInfo {
         iconCache.getTitleAndIcon(this, info, labelCache);
     }
 
+    /**
+     * Return the flags by package info.
+     */
     public static int initFlags(PackageInfo pi) {
         int appFlags = pi.applicationInfo.flags;
         int flags = 0;
@@ -102,17 +131,11 @@ public class AppInfo extends ItemInfo {
         return flags;
     }
 
+    /**
+     * Return the first install time of a package info.
+     */
     public static long initFirstInstallTime(PackageInfo pi) {
         return pi.firstInstallTime;
-    }
-
-    public AppInfo(AppInfo info) {
-        super(info);
-        componentName = info.componentName;
-        title = info.title.toString();
-        intent = new Intent(info.intent);
-        flags = info.flags;
-        firstInstallTime = info.firstInstallTime;
     }
 
     /**
@@ -134,8 +157,8 @@ public class AppInfo extends ItemInfo {
     @Override
     public String toString() {
         return "ApplicationInfo(title=" + this.title.toString() + " id=" + this.id
-                + " type=" + this.itemType + " container=" + this.container
-                + " index=" + this.index + " componentName=" + this.componentName + ")";
+                + " type=" + this.itemType + " priority=" + this.priority
+                + " category=" + this.category + " componentName=" + this.componentName + ")";
     }
 
     public static void dumpApplicationInfoList(String tag, String label, ArrayList<AppInfo> list) {

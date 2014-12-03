@@ -16,6 +16,8 @@
 
 package com.cooeeui.brand.zenlauncher.apps;
 
+import java.util.HashMap;
+
 import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.content.ComponentName;
@@ -28,9 +30,6 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
 
 import com.cooeeui.brand.zenlauncher.LauncherModel;
 
@@ -150,23 +149,6 @@ public class IconCache {
             mCache.clear();
         }
     }
-
-    /**
-     * Empty out the cache that aren't of the correct grid size
-     */
-    // public void flushInvalidIcons(DeviceProfile grid) {
-    // synchronized (mCache) {
-    // Iterator<Entry<ComponentName, CacheEntry>> it =
-    // mCache.entrySet().iterator();
-    // while (it.hasNext()) {
-    // final CacheEntry e = it.next().getValue();
-    // if (e.icon.getWidth() != grid.iconSizePx || e.icon.getHeight() !=
-    // grid.iconSizePx) {
-    // it.remove();
-    // }
-    // }
-    // }
-    // }
 
     /**
      * Fill in "application" with the icon and label for "info."
