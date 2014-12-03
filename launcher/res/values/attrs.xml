@@ -8,5 +8,7 @@
         <attr name="icon" format="reference" />
         <attr name="title" format="reference" />
         <attr name="uri" format="string" />
+        <attr name="iconName" format="string" />
+        <attr name="intent" format="string" />
     </declare-styleable>
 </resources>
