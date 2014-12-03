@@ -3,11 +3,7 @@ package com.cooeeui.brand.zenlauncher;
 
 import java.util.ArrayList;
 
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
 import android.graphics.Rect;
-import android.graphics.drawable.Drawable;
-import android.os.Handler;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
@@ -17,13 +13,20 @@ public class DragController {
     public static int DRAG_ACTION_MOVE = 0;
 
     private Launcher mLauncher;
-    private Handler mHandler;
 
     private boolean mDragging;
 
     private int mMotionDownX;
 
     private int mMotionDownY;
+
+    private int mOffsetX;
+
+    private int mOffsetY;
+
+    private int mMidOffsetX;
+
+    private int mMidOffsetY;
 
     private Rect mRectTemp = new Rect();
 
@@ -35,7 +38,6 @@ public class DragController {
 
     public DragController(Launcher launcher) {
         mLauncher = launcher;
-        mHandler = new Handler();
     }
 
     public void addDropTarget(DropTarget target) {
@@ -46,28 +48,18 @@ public class DragController {
         mDropTargets.remove(target);
     }
 
-    private Bitmap makeDefaultIcon() {
-        LauncherAppState app = LauncherAppState.getInstance();
-        Drawable d = app.getIconCache().getFullResDefaultActivityIcon();
-        Bitmap b = Bitmap.createBitmap(Math.max(d.getIntrinsicWidth(), 1),
-                Math.max(d.getIntrinsicHeight(), 1),
-                Bitmap.Config.ARGB_8888);
-        Canvas c = new Canvas(b);
-        d.setBounds(0, 0, b.getWidth(), b.getHeight());
-        d.draw(c);
-        c.setBitmap(null);
-        return b;
-    }
-
     public void startDrag(DragSource source, BubbleView view) {
-        Bitmap b = makeDefaultIcon();
         mDragging = true;
         mDragObject = new DropTarget.DragObject();
         mDragObject.dragView = view;
         mLauncher.getDragLayer().addView(view);
         mDragObject.dragSource = source;
         mLauncher.getDragLayer().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-        mDragObject.dragView.move(mMotionDownX, mMotionDownY);
+        mOffsetX = mMotionDownX - (int) view.getTranslationX();
+        mOffsetY = mMotionDownY - (int) view.getTranslationY();
+        mMidOffsetX = mOffsetX - view.getWidth() / 2;
+        mMidOffsetY = mOffsetY - view.getHeight() / 2;
+        mDragObject.dragView.move(mMotionDownX - mOffsetX, mMotionDownY - mOffsetY);
     }
 
     public boolean isDragging() {
@@ -92,7 +84,6 @@ public class DragController {
 
     private DropTarget findDropTarget(int x, int y) {
         final Rect r = mRectTemp;
-
         final ArrayList<DropTarget> dropTargets = mDropTargets;
         final int count = dropTargets.size();
         for (int i = 0; i < count; i++) {
@@ -100,7 +91,7 @@ public class DragController {
 
             target.getHitRectRelativeToDragLayer(r);
 
-            if (r.contains(x, y)) {
+            if (r.contains(x - mMidOffsetX, y - mMidOffsetY)) {
                 return target;
             }
         }
@@ -170,7 +161,7 @@ public class DragController {
     }
 
     private void handleMoveEvent(int x, int y) {
-        mDragObject.dragView.move(x, y);
+        mDragObject.dragView.move(x - mOffsetX, y - mOffsetY);
 
         DropTarget dropTarget = findDropTarget(x, y);
         checkTouchMove(dropTarget);

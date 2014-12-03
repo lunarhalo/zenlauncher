@@ -65,10 +65,6 @@ public class Launcher extends Activity implements OnLongClickListener, LauncherM
     }
 
     void showLoadingView() {
-        // mLoading = new AlertDialog.Builder(this).setView(new
-        // LoadingView(this)).create();
-        // mLoading.show();
-
         LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
         mLoading = new Dialog(this, R.style.LoadingViewStyle);
         mLoading.setContentView(new LoadingView(this), params);

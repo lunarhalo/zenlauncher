@@ -90,7 +90,7 @@ public class Workspace extends FrameLayout implements DragSource {
         BubbleView v = new BubbleView(mLauncher, b);
         addView(v);
         mApps.add(v);
-        v.show(x, y);
+        v.move(x, y);
         v.setOnLongClickListener(mLauncher);
 
         mDragController.addDropTarget(v);
@@ -106,7 +106,7 @@ public class Workspace extends FrameLayout implements DragSource {
 
     private void moveIcon(int count, float x, float y) {
         BubbleView v = mApps.get(count - 1);
-        v.show(x, y);
+        v.move(x, y);
     }
 
     void init() {

@@ -39,14 +39,9 @@ public class BubbleView extends View implements DropTarget {
         setMeasuredDimension(mWidth, mHeight);
     }
 
-    public void show(float x, float y) {
+    void move(float x, float y) {
         setTranslationX(x);
         setTranslationY(y);
-    }
-
-    void move(int touchX, int touchY) {
-        setTranslationX(touchX - mWidth / 2);
-        setTranslationY(touchY - mHeight / 2);
     }
 
     @Override
