@@ -80,7 +80,7 @@ public class AppListFragment extends ListFragment
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
+        
         // Get category id from bundle.
         mCategoryId = getArguments().getInt("categoryId");
 

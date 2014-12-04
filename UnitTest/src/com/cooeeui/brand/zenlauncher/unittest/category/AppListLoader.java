@@ -78,8 +78,7 @@ public class AppListLoader extends AsyncTaskLoader<List<AppEntry>> {
         // Create corresponding array of entries and load their labels.
         List<AppEntry> entries = new ArrayList<AppEntry>(apps.size());
         for (int i = 0; i < apps.size(); i++) {
-            // TODO: filter category use database.
-            if (mCategoryId == 0) {
+            if (mCategoryId == CategoryHelper.getCategoryId(apps.get(i))) {
                 AppEntry entry = new AppEntry(this, apps.get(i));
                 entry.loadLabel(context);
                 entries.add(entry);

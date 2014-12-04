@@ -25,6 +25,9 @@ public class Categorizer extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        // Init category helper.
+        CategoryHelper.init(getApplicationContext());
+
         setContentView(R.layout.categorizer);
         mTabHost = (TabHost) findViewById(android.R.id.tabhost);
         mTabHost.setup();
@@ -33,15 +36,15 @@ public class Categorizer extends FragmentActivity {
 
         mTabsAdapter = new TabsAdapter(this, mTabHost, mViewPager);
 
-        // the first tab: all application
-        Bundle allBundle = new Bundle();
-        allBundle.putInt("categoryId", 0);
-        mTabsAdapter.addTab(mTabHost.newTabSpec("All Application").setIndicator("All"),
-                AppListFragment.class, allBundle);
+        // the first tab: other
+        Bundle otherBundle = new Bundle();
+        otherBundle.putInt("categoryId", CategoryHelper.OTHER);
+        mTabsAdapter.addTab(mTabHost.newTabSpec("Other Application").setIndicator("Other"),
+                AppListFragment.class, otherBundle);
 
         // the second tab: game
         Bundle gameBundle = new Bundle();
-        gameBundle.putInt("categoryId", 801);
+        gameBundle.putInt("categoryId", CategoryHelper.GAME);
         mTabsAdapter.addTab(mTabHost.newTabSpec("Game Application").setIndicator("Game"),
                 AppListFragment.class, gameBundle);
 
@@ -51,7 +54,7 @@ public class Categorizer extends FragmentActivity {
 
         // the third tab: life
         Bundle lifeBundle = new Bundle();
-        lifeBundle.putInt("categoryId", 0);
+        lifeBundle.putInt("categoryId", CategoryHelper.LIFE);
         mTabsAdapter.addTab(mTabHost.newTabSpec("Life Application").setIndicator("Life"),
                 AppListFragment.class, lifeBundle);
 
@@ -61,7 +64,7 @@ public class Categorizer extends FragmentActivity {
 
         // the fourth tab: social
         Bundle socialBundle = new Bundle();
-        socialBundle.putInt("categoryId", 0);
+        socialBundle.putInt("categoryId", CategoryHelper.SOCIAL);
         mTabsAdapter.addTab(mTabHost.newTabSpec("Social Application").setIndicator("Social"),
                 AppListFragment.class, socialBundle);
 
@@ -71,19 +74,19 @@ public class Categorizer extends FragmentActivity {
 
         // the fifth tab: tool
         Bundle toolBundle = new Bundle();
-        toolBundle.putInt("categoryId", 0);
+        toolBundle.putInt("categoryId", CategoryHelper.TOOL);
         mTabsAdapter.addTab(mTabHost.newTabSpec("Tool Application").setIndicator("Tool"),
                 AppListFragment.class, toolBundle);
 
         if (savedInstanceState != null) {
             mTabHost.setCurrentTabByTag(savedInstanceState.getString("tab"));
         }
-        
-        // the sixth tab: setting
-        Bundle settingBundle = new Bundle();
-        settingBundle.putInt("categoryId", 0);
-        mTabsAdapter.addTab(mTabHost.newTabSpec("Setting Application").setIndicator("Setting"),
-                AppListFragment.class, settingBundle);
+
+        // the sixth tab: system
+        Bundle systemBundle = new Bundle();
+        systemBundle.putInt("categoryId", CategoryHelper.SYSTEM);
+        mTabsAdapter.addTab(mTabHost.newTabSpec("System Application").setIndicator("System"),
+                AppListFragment.class, systemBundle);
 
         if (savedInstanceState != null) {
             mTabHost.setCurrentTabByTag(savedInstanceState.getString("tab"));
@@ -94,6 +97,14 @@ public class Categorizer extends FragmentActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putString("tab", mTabHost.getCurrentTabTag());
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+
+        // Close category helper.
+        CategoryHelper.close();
     }
 
     public static class TabsAdapter extends FragmentPagerAdapter
