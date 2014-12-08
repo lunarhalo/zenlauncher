@@ -11,9 +11,9 @@ import android.graphics.BitmapFactory;
 
 public class BitmapUtils {
 
-    public static Bitmap resizeBitmap(Bitmap bm, int maxLength, boolean recycle)
+    public static Bitmap resizeBitmap(Bitmap bm, int length, boolean recycle)
     {
-        Bitmap tmp = Bitmap.createScaledBitmap(bm, maxLength, maxLength, true);
+        Bitmap tmp = Bitmap.createScaledBitmap(bm, length, length, true);
         if (recycle) {
             bm.recycle();
         }
@@ -41,7 +41,7 @@ public class BitmapUtils {
                 : initialSize / 8 * 8;
     }
 
-    public static Bitmap getIcon(Resources resources, int iconId, int maxLength) {
+    public static Bitmap getIcon(Resources resources, int iconId, int length) {
         InputStream is = null;
 
         try {
@@ -61,7 +61,7 @@ public class BitmapUtils {
         }
 
         options.inSampleSize = computeSampleSizeLarger(
-                options.outWidth, options.outHeight, maxLength);
+                options.outWidth, options.outHeight, length);
         options.inJustDecodeBounds = false;
         Bitmap result = BitmapFactory.decodeStream(is, null, options);
         closeSilently(is);
@@ -70,8 +70,8 @@ public class BitmapUtils {
             return null;
         }
 
-        if (result.getWidth() != maxLength) {
-            result = resizeBitmap(result, maxLength, true);
+        if (result.getWidth() != length) {
+            result = resizeBitmap(result, length, true);
         }
 
         return result;
