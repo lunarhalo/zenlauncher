@@ -12,6 +12,7 @@ SCREENS = 0
 COLUMNS = 4
 ROWS = 4
 CELL_SIZE = 110
+COUNT = 0
 
 CONTAINER_DESKTOP = -100
 
@@ -74,7 +75,6 @@ def print_intent(out, id, i, cell):
     out.write("""<span class="intent" title="%s">shortcut</span>""" % (
         cgi.escape(cell, True)
       ))
-
 
 def print_icon(out, id, i, cell):
   if cell:
@@ -174,7 +174,7 @@ def process_file(fn):
 <body>
 """)
 
-  # Data table
+  # Print favorites table
   out.write("<b>Favorites table</b><br/>\n")
   out.write("""<html>
 <table border=1 cellspacing=0 cellpadding=4>
