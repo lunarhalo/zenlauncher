@@ -73,19 +73,17 @@ public class Workspace extends FrameLayout implements DragSource {
                 mDragController.removeDropTarget((DropTarget) v);
                 BubbleView view = (BubbleView) v;
                 view.clearBitmap();
+                removeView(view);
             }
         }
         mBubbleViews.clear();
-        removeAllViews();
     }
 
     public void finishBind() {
         Collections.sort(mBubbleViews, new Comparator<BubbleView>() {
             public int compare(BubbleView a, BubbleView b) {
-                Object aTag = a.getTag();
-                Object bTag = b.getTag();
-                final ShortcutInfo aShortcut = (ShortcutInfo) aTag;
-                final ShortcutInfo bShortcut = (ShortcutInfo) bTag;
+                final ShortcutInfo aShortcut = (ShortcutInfo) a.getTag();
+                final ShortcutInfo bShortcut = (ShortcutInfo) b.getTag();
                 return aShortcut.position - bShortcut.position;
             }
         });

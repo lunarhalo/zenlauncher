@@ -13,7 +13,19 @@
             android:id="@+id/workspace"
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
+            <ImageView
+        		android:id="@+id/imgtop"
+		        android:layout_width="360dp"
+		        android:layout_height="220dp"
+		        android:layout_gravity="top"
+		        android:src="@drawable/top" />
 
+            <ImageView
+        		android:id="@+id/imgbottom"
+		        android:layout_width="360dp"
+		        android:layout_height="60dp"
+		        android:layout_gravity="bottom"
+		        android:src="@drawable/bottom" />
         </com.cooeeui.brand.zenlauncher.scenes.Workspace>
     </com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer>
 

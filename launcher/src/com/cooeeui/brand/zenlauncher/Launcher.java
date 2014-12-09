@@ -74,7 +74,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         mWorkspace.setOnLongClickListener(this);
 
-        // showLoadingView();
+        showLoadingView();
 
         mModel.startLoader(true);
     }
@@ -101,7 +101,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         mPaused = true;
         mDragController.cancelDrag();
-        // closeLoadingView();
+
     }
 
     @Override
@@ -238,6 +238,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     protected void onFinishBindingItems() {
         mWorkspace.finishBind();
+        closeLoadingView();
     }
 
     @Override
