@@ -83,8 +83,8 @@ public class CategoryHelper {
     }
 
     private static boolean isSystem(ApplicationInfo info) {
-        if ((info.flags & android.content.pm.ApplicationInfo.FLAG_SYSTEM) == 0
-                || (info.flags & android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) == 0)
+        if ((info.flags & android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
+                || (info.flags & android.content.pm.ApplicationInfo.FLAG_UPDATED_SYSTEM_APP) != 0)
             return true;
         else
             return false;
