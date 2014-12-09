@@ -7,6 +7,7 @@ import java.util.Comparator;
 
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.ResolveInfo;
 import android.graphics.drawable.Drawable;
 
 /**
@@ -26,13 +27,13 @@ public class AppEntry {
         }
     };
 
-    public AppEntry(AppListLoader loader, ApplicationInfo info) {
+    public AppEntry(AppListLoader loader, ResolveInfo info) {
         mLoader = loader;
         mInfo = info;
-        mApkFile = new File(info.sourceDir);
+        mApkFile = new File(info.activityInfo.applicationInfo.sourceDir);
     }
 
-    public ApplicationInfo getApplicationInfo() {
+    public ResolveInfo getResolveInfo() {
         return mInfo;
     }
 
@@ -73,17 +74,17 @@ public class AppEntry {
         if (mLabel == null || !mMounted) {
             if (!mApkFile.exists()) {
                 mMounted = false;
-                mLabel = mInfo.packageName;
+                mLabel = mInfo.resolvePackageName;
             } else {
                 mMounted = true;
                 CharSequence label = mInfo.loadLabel(context.getPackageManager());
-                mLabel = label != null ? label.toString() : mInfo.packageName;
+                mLabel = label != null ? label.toString() : mInfo.resolvePackageName;
             }
         }
     }
 
     private final AppListLoader mLoader;
-    private final ApplicationInfo mInfo;
+    private final ResolveInfo mInfo;
     private final File mApkFile;
     private String mLabel;
     private Drawable mIcon;

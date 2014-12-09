@@ -6,9 +6,11 @@ import java.util.Collections;
 import java.util.List;
 
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.support.v4.content.AsyncTaskLoader;
@@ -65,12 +67,13 @@ public class AppListLoader extends AsyncTaskLoader<List<AppEntry>> {
      */
     @Override
     public List<AppEntry> loadInBackground() {
-        // Retrieve all known applications.
-        List<ApplicationInfo> apps = mPm.getInstalledApplications(
-                PackageManager.GET_UNINSTALLED_PACKAGES |
-                        PackageManager.GET_DISABLED_COMPONENTS);
+        // Retrieve all launcher applications.
+        final Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> apps = mPm.queryIntentActivities(mainIntent, 0);
+
         if (apps == null) {
-            apps = new ArrayList<ApplicationInfo>();
+            apps = new ArrayList<ResolveInfo>();
         }
 
         final Context context = getContext();
@@ -78,8 +81,9 @@ public class AppListLoader extends AsyncTaskLoader<List<AppEntry>> {
         // Create corresponding array of entries and load their labels.
         List<AppEntry> entries = new ArrayList<AppEntry>(apps.size());
         for (int i = 0; i < apps.size(); i++) {
-            if (mCategoryId == CategoryHelper.getCategoryId(apps.get(i))) {
-                AppEntry entry = new AppEntry(this, apps.get(i));
+            final ResolveInfo appInfo = apps.get(i);
+            if (mCategoryId == CategoryHelper.getCategoryId(appInfo.activityInfo.applicationInfo)) {
+                AppEntry entry = new AppEntry(this, appInfo);
                 entry.loadLabel(context);
                 entries.add(entry);
             }

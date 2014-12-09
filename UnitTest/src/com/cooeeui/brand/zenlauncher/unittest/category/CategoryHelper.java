@@ -40,13 +40,13 @@ public class CategoryHelper {
                     pName
                 }, null, null, null);
 
-        if (cursor.moveToFirst()) {
-            String caid = cursor.getString(0);
-            int caidValue = Integer.valueOf(caid) + 800;
-            categoryId = getCategoryId(caidValue);
+        if (isSystem(info)) {
+            categoryId = CategoryHelper.SYSTEM;
         } else {
-            if (isSystem(info)) {
-                categoryId = CategoryHelper.SYSTEM;
+            if (cursor.moveToFirst()) {
+                String caid = cursor.getString(0);
+                int caidValue = Integer.valueOf(caid) + 800;
+                categoryId = getCategoryId(caidValue);
             } else {
                 categoryId = CategoryHelper.OTHER;
             }
