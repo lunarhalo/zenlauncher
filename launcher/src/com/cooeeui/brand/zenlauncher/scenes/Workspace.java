@@ -31,7 +31,8 @@ public class Workspace extends FrameLayout implements DragSource {
     private float mPadding;
     private float[] mMidPoint = new float[2];
 
-    public ArrayList<BubbleView> mBubbleViews = new ArrayList<BubbleView>();
+    private static final int BUBBLE_VIEW_CAPACITY = 9;
+    private ArrayList<BubbleView> mBubbleViews = new ArrayList<BubbleView>(BUBBLE_VIEW_CAPACITY);
 
     public Workspace(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -163,6 +164,9 @@ public class Workspace extends FrameLayout implements DragSource {
         removeView(view);
         mDragController.removeDropTarget(view);
         mDragController.startDrag(this, view);
+    }
+    public boolean isFull() {
+        return mBubbleViews.size() >= BUBBLE_VIEW_CAPACITY;
     }
 
     @Override

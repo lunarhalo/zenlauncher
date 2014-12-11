@@ -10,4 +10,8 @@
     <!-- Message displayed when a shortcut is uninstalled by an external application -->
     <string name="shortcut_uninstalled">Shortcut was removed.</string>
 
+    <string name="add">Add</string>
+    <string name="wallpaper">Wallpaper</string>
+    <string name="settings">System settings</string>
+    <string name="zen_settings">Zen settings</string>
 </resources>
