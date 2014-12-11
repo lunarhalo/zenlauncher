@@ -13,19 +13,28 @@
             android:id="@+id/workspace"
             android:layout_width="match_parent"
             android:layout_height="match_parent" >
-            <ImageView
-        		android:id="@+id/imgtop"
-		        android:layout_width="360dp"
-		        android:layout_height="220dp"
-		        android:layout_gravity="top"
-		        android:src="@drawable/top" />
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="220dp"
+                android:layout_gravity="top" >
+
+                <ImageView
+                    android:id="@+id/weatherclock"
+                    android:layout_width="300dp"
+                    android:layout_height="match_parent"
+                    android:layout_gravity="center"
+                    android:contentDescription="weatherclock"
+                    android:src="@drawable/weatherclock" />
+            </FrameLayout>
 
             <ImageView
-        		android:id="@+id/imgbottom"
-		        android:layout_width="360dp"
-		        android:layout_height="60dp"
-		        android:layout_gravity="bottom"
-		        android:src="@drawable/bottom" />
+                android:id="@+id/searchbar"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_gravity="bottom"
+                android:layout_marginBottom="6dp"
+                android:src="@drawable/searchbar" />
         </com.cooeeui.brand.zenlauncher.scenes.Workspace>
     </com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer>
 
