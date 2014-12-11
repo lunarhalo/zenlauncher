@@ -4,4 +4,8 @@
     <!-- Application name -->
     <string name="application_name">禅桌面</string>
 
+    <string name="add">添加</string>
+    <string name="wallpaper">设置壁纸</string>
+    <string name="settings">系统设置</string>
+    <string name="zen_settings">Zen设置</string>
 </resources>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/add"
+        android:title="@string/add"/>
+    <item android:id="@+id/wallpaper"
+        android:title="@string/wallpaper"/>
+    <item android:id="@+id/settings"
+        android:title="@string/settings"/>
+    <item android:id="@+id/zen"
+        android:title="@string/zen_settings"/>
+</menu>
+
+

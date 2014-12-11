@@ -13,6 +13,10 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup.LayoutParams;
@@ -43,10 +47,12 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     private DragLayer mDragLayer;
     private DragController mDragController;
 
-    Dialog mLoading;
+    private Dialog mLoading;
 
     private boolean mPaused = true;
     private ArrayList<Runnable> mBindOnResumeCallbacks = new ArrayList<Runnable>();
+
+    private static final int REQUEST_PICK_WALLPAPER = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +80,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         mWorkspace.setOnLongClickListener(this);
 
+        registerForContextMenu(mWorkspace);
         showLoadingView();
 
         mModel.startLoader(true);
@@ -127,9 +134,79 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     }
 
     @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.add:
+                return true;
+
+            case R.id.wallpaper:
+                startWallpaper();
+                return true;
+
+            case R.id.settings:
+                return true;
+
+            case R.id.zen:
+                return true;
+        }
+        return super.onContextItemSelected(item);
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        getMenuInflater().inflate(R.menu.launcher_menu, menu);
+        if (mWorkspace.isFull()) {
+            menu.findItem(R.id.add).setVisible(false);
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        getMenuInflater().inflate(R.menu.launcher_menu, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.add:
+                return true;
+
+            case R.id.wallpaper:
+                startWallpaper();
+                return true;
+
+            case R.id.settings:
+                return true;
+
+            case R.id.zen:
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        super.onPrepareOptionsMenu(menu);
+        if (mWorkspace.isFull()) {
+            menu.findItem(R.id.add).setVisible(false);
+        } else {
+            menu.findItem(R.id.add).setVisible(true);
+        }
+        return true;
+    }
+
+    private void startWallpaper() {
+        final Intent pickWallpaper = new Intent(Intent.ACTION_SET_WALLPAPER);
+        startActivityForResult(pickWallpaper, REQUEST_PICK_WALLPAPER);
+    }
+
+    @Override
     public boolean onLongClick(View v) {
         if (v instanceof Workspace) {
-            // mWorkspace.startDrag();
+            return false;
         } else if (v instanceof BubbleView) {
             BubbleView view = (BubbleView) v;
             mWorkspace.startDrag(view);
@@ -166,18 +243,6 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     @Override
     public void onBackPressed() {
-        int childCount = mWorkspace.getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            View v = mWorkspace.getChildAt(i);
-            if (v instanceof BubbleView) {
-                BubbleView bv = (BubbleView) v;
-                mWorkspace.removeView(bv);
-                mWorkspace.removeBubbleView(bv);
-                mDragController.removeDropTarget(bv);
-                mWorkspace.update();
-                break;
-            }
-        }
 
     }
 
