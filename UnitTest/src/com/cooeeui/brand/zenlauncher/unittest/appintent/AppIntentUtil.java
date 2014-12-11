@@ -12,7 +12,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.net.Uri;
 
 public class AppIntentUtil {
     private Context context = null;
@@ -20,17 +19,15 @@ public class AppIntentUtil {
     private final String cameraName = "camera";
     private final String browserUri = "*BROWSER*";
     private final String defaultAppName = "defaultApp";
-    /**
-     * 浏览器中默认开启的网址名称
-     */
-    private final String browserHttp = "http://www.baidu.com";
+
     /**
      * 配置默认浏览器的包名和类名，包名在前，类名在后，用;号隔开
      */
     private final String[] browserApps = new String[] {
             "com.tencent.mtt;com.tencent.mtt.SplashActivity",
             "com.baidu.browser.apps;com.baidu.browser.framework.BdBrowserActivity",
-            "com.UCMobile;com.UCMobile.main.UCMobile"
+            "com.UCMobile;com.UCMobile.main.UCMobile",
+            "com.htc.sense.browser;com.htc.sense.browser.BrowserActivity"
     };
 
     private final String[] defaultApps = new String[] {
@@ -41,24 +38,6 @@ public class AppIntentUtil {
     public AppIntentUtil(Context context) {
         this.context = context;
         getAllAppList();
-    }
-
-    /**
-     * Creates the application intent based on a component name and various
-     * launch flags. Sets {@link #itemType} to
-     * {@link LauncherSettings.BaseLauncherColumns#ITEM_TYPE_APPLICATION}.
-     * 
-     * @param className the class name of the component representing the intent
-     * @param launchFlags the launch flags
-     */
-    private void setActivity(
-            ComponentName className,
-            int launchFlags, Intent intent)
-    {
-        intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        intent.setComponent(className);
-        intent.setFlags(launchFlags);
     }
 
     /**
@@ -194,11 +173,10 @@ public class AppIntentUtil {
      * @return
      */
     private Intent getBrowserIntent() {
-        // TODO Auto-generated method stub
-        Intent intent = null;
+        Intent intent = new Intent(Intent.ACTION_MAIN);
+        intent.addCategory(Intent.CATEGORY_LAUNCHER);
         for (int i = 0; i < browserApps.length; i++) {
             String pkgCls = browserApps[i];
-            intent = new Intent(Intent.ACTION_VIEW, Uri.parse(browserHttp));
             String[] pcs = pkgCls.split(";");
             if (pcs.length > 1) {
                 ComponentName cp = new ComponentName(pcs[0], pcs[1]);
@@ -209,7 +187,7 @@ public class AppIntentUtil {
             }
         }
         // 若匹配不到配置的浏览器应用，则查找出手机中所有的浏览器先，然后显示出来
-        return intent;
+        return null;
     }
 
     /**

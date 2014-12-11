@@ -1,6 +1,7 @@
 
 package com.cooeeui.brand.zenlauncher.unittest.appintent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import android.annotation.SuppressLint;
@@ -34,7 +35,6 @@ public class BrowserIntentUtil {
     private Button negativeButton = null;
     private int intentposition = -1;
     public Intent browserIntent = null;
-    private final String browserHttp = "http://www.baidu.com";
 
     public BrowserIntentUtil(Context context) {
         this.context = context;
@@ -98,9 +98,12 @@ public class BrowserIntentUtil {
             String pkgName = info.activityInfo.packageName;
             String clsName = info.activityInfo.name;
             ComponentName cp = new ComponentName(pkgName, clsName);
-            intent = new Intent(Intent.ACTION_VIEW);
-            intent.setData(Uri.parse(browserHttp));
+            intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
             intent.setComponent(cp);
+
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                    | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
         }
         return intent;
     }
@@ -119,6 +122,13 @@ public class BrowserIntentUtil {
         negativeButton.setEnabled(true);
     }
 
+    boolean isIntentAvailable(Context context, Intent intent) {
+        final PackageManager packageManager = context.getPackageManager();
+        List<ResolveInfo> list = packageManager.queryIntentActivities(intent,
+                PackageManager.MATCH_DEFAULT_ONLY);
+        return list.size() > 0;
+    }
+
     /**
      * 查找手机中所有的
      */
@@ -132,8 +142,22 @@ public class BrowserIntentUtil {
             listInfo.clear();
             listInfo = null;
         }
-        listInfo = pm.queryIntentActivities(intent,
+
+        listInfo = new ArrayList<ResolveInfo>();
+        List<ResolveInfo> list = pm.queryIntentActivities(intent,
                 PackageManager.GET_INTENT_FILTERS);
+        for (int i = 0; i < list.size(); i++) {
+            ResolveInfo info = list.get(i);
+            String pkgName = info.activityInfo.packageName;
+            String clsName = info.activityInfo.name;
+            ComponentName cp = new ComponentName(pkgName, clsName);
+            intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_LAUNCHER);
+            intent.setComponent(cp);
+            if (isIntentAvailable(context, intent)) {
+                listInfo.add(info);
+            }
+        }
     }
 
     private class MyBrowserAdapter extends BaseAdapter {
