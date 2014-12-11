@@ -4,5 +4,8 @@
     <string name="app_name">Zen Launcher Unit Test</string>
     <string name="categorizer">Categorizer</string>
     <string name="icon">Icon</string>
-    
+    <string name="appintent">AppIntent</string>
+    <string name="always">always</string>
+    <string name="once">For once</string>
+    <string name="chooseApp">Choose to use the application:</string>
 </resources>

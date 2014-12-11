@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/myAdapterLayout"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent"
+    android:descendantFocusability="blocksDescendants" >
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="10dp"
+        android:layout_toRightOf="@+id/iamge"
+        android:text="TextView"
+        android:textSize="20sp" >
+    </TextView>
+
+    <ImageButton
+        android:id="@+id/iamge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="50dp"
+        android:layout_marginTop="20dp"
+        android:contentDescription="@string/app_name" >
+    </ImageButton>
+
+</RelativeLayout>

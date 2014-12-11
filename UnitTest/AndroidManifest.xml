@@ -33,6 +33,13 @@
                 <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.cooeeui.brand.zenlauncher.unittest.appintent.AppIntentActivity"
+            android:label="@string/appintent" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />                <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
