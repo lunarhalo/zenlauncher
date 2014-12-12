@@ -8,4 +8,8 @@
        <item name="android:windowFullscreen">true</item>
        <item name="android:windowNoTitle">true</item>
     </style>
+    
+    <style name="PopupStyle" parent="@android:style/Theme.Dialog">
+       <item name="android:windowNoTitle">true</item>
+    </style>
 </resources>

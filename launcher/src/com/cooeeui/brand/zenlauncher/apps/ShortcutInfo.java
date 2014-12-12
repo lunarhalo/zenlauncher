@@ -56,7 +56,14 @@ public class ShortcutInfo extends ItemInfo {
     /**
      * The application icon.
      */
-    private Bitmap mIcon;
+    public Bitmap mIcon;
+
+    public boolean usingBuildinIcon;
+
+    /**
+     * The resource id if usingBuildinIcon is true.
+     */
+    public int mResId;
 
     /**
      * The time at which the application was first installed.
@@ -77,27 +84,14 @@ public class ShortcutInfo extends ItemInfo {
         super();
     }
 
-    public ShortcutInfo(Context context, ShortcutInfo info) {
-        super(info);
-        intent = new Intent(info.intent);
-        if (info.iconResource != null) {
-            iconResource = new Intent.ShortcutIconResource();
-            iconResource.packageName = info.iconResource.packageName;
-            iconResource.resourceName = info.iconResource.resourceName;
-        }
-        mIcon = info.mIcon; // TODO: should make a copy here. maybe we don't
-                            // need this ctor at all
-        customIcon = info.customIcon;
-        initFlagsAndFirstInstallTime(getPackageInfo(context, intent.getComponent().getPackageName()));
-    }
-
-    /** TODO: Remove this. It's only called by ApplicationInfo.makeShortcut. */
     public ShortcutInfo(AppInfo info) {
         super(info);
         intent = new Intent(info.intent);
-        customIcon = false;
+        usingBuildinIcon = false;
+        mResId = 0;
         flags = info.flags;
         firstInstallTime = info.firstInstallTime;
+        mIcon = info.iconBitmap;
     }
 
     public static PackageInfo getPackageInfo(Context context, String packageName) {

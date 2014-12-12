@@ -1604,6 +1604,8 @@ public class LauncherModel extends BroadcastReceiver {
         if (iconId > 0) {
             icon = BitmapUtils.getIcon(mApp.getContext().getResources(),
                     iconId, 144); // modify later
+            info.usingBuildinIcon = true;
+            info.mResId = iconId;
         }
 
         if (intent != null) {
@@ -1673,7 +1675,7 @@ public class LauncherModel extends BroadcastReceiver {
             icon = getFallbackIcon();
             info.usingFallbackIcon = true;
         }
-        info.setIcon(icon);
+        info.mIcon = icon;
         info.itemType = LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
         return info;
     }

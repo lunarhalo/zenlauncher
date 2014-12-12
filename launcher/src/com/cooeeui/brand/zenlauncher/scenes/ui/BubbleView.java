@@ -67,6 +67,11 @@ public class BubbleView extends View implements DropTarget {
         outRect.bottom = outRect.top + mHeight;
     }
 
+    public void changeBitmap(Bitmap bitmap) {
+        mBitmap = bitmap;
+        invalidate();
+    }
+
     public void clearBitmap() {
         mBitmap.recycle();
     }

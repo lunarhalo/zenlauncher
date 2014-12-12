@@ -2,30 +2,37 @@
 package com.cooeeui.brand.zenlauncher.scenes;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.LauncherAppState;
+import com.cooeeui.brand.zenlauncher.R;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
+import com.cooeeui.brand.zenlauncher.scenes.utils.BitmapUtils;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragSource;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DropTarget;
-import com.cooeeui.brand.zenlauncher.scenes.utils.DropTarget.DragObject;
 
-public class Workspace extends FrameLayout implements DragSource {
+public class Workspace extends FrameLayout implements DragSource, View.OnTouchListener {
 
     private Launcher mLauncher;
     private IconCache mIconCache;
     private DragController mDragController;
+
+    private static final int WORKSPACE_STATE_NORMAL = 0;
+    private static final int WORKSPACE_STATE_DRAG = 1;
+    private int mState = WORKSPACE_STATE_NORMAL;
 
     private int mIconSize;
     private float mPadding;
@@ -33,6 +40,15 @@ public class Workspace extends FrameLayout implements DragSource {
 
     private static final int BUBBLE_VIEW_CAPACITY = 9;
     private ArrayList<BubbleView> mBubbleViews = new ArrayList<BubbleView>(BUBBLE_VIEW_CAPACITY);
+
+    public static final int EDIT_VIEW_ICON = 0;
+    public static final int EDIT_VIEW_CHANGE = 1;
+    public static final int EDIT_VIEW_DELETE = 2;
+    private static final int EDIT_VIEW_CAPACITY = 3;
+    private ArrayList<BubbleView> mEditViews = new ArrayList<BubbleView>(EDIT_VIEW_CAPACITY);
+
+    private BubbleView mSelect;
+    private ImageView mBottomView;
 
     public Workspace(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -52,18 +68,8 @@ public class Workspace extends FrameLayout implements DragSource {
         LauncherAppState app = LauncherAppState.getInstance();
         mIconCache = app.getIconCache();
 
+        mBottomView = (ImageView) findViewById(R.id.searchbar);
         init();
-    }
-
-    public void addBubbleViewFromBind(ShortcutInfo info) {
-        BubbleView v = new BubbleView(mLauncher, info.getIcon(mIconCache));
-        v.setTag(info);
-        addView(v);
-        mBubbleViews.add(v);
-        v.setOnClickListener(mLauncher);
-        v.setOnLongClickListener(mLauncher);
-
-        mDragController.addDropTarget(v);
     }
 
     public void startBind() {
@@ -81,22 +87,63 @@ public class Workspace extends FrameLayout implements DragSource {
     }
 
     public void finishBind() {
-        Collections.sort(mBubbleViews, new Comparator<BubbleView>() {
-            public int compare(BubbleView a, BubbleView b) {
-                final ShortcutInfo aShortcut = (ShortcutInfo) a.getTag();
-                final ShortcutInfo bShortcut = (ShortcutInfo) b.getTag();
-                return aShortcut.position - bShortcut.position;
-            }
-        });
         update();
     }
 
-    public void removeBubbleView(BubbleView view) {
-        mBubbleViews.remove(view);
-        removeView(view);
+    public void addBubbleView(ShortcutInfo info) {
+        Bitmap b = BitmapUtils.resizeBitmap(info.mIcon, 144, false); // del
+
+        BubbleView v = new BubbleView(mLauncher, b);
+        v.setTag(info);
+        addView(v);
+        mBubbleViews.add(v);
+        v.setOnClickListener(mLauncher);
+        v.setOnLongClickListener(mLauncher);
+
+        v.setOnTouchListener(this);
+
+        mDragController.addDropTarget(v);
+    }
+
+    public void changeIcon(Bitmap b, int resId) {
+        ShortcutInfo i = (ShortcutInfo) mSelect.getTag();
+        if (i.mResId == resId) {
+            return;
+        }
+        if (i.usingBuildinIcon) {
+            mSelect.clearBitmap();
+        }
+        i.usingBuildinIcon = true;
+        i.mResId = resId;
+        i.mIcon = b;
+        mSelect.changeBitmap(b);
+    }
+
+    public void changeBubbleView(ShortcutInfo info) {
+        ShortcutInfo i = (ShortcutInfo) mSelect.getTag();
+        if (i.usingBuildinIcon) {
+            mSelect.clearBitmap();
+        }
+        mSelect.changeBitmap(info.mIcon);
+        mSelect.setTag(info);
+    }
+
+    public void removeBubbleView() {
+        int index = mBubbleViews.indexOf(mSelect);
+        mBubbleViews.remove(mSelect);
+        removeView(mSelect);
+        mDragController.removeDropTarget(mSelect);
         update();
 
-        mDragController.removeDropTarget(view);
+        if (mBubbleViews.size() <= 0) {
+            stopDrag();
+            return;
+        }
+        if (index == mBubbleViews.size()) {
+            mSelect = mBubbleViews.get(index - 1);
+        } else {
+            mSelect = mBubbleViews.get(index);
+        }
     }
 
     private void moveBubbleView(int position, float x, float y) {
@@ -160,26 +207,99 @@ public class Workspace extends FrameLayout implements DragSource {
         setMeasuredDimension(widthSize, heightSize);
     }
 
+    @Override
+    public boolean onTouch(View v, MotionEvent event) {
+        int action = event.getAction();
+        if (mState == WORKSPACE_STATE_NORMAL) {
+            return false;
+        }
+
+        if (action == MotionEvent.ACTION_DOWN && v instanceof BubbleView) {
+            BubbleView bv = (BubbleView) v;
+            startDrag(bv);
+            return true;
+        }
+        return false;
+    }
+
+    private void showEditViews() {
+        mBottomView.setVisibility(View.INVISIBLE);
+        if (mEditViews.size() < EDIT_VIEW_CAPACITY) {
+            mEditViews.clear();
+            Bitmap icon = null;
+            int[] iconId = {
+                    R.drawable.icon1, R.drawable.icon2, R.drawable.icon3
+            };
+            for (int i = 0; i < EDIT_VIEW_CAPACITY; i++) {
+                icon = BitmapUtils.getIcon(mLauncher.getResources(),
+                        iconId[i], 144); // modify later
+                BubbleView v = new BubbleView(mLauncher, icon);
+                v.setTag(i);
+                addView(v);
+                mEditViews.add(v);
+                v.setOnClickListener(mLauncher);
+
+                v.move(120 + i * 300, 1500);
+            }
+            return;
+        }
+        for (int i = 0; i < EDIT_VIEW_CAPACITY; i++) {
+            mEditViews.get(i).setVisibility(View.VISIBLE);
+        }
+    }
+
+    private void hideEditViews() {
+        for (int i = 0; i < EDIT_VIEW_CAPACITY; i++) {
+            mEditViews.get(i).setVisibility(View.INVISIBLE);
+        }
+        mBottomView.setVisibility(View.VISIBLE);
+    }
+
     public void startDrag(BubbleView view) {
+        if (mState != WORKSPACE_STATE_DRAG) {
+            mState = WORKSPACE_STATE_DRAG;
+            showEditViews();
+        }
+        mSelect = view;
         removeView(view);
         mDragController.removeDropTarget(view);
         mDragController.startDrag(this, view);
     }
+
+    public void stopDrag() {
+        if (mState != WORKSPACE_STATE_NORMAL) {
+            mState = WORKSPACE_STATE_NORMAL;
+            hideEditViews();
+        }
+    }
+
     public boolean isFull() {
         return mBubbleViews.size() >= BUBBLE_VIEW_CAPACITY;
     }
 
+    public HashMap<Integer, Bitmap> getBuildinIcon() {
+        HashMap<Integer, Bitmap> map = new HashMap<Integer, Bitmap>();
+
+        for (int i = 0; i < mBubbleViews.size(); i++) {
+            ShortcutInfo info = (ShortcutInfo) mBubbleViews.get(i).getTag();
+            if (info.usingBuildinIcon) {
+                map.put(info.mResId, info.mIcon);
+            }
+        }
+        return map;
+    }
+
     @Override
-    public void onDropCompleted(BubbleView target, DragObject d) {
+    public void onDropCompleted(BubbleView target) {
         if (target != null) {
             int tIndex = mBubbleViews.indexOf(target);
-            int sIndex = mBubbleViews.indexOf(d.dragView);
-            mBubbleViews.set(tIndex, d.dragView);
+            int sIndex = mBubbleViews.indexOf(mSelect);
+            mBubbleViews.set(tIndex, mSelect);
             mBubbleViews.set(sIndex, target);
         }
-        mLauncher.getDragLayer().removeView(d.dragView);
-        mDragController.addDropTarget(d.dragView);
-        addView(d.dragView);
+        mLauncher.getDragLayer().removeView(mSelect);
+        mDragController.addDropTarget(mSelect);
+        addView(mSelect);
         update();
     }
 }
