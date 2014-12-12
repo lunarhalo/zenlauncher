@@ -30,7 +30,9 @@ public class BubbleView extends View implements DropTarget {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        canvas.drawBitmap(mBitmap, 0.0f, 0.0f, mPaint);
+        if (mBitmap != null) {
+            canvas.drawBitmap(mBitmap, 0.0f, 0.0f, mPaint);
+        }
     }
 
     @Override
@@ -74,5 +76,6 @@ public class BubbleView extends View implements DropTarget {
 
     public void clearBitmap() {
         mBitmap.recycle();
+        mBitmap = null;
     }
 }

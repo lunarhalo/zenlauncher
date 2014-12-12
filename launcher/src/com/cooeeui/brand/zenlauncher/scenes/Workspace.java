@@ -103,6 +103,8 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
         v.setOnTouchListener(this);
 
         mDragController.addDropTarget(v);
+
+        mSelect = v;
     }
 
     public void changeIcon(Bitmap b, int resId) {
@@ -110,9 +112,9 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
         if (i.mResId == resId) {
             return;
         }
-        if (i.usingBuildinIcon) {
-            mSelect.clearBitmap();
-        }
+        // if (i.usingBuildinIcon) { //same icon
+        // mSelect.clearBitmap();
+        // }
         i.usingBuildinIcon = true;
         i.mResId = resId;
         i.mIcon = b;
@@ -120,12 +122,17 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     }
 
     public void changeBubbleView(ShortcutInfo info) {
+        Bitmap b = BitmapUtils.resizeBitmap(info.mIcon, 144, false); // del
+
         ShortcutInfo i = (ShortcutInfo) mSelect.getTag();
-        if (i.usingBuildinIcon) {
-            mSelect.clearBitmap();
-        }
-        mSelect.changeBitmap(info.mIcon);
-        mSelect.setTag(info);
+        // if (i.usingBuildinIcon) {
+        // mSelect.clearBitmap();
+        // }
+        i.usingBuildinIcon = false;
+        i.mResId = 0;
+        i.mIcon = b;
+        mSelect.changeBitmap(b);
+        // mSelect.setTag(info);
     }
 
     public void removeBubbleView() {
