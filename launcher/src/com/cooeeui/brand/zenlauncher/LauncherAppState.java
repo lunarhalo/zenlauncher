@@ -20,14 +20,11 @@ import java.lang.ref.WeakReference;
 
 import android.app.SearchManager;
 import android.content.ComponentName;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
 import android.content.res.Resources;
-import android.database.ContentObserver;
-import android.os.Handler;
 import android.util.Log;
 
 import com.cooeeui.brand.zenlauncher.apps.AppFilter;
@@ -56,10 +53,6 @@ public class LauncherAppState {
         if (INSTANCE == null) {
             INSTANCE = new LauncherAppState();
         }
-        return INSTANCE;
-    }
-
-    public static LauncherAppState getInstanceNoCreate() {
         return INSTANCE;
     }
 
@@ -114,11 +107,6 @@ public class LauncherAppState {
         filter = new IntentFilter();
         filter.addAction(SearchManager.INTENT_ACTION_SEARCHABLES_CHANGED);
         sContext.registerReceiver(mModel, filter);
-
-        // Register for changes to the favorites
-        ContentResolver resolver = sContext.getContentResolver();
-        resolver.registerContentObserver(LauncherSettings.Favorites.CONTENT_URI, true,
-                mFavoritesObserver);
     }
 
     /**
@@ -127,23 +115,7 @@ public class LauncherAppState {
      */
     public void onTerminate() {
         sContext.unregisterReceiver(mModel);
-
-        ContentResolver resolver = sContext.getContentResolver();
-        resolver.unregisterContentObserver(mFavoritesObserver);
     }
-
-    /**
-     * Receives notifications whenever the user favorites have changed.
-     */
-    private final ContentObserver mFavoritesObserver = new ContentObserver(new Handler()) {
-        @Override
-        public void onChange(boolean selfChange) {
-            // If the database has ever changed, then we really need to force a
-            // reload of the workspace on the next load
-            mModel.resetLoadedState(false, true);
-            mModel.startLoaderFromBackground();
-        }
-    };
 
     LauncherModel setLauncher(Launcher launcher) {
         if (mModel == null) {

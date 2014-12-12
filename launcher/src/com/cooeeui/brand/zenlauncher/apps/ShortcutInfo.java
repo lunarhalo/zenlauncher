@@ -20,13 +20,11 @@ import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.pm.PackageInfo;
 import android.graphics.Bitmap;
 import android.util.Log;
-
-import java.util.ArrayList;
 
 import com.cooeeui.brand.zenlauncher.LauncherSettings;
 
@@ -35,23 +33,7 @@ import com.cooeeui.brand.zenlauncher.LauncherSettings;
  */
 public class ShortcutInfo extends ItemInfo {
 
-    /**
-     * Indicates whether the icon comes from an application's resource (if
-     * false) or from a custom Bitmap (if true.)
-     */
-    public boolean customIcon;
-
-    /**
-     * Indicates whether we're using the default fallback icon instead of
-     * something from the app.
-     */
     public boolean usingFallbackIcon;
-
-    /**
-     * If isShortcut=true and customIcon=false, this contains a reference to the
-     * shortcut icon as an application's resource.
-     */
-    public Intent.ShortcutIconResource iconResource;
 
     /**
      * The application icon.
@@ -79,7 +61,7 @@ public class ShortcutInfo extends ItemInfo {
     public Intent getIntent() {
         return intent;
     }
-    
+
     public ShortcutInfo() {
         super();
     }
@@ -110,22 +92,6 @@ public class ShortcutInfo extends ItemInfo {
         firstInstallTime = AppInfo.initFirstInstallTime(pi);
     }
 
-    public void setIcon(Bitmap b) {
-        mIcon = b;
-    }
-
-    public Bitmap getIcon(IconCache iconCache) {
-        if (mIcon == null) {
-            updateIcon(iconCache);
-        }
-        return mIcon;
-    }
-
-    public void updateIcon(IconCache iconCache) {
-        mIcon = iconCache.getIcon(intent);
-        usingFallbackIcon = iconCache.isDefaultIcon(mIcon);
-    }
-
     /**
      * Creates the application intent based on a component name and various
      * launch flags. Sets {@link #itemType} to
@@ -145,33 +111,18 @@ public class ShortcutInfo extends ItemInfo {
 
     @Override
     public void onAddToDatabase(ContentValues values) {
-        super.onAddToDatabase(values);
-
         String titleStr = title != null ? title.toString() : null;
         values.put(LauncherSettings.BaseLauncherColumns.TITLE, titleStr);
 
         String uri = intent != null ? intent.toUri(0) : null;
         values.put(LauncherSettings.BaseLauncherColumns.INTENT, uri);
 
-        if (customIcon) {
-            values.put(LauncherSettings.BaseLauncherColumns.ICON_TYPE,
-                    LauncherSettings.BaseLauncherColumns.ICON_TYPE_BITMAP);
-            writeBitmap(values, mIcon);
-        } else {
-            if (!usingFallbackIcon) {
-                writeBitmap(values, mIcon);
-            }
-            values.put(LauncherSettings.BaseLauncherColumns.ICON_TYPE,
-                    LauncherSettings.BaseLauncherColumns.ICON_TYPE_RESOURCE);
-            if (iconResource != null) {
-                values.put(LauncherSettings.BaseLauncherColumns.ICON_PACKAGE,
-                        iconResource.packageName);
-                values.put(LauncherSettings.BaseLauncherColumns.ICON_RESOURCE,
-                        iconResource.resourceName);
-            }
+        values.put(LauncherSettings.Favorites.POSITION, position);
+        if (usingBuildinIcon) {
+            values.put(LauncherSettings.BaseLauncherColumns.ICON_TYPE, mResId);
         }
     }
-    
+
     public void updateValuesWithPosition(ContentValues values, int position) {
         values.put(LauncherSettings.Favorites.POSITION, position);
     }
@@ -182,12 +133,4 @@ public class ShortcutInfo extends ItemInfo {
                 + " type=" + this.itemType + " position=" + this.position + ")";
     }
 
-    public static void dumpShortcutInfoList(String tag, String label,
-            ArrayList<ShortcutInfo> list) {
-        Log.d(tag, label + " size=" + list.size());
-        for (ShortcutInfo info : list) {
-            Log.d(tag, "   title=\"" + info.title + " icon=" + info.mIcon
-                    + " customIcon=" + info.customIcon);
-        }
-    }
 }
