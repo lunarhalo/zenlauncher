@@ -18,6 +18,7 @@ import android.widget.TextView;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.R;
+import com.cooeeui.brand.zenlauncher.config.IconConfig;
 import com.cooeeui.brand.zenlauncher.scenes.utils.BitmapUtils;
 
 public class ChangeIcon extends Dialog {
@@ -68,7 +69,7 @@ public class ChangeIcon extends Dialog {
         });
 
         mImage.setImageBitmap(mIcons.get(0));
-        mText.setText("icon1");
+        mText.setText("Change Icon");
     }
 
     private void loadIcon() {
@@ -78,7 +79,7 @@ public class ChangeIcon extends Dialog {
             Bitmap b = map.get(mRes[i]);
             if (b == null) {
                 b = BitmapUtils.getIcon(mLauncher.getResources(),
-                        mRes[i], 144); // modify later
+                        mRes[i], IconConfig.getIconSize());
                 mAdded.add(b);
             }
             mIcons.add(b);

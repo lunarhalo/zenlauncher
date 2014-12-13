@@ -18,6 +18,7 @@ import com.cooeeui.brand.zenlauncher.LauncherAppState;
 import com.cooeeui.brand.zenlauncher.R;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
+import com.cooeeui.brand.zenlauncher.config.IconConfig;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 import com.cooeeui.brand.zenlauncher.scenes.utils.BitmapUtils;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
@@ -164,6 +165,7 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
         DisplayMetrics metrics = new DisplayMetrics();
         mLauncher.getWindowManager().getDefaultDisplay().getMetrics(metrics);
         mIconSize = metrics.widthPixels * 96 / 720;
+        IconConfig.setIconSize(mIconSize);
         mPadding = metrics.widthPixels * 36 / 720;
         mMidPoint[0] = metrics.widthPixels * 180 / 720;
         mMidPoint[1] = metrics.heightPixels - mIconSize * 4 - mPadding * 2;
@@ -238,15 +240,22 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
                     R.drawable.icon1, R.drawable.icon2, R.drawable.icon3
             };
             for (int i = 0; i < EDIT_VIEW_CAPACITY; i++) {
+                // Discuss: We should use a global icon size here.
+                // And another question is: why the mBubbleViews is so small, look
+                // like 96x96, but the size of bitmap is 144x144.
                 icon = BitmapUtils.getIcon(mLauncher.getResources(),
-                        iconId[i], 144); // modify later
+                        iconId[i], IconConfig.getIconSize());
                 BubbleView v = new BubbleView(mLauncher, icon);
                 v.setTag(i);
                 addView(v);
                 mEditViews.add(v);
                 v.setOnClickListener(mLauncher);
 
-                v.move(120 + i * 300, 1500);
+                // TODO: use dynamic layout to fit the device.
+                DisplayMetrics metrics = new DisplayMetrics();
+                mLauncher.getWindowManager().getDefaultDisplay().getMetrics(metrics);
+                float scale = metrics.widthPixels / 720.0f;
+                v.move((90 + i * 220) * scale, 1080 * scale);
             }
             return;
         }

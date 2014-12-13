@@ -17,6 +17,7 @@ import android.widget.TextView;
 import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.R;
 import com.cooeeui.brand.zenlauncher.apps.AppInfo;
+import com.cooeeui.brand.zenlauncher.config.IconConfig;
 
 public class PopupDialog extends Dialog {
 
@@ -62,7 +63,11 @@ public class PopupDialog extends Dialog {
         });
 
         mImage.setImageBitmap(mApps.get(0).iconBitmap);
-        mText.setText("icon1");
+        if (mState == ADD_VIEW) {
+            mText.setText("Add");
+        } else {
+            mText.setText("Change");
+        }
     }
 
     private class ImageAdapter extends BaseAdapter {
@@ -92,7 +97,8 @@ public class PopupDialog extends Dialog {
             if (convertView == null)
             {
                 imageView = new ImageView(mContext);
-                imageView.setLayoutParams(new GridView.LayoutParams(144, 144)); //
+                imageView.setLayoutParams(new GridView.LayoutParams(IconConfig.getIconSize(),
+                        IconConfig.getIconSize()));
                 imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             }
             else
