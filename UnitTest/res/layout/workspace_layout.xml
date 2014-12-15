@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:zenlauncher="http://schemas.android.com/apk/res/com.cooeeui.brand.zenlauncher.unittest"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:orientation="vertical" >
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_gravity="top"
+            android:layout_weight="70"
+            android:background="#ff00ff00" >
+
+            <ImageView
+                android:id="@+id/weatherclock"
+                android:layout_width="300dp"
+                android:layout_height="match_parent"
+                android:layout_gravity="center"
+                android:background="#ff0000ff"
+                android:contentDescription="weatherclock"
+                android:src="@drawable/weatherclock" />
+        </FrameLayout>
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="30"
+            android:background="#ffff0000" >
+
+            <com.cooeeui.brand.zenlauncher.unittest.layout.FitCenterLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                zenlauncher:aspect_ratio="1"
+                zenlauncher:height_weight="0.8" >
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="#ff00ff00" >
+                </View>
+            </com.cooeeui.brand.zenlauncher.unittest.layout.FitCenterLayout>
+        </FrameLayout>
+    </LinearLayout>
+
+    <ImageView
+        android:id="@+id/searchbar"
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:contentDescription="searchbar"
+        android:scaleType="fitXY"
+        android:src="@drawable/searchbar" />
+
+</LinearLayout>

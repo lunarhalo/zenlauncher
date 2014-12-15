@@ -9,4 +9,6 @@
     <string name="once">For once</string>
     <string name="chooseApp">Choose to use the application:</string>
     <string name="applayout">AppLayout</string>
+    <string name="workspace_layout">Layout/Workspace</string>
+    <string name="drawer_layout">Layout/Drawer</string>
 </resources>
