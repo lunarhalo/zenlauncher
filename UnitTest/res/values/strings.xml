@@ -8,4 +8,5 @@
     <string name="always">always</string>
     <string name="once">For once</string>
     <string name="chooseApp">Choose to use the application:</string>
+    <string name="applayout">AppLayout</string>
 </resources>
