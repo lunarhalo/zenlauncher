@@ -80,7 +80,7 @@ public class DragController {
             if (mLastDropTarget != null) {
                 mLastDropTarget.onDragExit(mDragObject);
             }
-            mDragObject.dragSource.onDropCompleted(null, mDragObject);
+            mDragObject.dragSource.onDropCompleted(null);
         }
         endDrag();
     }
@@ -108,7 +108,7 @@ public class DragController {
             dropTarget.onDragExit(mDragObject);
             dropTarget.onDrop(mDragObject);
         }
-        mDragObject.dragSource.onDropCompleted((BubbleView) dropTarget, mDragObject);
+        mDragObject.dragSource.onDropCompleted((BubbleView) dropTarget);
     }
 
     private int[] getClampedDragLayerPos(float x, float y) {

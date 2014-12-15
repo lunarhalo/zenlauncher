@@ -17,22 +17,16 @@
 package com.cooeeui.brand.zenlauncher;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 
-import android.content.ComponentName;
 import android.content.ContentProvider;
-import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ActivityInfo;
-import android.content.pm.PackageManager;
-import android.content.res.Resources;
 import android.content.res.TypedArray;
 import android.content.res.XmlResourceParser;
 import android.database.Cursor;
@@ -40,7 +34,6 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.database.sqlite.SQLiteQueryBuilder;
 import android.net.Uri;
-import android.provider.Settings;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -239,7 +232,6 @@ public class LauncherProvider extends ContentProvider {
     private static class DatabaseHelper extends SQLiteOpenHelper {
         private static final String TAG_FAVORITES = "favorites";
         private static final String TAG_FAVORITE = "favorite";
-        private static final String TAG_SHORTCUT = "shortcut";
 
         private final Context mContext;
         private long mMaxItemId = -1;
@@ -272,7 +264,7 @@ public class LauncherProvider extends ContentProvider {
                     "itemType INTEGER," +
                     "iconType INTEGER," +
                     "iconPackage TEXT," +
-                    "iconResource TEXT," +
+                    "iconName TEXT," +
                     "icon BLOB," +
                     "uri TEXT," +
                     "modified INTEGER NOT NULL DEFAULT 0" +
@@ -422,9 +414,6 @@ public class LauncherProvider extends ContentProvider {
                     if (TAG_FAVORITE.equals(name)) {
                         long id = addAppShortcut(db, values, a);
                         added = id >= 0;
-                    } else if (TAG_SHORTCUT.equals(name)) {
-                        long id = addUriShortcut(db, values, a);
-                        added = id >= 0;
                     }
                     if (added)
                         i++;
@@ -452,7 +441,7 @@ public class LauncherProvider extends ContentProvider {
             String iconName = a.getString(R.styleable.Favorite_iconName);
             String pkgName = mContext.getPackageName();
             values.put(Favorites.ICON_PACKAGE, pkgName);
-            values.put(Favorites.ICON_RESOURCE, iconName);
+            values.put(Favorites.ICON_NAME, iconName);
             values.put(Favorites.POSITION, position);
             values.put(Favorites.INTENT, intentName);
             values.put(Favorites._ID, generateNewItemId());
@@ -462,43 +451,6 @@ public class LauncherProvider extends ContentProvider {
             return id;
         }
 
-        private long addUriShortcut(SQLiteDatabase db, ContentValues values,
-                TypedArray a) {
-            Resources r = mContext.getResources();
-
-            final int iconResId = a.getResourceId(R.styleable.Favorite_icon, 0);
-            final int titleResId = a.getResourceId(R.styleable.Favorite_title, 0);
-
-            Intent intent;
-            String uri = null;
-            try {
-                uri = a.getString(R.styleable.Favorite_uri);
-                intent = Intent.parseUri(uri, 0);
-            } catch (URISyntaxException e) {
-                Log.w(TAG, "Shortcut has malformed uri: " + uri);
-                return -1; // Oh well
-            }
-
-            if (iconResId == 0 || titleResId == 0) {
-                Log.w(TAG, "Shortcut is missing title or icon resource ID");
-                return -1;
-            }
-
-            long id = generateNewItemId();
-            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            values.put(Favorites.INTENT, intent.toUri(0));
-            values.put(Favorites.TITLE, r.getString(titleResId));
-            values.put(Favorites.ITEM_TYPE, Favorites.ITEM_TYPE_SHORTCUT);
-            values.put(Favorites.ICON_TYPE, Favorites.ICON_TYPE_RESOURCE);
-            values.put(Favorites.ICON_PACKAGE, mContext.getPackageName());
-            values.put(Favorites.ICON_RESOURCE, r.getResourceName(iconResId));
-            values.put(Favorites._ID, id);
-
-            if (dbInsertAndCheck(this, db, TABLE_FAVORITES, null, values) < 0) {
-                return -1;
-            }
-            return id;
-        }
     }
 
     /**

@@ -30,6 +30,8 @@ import com.cooeeui.brand.zenlauncher.debug.Logger;
 import com.cooeeui.brand.zenlauncher.scenes.LoadingView;
 import com.cooeeui.brand.zenlauncher.scenes.Workspace;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
+import com.cooeeui.brand.zenlauncher.scenes.ui.ChangeIcon;
+import com.cooeeui.brand.zenlauncher.scenes.ui.PopupDialog;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer;
 
@@ -46,6 +48,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     private Workspace mWorkspace;
     private DragLayer mDragLayer;
     private DragController mDragController;
+    private ArrayList<AppInfo> mApps;
 
     private Dialog mLoading;
 
@@ -77,8 +80,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         mWorkspace = (Workspace) mDragLayer.findViewById(R.id.workspace);
         mDragLayer.setup(this, mDragController);
         mWorkspace.setup(this, mDragController);
-
-        mWorkspace.setOnLongClickListener(this);
+        mWorkspace.setOnClickListener(this);
 
         registerForContextMenu(mWorkspace);
         showLoadingView();
@@ -137,6 +139,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     public boolean onContextItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.add:
+                new PopupDialog(this, PopupDialog.ADD_VIEW).show();
                 return true;
 
             case R.id.wallpaper:
@@ -172,6 +175,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.add:
+                new PopupDialog(this, PopupDialog.ADD_VIEW).show();
                 return true;
 
             case R.id.wallpaper:
@@ -205,9 +209,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     @Override
     public boolean onLongClick(View v) {
-        if (v instanceof Workspace) {
-            return false;
-        } else if (v instanceof BubbleView) {
+        if (v instanceof BubbleView) {
             BubbleView view = (BubbleView) v;
             mWorkspace.startDrag(view);
         }
@@ -227,7 +229,30 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     @Override
     public void onClick(View v) {
+
+        if (v instanceof Workspace) {
+            mWorkspace.stopDrag();
+            return;
+        }
+
         Object tag = v.getTag();
+
+        if (tag instanceof Integer) {
+            Integer num = (Integer) v.getTag();
+            switch (num.intValue()) {
+                case Workspace.EDIT_VIEW_ICON:
+                    new ChangeIcon(this).show();
+                    break;
+                case Workspace.EDIT_VIEW_CHANGE:
+                    new PopupDialog(this, PopupDialog.CHANGE_VIEW).show();
+                    break;
+                case Workspace.EDIT_VIEW_DELETE:
+                    mWorkspace.removeBubbleView();
+                    break;
+            }
+            return;
+        }
+
         if (tag instanceof ShortcutInfo) {
             final ShortcutInfo shortcut = (ShortcutInfo) tag;
             final Intent intent = shortcut.intent;
@@ -241,9 +266,17 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         return mDragLayer;
     }
 
+    public Workspace getWorkspace() {
+        return mWorkspace;
+    }
+
+    public ArrayList<AppInfo> getApps() {
+        return mApps;
+    }
+
     @Override
     public void onBackPressed() {
-
+        mWorkspace.stopDrag();
     }
 
     @Override
@@ -297,7 +330,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         for (int i = start; i < end; i++) {
             final ItemInfo item = shortcuts.get(i);
             ShortcutInfo info = (ShortcutInfo) item;
-            mWorkspace.addBubbleViewFromBind(info);
+            mWorkspace.addBubbleView(info);
         }
     }
 
@@ -327,8 +360,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     @Override
     public void bindAllApplications(ArrayList<AppInfo> apps) {
-        // TODO Auto-generated method stub
-
+        mApps = apps;
     }
 
     @Override

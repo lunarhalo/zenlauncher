@@ -100,14 +100,6 @@ public class LauncherSettings {
         public static final String ICON_PACKAGE = "iconPackage";
 
         /**
-         * The icon resource id, if icon type is ICON_TYPE_RESOURCE.
-         * <P>
-         * Type: TEXT
-         * </P>
-         */
-        public static final String ICON_RESOURCE = "iconResource";
-
-        /**
          * The custom icon bitmap, if icon type is ICON_TYPE_BITMAP.
          * <P>
          * Type: BLOB
@@ -200,6 +192,14 @@ public class LauncherSettings {
          * </P>
          */
         public static final String POSITION = "position";
+
+        /**
+         * The icon name.
+         * <P>
+         * Type: TEXT
+         * </P>
+         */
+        public static final String ICON_NAME = "iconName";
 
         /**
          * The content:// style URL for this table

@@ -28,10 +28,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
-import android.annotation.SuppressLint;
 import android.app.SearchManager;
-import android.appwidget.AppWidgetManager;
-import android.appwidget.AppWidgetProviderInfo;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentProviderOperation;
@@ -39,7 +36,6 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.Intent.ShortcutIconResource;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -49,11 +45,9 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.HandlerThread;
-import android.os.Parcelable;
 import android.os.Process;
 import android.os.SystemClock;
 import android.util.Log;
@@ -61,13 +55,11 @@ import android.util.Log;
 import com.cooeeui.brand.zenlauncher.apps.AllAppsList;
 import com.cooeeui.brand.zenlauncher.apps.AppFilter;
 import com.cooeeui.brand.zenlauncher.apps.AppInfo;
-import com.cooeeui.brand.zenlauncher.apps.FastBitmapDrawable;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
 import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
 import com.cooeeui.brand.zenlauncher.apps.Utilities;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
-import com.cooeeui.brand.zenlauncher.receivers.InstallShortcutReceiver;
 import com.cooeeui.brand.zenlauncher.scenes.utils.BitmapUtils;
 
 /**
@@ -219,10 +211,6 @@ public class LauncherModel extends BroadcastReceiver {
             // handler
             sWorker.post(r);
         }
-    }
-
-    static boolean findNextAvailableIconSpace(ArrayList<ItemInfo> items, int[] index) {
-        return true;
     }
 
     public void addAndBindAddedApps(final Context context, final ArrayList<AppInfo> allAddedApps) {
@@ -462,18 +450,14 @@ public class LauncherModel extends BroadcastReceiver {
         }
     }
 
-    static void addAndBindAddedApps(Context context) {
-    }
-
     /**
      * Move item in the DB to a new position
      */
-    static void modifyItemInDatabase(Context context, final ItemInfo item, int position) {
-        ShortcutInfo shortcut = (ShortcutInfo) item;
-        shortcut.position = position;
+    static void modifyItemInDatabase(Context context, final ShortcutInfo item, int position) {
+        item.position = position;
 
         final ContentValues values = new ContentValues();
-        values.put(LauncherSettings.Favorites.POSITION, shortcut.position);
+        values.put(LauncherSettings.Favorites.POSITION, position);
 
         updateItemInDatabaseHelper(context, values, item, "modifyItemInDatabase");
     }
@@ -489,66 +473,9 @@ public class LauncherModel extends BroadcastReceiver {
     }
 
     /**
-     * Returns true if the shortcuts already exists in the database. we identify
-     * a shortcut by its title and intent.
+     * Add an item to the database in a specified container.
      */
-    public static boolean shortcutExists(Context context, String title, Intent intent) {
-        final ContentResolver cr = context.getContentResolver();
-        Cursor c = cr.query(LauncherSettings.Favorites.CONTENT_URI,
-                new String[] {
-                        "title", "intent"
-                }, "title=? and intent=?",
-                new String[] {
-                        title, intent.toUri(0)
-                }, null);
-        boolean result = false;
-        try {
-            result = c.moveToFirst();
-        } finally {
-            c.close();
-        }
-        return result;
-    }
-
-    /**
-     * Returns an ItemInfo array containing all the items in the LauncherModel.
-     * The ItemInfo.id is not set through this function.
-     */
-    static ArrayList<ItemInfo> getItemsInLocalCoordinates(Context context) {
-        ArrayList<ItemInfo> items = new ArrayList<ItemInfo>();
-        final ContentResolver cr = context.getContentResolver();
-        Cursor c = cr.query(LauncherSettings.Favorites.CONTENT_URI, new String[] {
-                LauncherSettings.Favorites.ITEM_TYPE,
-                LauncherSettings.Favorites.POSITION
-        }, null, null, null);
-
-        final int itemTypeIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites.ITEM_TYPE);
-        final int positionIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites.POSITION);
-
-        try {
-            while (c.moveToNext()) {
-                ItemInfo item = new ItemInfo();
-                item.itemType = c.getInt(itemTypeIndex);
-                item.position = c.getInt(positionIndex);
-
-                items.add(item);
-            }
-        } catch (Exception e) {
-            items.clear();
-        } finally {
-            c.close();
-        }
-
-        return items;
-    }
-
-    /**
-     * Add an item to the database in a specified container. Sets the container,
-     * screen, cellX and cellY fields of the item. Also assigns an ID to the
-     * item.
-     */
-    static void addItemToDatabase(Context context, final ItemInfo item, final int position,
-            final boolean notify) {
+    static void addItemToDatabase(Context context, final ItemInfo item, final int position) {
         item.position = position;
 
         final ContentValues values = new ContentValues();
@@ -561,8 +488,7 @@ public class LauncherModel extends BroadcastReceiver {
 
         Runnable r = new Runnable() {
             public void run() {
-                cr.insert(notify ? LauncherSettings.Favorites.CONTENT_URI :
-                        LauncherSettings.Favorites.CONTENT_URI_NO_NOTIFICATION, values);
+                cr.insert(LauncherSettings.Favorites.CONTENT_URI, values);
 
                 // Lock on mBgLock *after* the db operation
                 synchronized (sBgLock) {
@@ -1070,8 +996,8 @@ public class LauncherModel extends BroadcastReceiver {
                     final int idIndex = c.getColumnIndexOrThrow(LauncherSettings.Favorites._ID);
                     final int intentIndex = c.getColumnIndexOrThrow
                             (LauncherSettings.Favorites.INTENT);
-                    final int iconResourceIndex = c.getColumnIndexOrThrow(
-                            LauncherSettings.Favorites.ICON_RESOURCE);
+                    final int iconNameIndex = c.getColumnIndexOrThrow(
+                            LauncherSettings.Favorites.ICON_NAME);
                     final int positionIndex = c.getColumnIndexOrThrow(
                             LauncherSettings.Favorites.POSITION);
 
@@ -1106,7 +1032,7 @@ public class LauncherModel extends BroadcastReceiver {
                             }
 
                             id = c.getLong(idIndex);
-                            iconName = c.getString(iconResourceIndex);
+                            iconName = c.getString(iconNameIndex);
                             position = c.getInt(positionIndex);
 
                             iconId = getIconId(iconName);
@@ -1228,11 +1154,9 @@ public class LauncherModel extends BroadcastReceiver {
             unbindWorkspaceItemsOnMainThread();
 
             ArrayList<ItemInfo> workspaceItems = new ArrayList<ItemInfo>();
-            HashMap<Long, ItemInfo> itemsIdMap = new HashMap<Long, ItemInfo>();
 
             synchronized (sBgLock) {
                 workspaceItems.addAll(sBgWorkspaceItems);
-                itemsIdMap.putAll(sBgItemsIdMap);
             }
 
             sortWorkspaceItemsSpatially(workspaceItems);
@@ -1530,7 +1454,6 @@ public class LauncherModel extends BroadcastReceiver {
                     String spKey = LauncherAppState.getSharedPreferencesKey();
                     SharedPreferences sp =
                             context.getSharedPreferences(spKey, Context.MODE_PRIVATE);
-                    InstallShortcutReceiver.removeFromInstallQueue(sp, removedPackageNames);
                 } else {
                     for (AppInfo a : removedApps) {
                         ArrayList<ItemInfo> infos =
@@ -1604,6 +1527,8 @@ public class LauncherModel extends BroadcastReceiver {
         if (iconId > 0) {
             icon = BitmapUtils.getIcon(mApp.getContext().getResources(),
                     iconId, 144); // modify later
+            info.usingBuildinIcon = true;
+            info.mResId = iconId;
         }
 
         if (intent != null) {
@@ -1673,7 +1598,7 @@ public class LauncherModel extends BroadcastReceiver {
             icon = getFallbackIcon();
             info.usingFallbackIcon = true;
         }
-        info.setIcon(icon);
+        info.mIcon = icon;
         info.itemType = LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
         return info;
     }
@@ -1739,110 +1664,6 @@ public class LauncherModel extends BroadcastReceiver {
         return false;
     }
 
-    ShortcutInfo addShortcut(Context context, Intent data, int position, boolean notify) {
-        final ShortcutInfo info = infoFromShortcutIntent(context, data, null);
-        if (info == null) {
-            return null;
-        }
-        addItemToDatabase(context, info, position, notify);
-
-        return info;
-    }
-
-    /**
-     * Attempts to find an AppWidgetProviderInfo that matches the given
-     * component.
-     */
-    AppWidgetProviderInfo findAppWidgetProviderInfoWithComponent(Context context,
-            ComponentName component) {
-        List<AppWidgetProviderInfo> widgets =
-                AppWidgetManager.getInstance(context).getInstalledProviders();
-        for (AppWidgetProviderInfo info : widgets) {
-            if (info.provider.equals(component)) {
-                return info;
-            }
-        }
-        return null;
-    }
-
-    public ShortcutInfo infoFromShortcutIntent(Context context, Intent data, Bitmap fallbackIcon) {
-        Intent intent = data.getParcelableExtra(Intent.EXTRA_SHORTCUT_INTENT);
-        String name = data.getStringExtra(Intent.EXTRA_SHORTCUT_NAME);
-        Parcelable bitmap = data.getParcelableExtra(Intent.EXTRA_SHORTCUT_ICON);
-
-        if (intent == null) {
-            // If the intent is null, we can't construct a valid ShortcutInfo,
-            // so we return null
-            Log.e(TAG, "Can't construct ShorcutInfo with null intent");
-            return null;
-        }
-
-        Bitmap icon = null;
-        boolean customIcon = false;
-        ShortcutIconResource iconResource = null;
-
-        if (bitmap != null && bitmap instanceof Bitmap) {
-            icon = Utilities.createIconBitmap(new FastBitmapDrawable((Bitmap) bitmap), context);
-            customIcon = true;
-        } else {
-            Parcelable extra = data.getParcelableExtra(Intent.EXTRA_SHORTCUT_ICON_RESOURCE);
-            if (extra != null && extra instanceof ShortcutIconResource) {
-                try {
-                    iconResource = (ShortcutIconResource) extra;
-                    final PackageManager packageManager = context.getPackageManager();
-                    Resources resources = packageManager.getResourcesForApplication(
-                            iconResource.packageName);
-                    final int id = resources.getIdentifier(iconResource.resourceName, null, null);
-                    icon = Utilities.createIconBitmap(
-                            mIconCache.getFullResIcon(resources, id), context);
-                } catch (Exception e) {
-                    Log.w(TAG, "Could not load shortcut icon: " + extra);
-                }
-            }
-        }
-
-        final ShortcutInfo info = new ShortcutInfo();
-
-        if (icon == null) {
-            if (fallbackIcon != null) {
-                icon = fallbackIcon;
-            } else {
-                icon = getFallbackIcon();
-                info.usingFallbackIcon = true;
-            }
-        }
-        info.setIcon(icon);
-
-        info.title = name;
-        info.intent = intent;
-        info.customIcon = customIcon;
-        info.iconResource = iconResource;
-
-        return info;
-    }
-
-    @SuppressLint("NewApi")
-    void updateSavedIcon(Context context, ShortcutInfo info, byte[] data) {
-        boolean needSave = false;
-        try {
-            if (data != null) {
-                Bitmap saved = BitmapFactory.decodeByteArray(data, 0, data.length);
-                Bitmap loaded = info.getIcon(mIconCache);
-                needSave = !saved.sameAs(loaded);
-            } else {
-                needSave = true;
-            }
-        } catch (Exception e) {
-            needSave = true;
-        }
-        if (needSave) {
-            Log.d(TAG, "going to save icon bitmap for info=" + info);
-            // This is slower than is ideal, but this only happens once
-            // or when the app is updated with a new icon.
-            updateShortcutInDatabase(context, info);
-        }
-    }
-
     public static final Comparator<AppInfo> getAppNameComparator() {
         final Collator collator = Collator.getInstance();
         return new Comparator<AppInfo>() {
@@ -1853,25 +1674,6 @@ public class LauncherModel extends BroadcastReceiver {
                     result = a.componentName.compareTo(b.componentName);
                 }
                 return result;
-            }
-        };
-    }
-
-    public static final Comparator<AppInfo> APP_INSTALL_TIME_COMPARATOR = new Comparator<AppInfo>() {
-        public final int compare(AppInfo a, AppInfo b) {
-            if (a.firstInstallTime < b.firstInstallTime)
-                return 1;
-            if (a.firstInstallTime > b.firstInstallTime)
-                return -1;
-            return 0;
-        }
-    };
-
-    public static final Comparator<AppWidgetProviderInfo> getWidgetNameComparator() {
-        final Collator collator = Collator.getInstance();
-        return new Comparator<AppWidgetProviderInfo>() {
-            public final int compare(AppWidgetProviderInfo a, AppWidgetProviderInfo b) {
-                return collator.compare(a.label.toString().trim(), b.label.toString().trim());
             }
         };
     }

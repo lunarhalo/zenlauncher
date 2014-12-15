@@ -20,13 +20,11 @@ import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.content.pm.PackageInfo;
 import android.graphics.Bitmap;
 import android.util.Log;
-
-import java.util.ArrayList;
 
 import com.cooeeui.brand.zenlauncher.LauncherSettings;
 
@@ -35,28 +33,19 @@ import com.cooeeui.brand.zenlauncher.LauncherSettings;
  */
 public class ShortcutInfo extends ItemInfo {
 
-    /**
-     * Indicates whether the icon comes from an application's resource (if
-     * false) or from a custom Bitmap (if true.)
-     */
-    public boolean customIcon;
-
-    /**
-     * Indicates whether we're using the default fallback icon instead of
-     * something from the app.
-     */
     public boolean usingFallbackIcon;
-
-    /**
-     * If isShortcut=true and customIcon=false, this contains a reference to the
-     * shortcut icon as an application's resource.
-     */
-    public Intent.ShortcutIconResource iconResource;
 
     /**
      * The application icon.
      */
-    private Bitmap mIcon;
+    public Bitmap mIcon;
+
+    public boolean usingBuildinIcon;
+
+    /**
+     * The resource id if usingBuildinIcon is true.
+     */
+    public int mResId;
 
     /**
      * The time at which the application was first installed.
@@ -72,32 +61,19 @@ public class ShortcutInfo extends ItemInfo {
     public Intent getIntent() {
         return intent;
     }
-    
+
     public ShortcutInfo() {
         super();
     }
 
-    public ShortcutInfo(Context context, ShortcutInfo info) {
-        super(info);
-        intent = new Intent(info.intent);
-        if (info.iconResource != null) {
-            iconResource = new Intent.ShortcutIconResource();
-            iconResource.packageName = info.iconResource.packageName;
-            iconResource.resourceName = info.iconResource.resourceName;
-        }
-        mIcon = info.mIcon; // TODO: should make a copy here. maybe we don't
-                            // need this ctor at all
-        customIcon = info.customIcon;
-        initFlagsAndFirstInstallTime(getPackageInfo(context, intent.getComponent().getPackageName()));
-    }
-
-    /** TODO: Remove this. It's only called by ApplicationInfo.makeShortcut. */
     public ShortcutInfo(AppInfo info) {
         super(info);
         intent = new Intent(info.intent);
-        customIcon = false;
+        usingBuildinIcon = false;
+        mResId = 0;
         flags = info.flags;
         firstInstallTime = info.firstInstallTime;
+        mIcon = info.iconBitmap;
     }
 
     public static PackageInfo getPackageInfo(Context context, String packageName) {
@@ -114,22 +90,6 @@ public class ShortcutInfo extends ItemInfo {
     public void initFlagsAndFirstInstallTime(PackageInfo pi) {
         flags = AppInfo.initFlags(pi);
         firstInstallTime = AppInfo.initFirstInstallTime(pi);
-    }
-
-    public void setIcon(Bitmap b) {
-        mIcon = b;
-    }
-
-    public Bitmap getIcon(IconCache iconCache) {
-        if (mIcon == null) {
-            updateIcon(iconCache);
-        }
-        return mIcon;
-    }
-
-    public void updateIcon(IconCache iconCache) {
-        mIcon = iconCache.getIcon(intent);
-        usingFallbackIcon = iconCache.isDefaultIcon(mIcon);
     }
 
     /**
@@ -151,33 +111,18 @@ public class ShortcutInfo extends ItemInfo {
 
     @Override
     public void onAddToDatabase(ContentValues values) {
-        super.onAddToDatabase(values);
-
         String titleStr = title != null ? title.toString() : null;
         values.put(LauncherSettings.BaseLauncherColumns.TITLE, titleStr);
 
         String uri = intent != null ? intent.toUri(0) : null;
         values.put(LauncherSettings.BaseLauncherColumns.INTENT, uri);
 
-        if (customIcon) {
-            values.put(LauncherSettings.BaseLauncherColumns.ICON_TYPE,
-                    LauncherSettings.BaseLauncherColumns.ICON_TYPE_BITMAP);
-            writeBitmap(values, mIcon);
-        } else {
-            if (!usingFallbackIcon) {
-                writeBitmap(values, mIcon);
-            }
-            values.put(LauncherSettings.BaseLauncherColumns.ICON_TYPE,
-                    LauncherSettings.BaseLauncherColumns.ICON_TYPE_RESOURCE);
-            if (iconResource != null) {
-                values.put(LauncherSettings.BaseLauncherColumns.ICON_PACKAGE,
-                        iconResource.packageName);
-                values.put(LauncherSettings.BaseLauncherColumns.ICON_RESOURCE,
-                        iconResource.resourceName);
-            }
+        values.put(LauncherSettings.Favorites.POSITION, position);
+        if (usingBuildinIcon) {
+            values.put(LauncherSettings.BaseLauncherColumns.ICON_TYPE, mResId);
         }
     }
-    
+
     public void updateValuesWithPosition(ContentValues values, int position) {
         values.put(LauncherSettings.Favorites.POSITION, position);
     }
@@ -188,12 +133,4 @@ public class ShortcutInfo extends ItemInfo {
                 + " type=" + this.itemType + " position=" + this.position + ")";
     }
 
-    public static void dumpShortcutInfoList(String tag, String label,
-            ArrayList<ShortcutInfo> list) {
-        Log.d(tag, label + " size=" + list.size());
-        for (ShortcutInfo info : list) {
-            Log.d(tag, "   title=\"" + info.title + " icon=" + info.mIcon
-                    + " customIcon=" + info.customIcon);
-        }
-    }
 }
