@@ -240,9 +240,6 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
                     R.drawable.icon1, R.drawable.icon2, R.drawable.icon3
             };
             for (int i = 0; i < EDIT_VIEW_CAPACITY; i++) {
-                // Discuss: We should use a global icon size here.
-                // And another question is: why the mBubbleViews is so small, look
-                // like 96x96, but the size of bitmap is 144x144.
                 icon = BitmapUtils.getIcon(mLauncher.getResources(),
                         iconId[i], IconConfig.getIconSize());
                 BubbleView v = new BubbleView(mLauncher, icon);
