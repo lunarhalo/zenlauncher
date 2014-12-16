@@ -3,20 +3,14 @@ package com.cooeeui.brand.zenlauncher.unittest.layout;
 
 import com.cooeeui.brand.zenlauncher.unittest.R;
 
-import android.app.Dialog;
-import android.content.Context;
+import android.app.Activity;
 import android.os.Bundle;
 
-public class IconDialog extends Dialog {
-
-    public IconDialog(Context context) {
-        super(context, R.style.DialogStyle);
-    }
-
+public class SuperDialog extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        
-        setContentView(R.layout.icon_dialog_layout);
+
+        setContentView(R.layout.super_dialog_layout);
     }
 }

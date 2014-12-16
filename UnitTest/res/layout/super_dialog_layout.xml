@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:zenlauncher="http://schemas.android.com/apk/res/com.cooeeui.brand.zenlauncher.unittest"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#00ffff" >
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#0000ff" />
+
+    <com.cooeeui.brand.zenlauncher.unittest.layout.FitCenterLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="#ff0000"
+        zenlauncher:aspect_ratio="0"
+        zenlauncher:height_weight="0.8"
+        zenlauncher:width_weight="0.9" >
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#00ff00" />
+    </com.cooeeui.brand.zenlauncher.unittest.layout.FitCenterLayout>
+
+</FrameLayout>

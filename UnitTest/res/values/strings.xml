@@ -12,4 +12,5 @@
     <string name="workspace_layout">Layout/Workspace</string>
     <string name="drawer_layout">Layout/Drawer</string>
     <string name="dialogs_layout">Layout/Dialogs</string>
+    <string name="super_dialog_layout">Layout/Super Dialog</string>
 </resources>

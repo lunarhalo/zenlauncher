@@ -60,7 +60,20 @@ public class FitCenterLayout extends ViewGroup {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        int width = MeasureSpec.getSize(widthMeasureSpec);
+        int height = MeasureSpec.getSize(heightMeasureSpec);
+
+        // calculate rectangle of child
+        mRect.set(0, 0, width - 1, height - 1);
+        applyAspectRatio(mChildAspectRatio);
+
+        // measure child
+        View v = getChildAt(0);
+        if (v != null) {
+            v.measure(mChildRect.width(), mChildRect.height());
+        }
+
+        setMeasuredDimension(width, height);
     }
 
     /**
@@ -70,25 +83,31 @@ public class FitCenterLayout extends ViewGroup {
         mChildRect.set(mRect);
 
         // guard
-        if (mRect.height() <= 0 || aspect == 0.0f) {
+        if (mRect.height() <= 0) {
             return;
         }
 
         float srcAspect = mRect.width() / mRect.height();
-        if (srcAspect < aspect) {
-            int width = (int) (mRect.width() * mWidthWeight);
-            int height = (int) (width / aspect);
-            mChildRect.set(mRect.centerX() - width / 2,
-                    mRect.centerY() - height / 2,
-                    mRect.centerX() + width / 2,
-                    mRect.centerY() + height / 2);
+        int width = mRect.width();
+        int height = mRect.height();
+
+        if (aspect == 0.0f || srcAspect == aspect) {
+            // not need aspect ratio
+            width = (int) (width * mWidthWeight);
+            height = (int) (height * mHeightWeight);
+        } else if (srcAspect < aspect) {
+            // portrait
+            width = (int) (mRect.width() * mWidthWeight);
+            height = (int) (width / aspect);
         } else if (srcAspect > aspect) {
-            int height = (int) (mRect.height() * mHeightWeight);
-            int width = (int) (height * aspect);
-            mChildRect.set(mRect.centerX() - width / 2,
-                    mRect.centerY() - height / 2,
-                    mRect.centerX() + width / 2,
-                    mRect.centerY() + height / 2);
+            // landscape
+            height = (int) (mRect.height() * mHeightWeight);
+            width = (int) (height * aspect);
         }
+
+        mChildRect.set(mRect.centerX() - width / 2,
+                mRect.centerY() - height / 2,
+                mRect.centerX() + width / 2,
+                mRect.centerY() + height / 2);
     }
 }
