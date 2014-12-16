@@ -9,9 +9,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:background="#ff0000"
         zenlauncher:aspect_ratio="0"
-        zenlauncher:height_weight="0.7"
+        zenlauncher:height_weight="0.8"
         zenlauncher:width_weight="0.8" >
 
         <LinearLayout
@@ -28,28 +27,20 @@
 
                 <ImageView
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
+                    android:layout_height="45dp"
+                    android:layout_gravity="center"
                     android:antialias="true"
                     android:padding="5dp"
                     android:src="@drawable/custom_browser" />
 
                 <TextView
-                    android:layout_width="match_parent"
+                    android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_horizontal"
-                    android:gravity="start"
+                    android:layout_gravity="center"
                     android:padding="5dp"
                     android:text="Application"
                     android:textColor="#ffffff"
                     android:textSize="20sp" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_weight="1"
-                    android:layout_gravity="right"
-                    android:background="#0f0f0f" />
             </LinearLayout>
 
             <GridView
@@ -68,9 +59,8 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="72dp"
         android:layout_gravity="bottom"
-        android:background="#0000ff"
         android:orientation="horizontal" >
     </LinearLayout>
 

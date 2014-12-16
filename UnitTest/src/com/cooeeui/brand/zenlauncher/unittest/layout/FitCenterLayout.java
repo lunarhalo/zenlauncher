@@ -60,17 +60,21 @@ public class FitCenterLayout extends ViewGroup {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+        int heightMode = MeasureSpec.getMode(heightMeasureSpec);
         int width = MeasureSpec.getSize(widthMeasureSpec);
         int height = MeasureSpec.getSize(heightMeasureSpec);
 
         // calculate rectangle of child
-        mRect.set(0, 0, width - 1, height - 1);
+        mRect.set(0, 0, width, height);
         applyAspectRatio(mChildAspectRatio);
 
         // measure child
         View v = getChildAt(0);
         if (v != null) {
-            v.measure(mChildRect.width(), mChildRect.height());
+            int childWidthSpec = MeasureSpec.makeMeasureSpec(mChildRect.width(), widthMode);
+            int childHeightSpec = MeasureSpec.makeMeasureSpec(mChildRect.height(), heightMode);
+            v.measure(childWidthSpec, childHeightSpec);
         }
 
         setMeasuredDimension(width, height);
