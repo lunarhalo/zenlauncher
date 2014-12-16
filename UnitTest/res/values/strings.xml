@@ -11,4 +11,5 @@
     <string name="applayout">AppLayout</string>
     <string name="workspace_layout">Layout/Workspace</string>
     <string name="drawer_layout">Layout/Drawer</string>
+    <string name="dialogs_layout">Layout/Dialogs</string>
 </resources>
