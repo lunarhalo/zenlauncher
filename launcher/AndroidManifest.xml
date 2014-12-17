@@ -32,6 +32,9 @@
                 <category android:name="android.intent.category.MONKEY" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".scenes.ZenSetting"
+            android:theme="@android:style/Theme.NoTitleBar" />
 
         <!-- The settings provider contains Home's data, like the workspace favorites -->
         <provider
