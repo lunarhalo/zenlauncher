@@ -29,6 +29,7 @@ import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
 import com.cooeeui.brand.zenlauncher.scenes.LoadingView;
 import com.cooeeui.brand.zenlauncher.scenes.Workspace;
+import com.cooeeui.brand.zenlauncher.scenes.ZenSetting;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 import com.cooeeui.brand.zenlauncher.scenes.ui.ChangeIcon;
 import com.cooeeui.brand.zenlauncher.scenes.ui.PopupDialog;
@@ -150,6 +151,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
                 return true;
 
             case R.id.zen:
+                entryZenSetting();
                 return true;
         }
         return super.onContextItemSelected(item);
@@ -186,6 +188,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
                 return true;
 
             case R.id.zen:
+                entryZenSetting();
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -406,4 +409,8 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     }
 
+    void entryZenSetting() {
+        Intent intent = new Intent(this, ZenSetting.class);
+        startActivity(intent);
+    }
 }

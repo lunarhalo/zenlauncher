@@ -14,4 +14,8 @@
     <string name="wallpaper">Wallpaper</string>
     <string name="settings">System settings</string>
     <string name="zen_settings">Zen settings</string>
+    <!-- Zen Setting Activity -->
+    <string name="desktop_search">Desktop Search</string>
+    <string name="status_bar_setting">Status Bar Setting</string>
+    <string name="about_zen">About Zen</string>
 </resources>
