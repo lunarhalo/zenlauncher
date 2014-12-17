@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:zenlauncher="http://schemas.android.com/apk/res/com.cooeeui.brand.zenlauncher.unittest"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical" >
+
+    <com.cooeeui.brand.zenlauncher.unittest.layout.FitCenterLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        zenlauncher:aspect_ratio="0"
+        zenlauncher:height_weight="0.8"
+        zenlauncher:width_weight="0.8" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#00ff00"
+            android:orientation="vertical" >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="#0000ff"
+                android:orientation="horizontal" >
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="45dp"
+                    android:layout_gravity="center"
+                    android:antialias="true"
+                    android:padding="5dp"
+                    android:src="@drawable/custom_browser" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:padding="5dp"
+                    android:text="Application"
+                    android:textColor="#ffffff"
+                    android:textSize="20sp" />
+            </LinearLayout>
+
+            <GridView
+                android:id="@+id/gridview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#ffff00"
+                android:columnWidth="50dp"
+                android:gravity="center"
+                android:horizontalSpacing="5dp"
+                android:numColumns="auto_fit"
+                android:stretchMode="columnWidth"
+                android:verticalSpacing="10dp" />
+        </LinearLayout>
+    </com.cooeeui.brand.zenlauncher.unittest.layout.FitCenterLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="72dp"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal" >
+    </LinearLayout>
+
+</LinearLayout>

@@ -52,6 +52,45 @@
                 <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
             </intent-filter>
         </activity>
+
+        <!-- Layout -->
+        <activity
+            android:name=".layout.Workspace"
+            android:label="@string/workspace_layout" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".layout.Drawer"
+            android:label="@string/drawer_layout" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".layout.Dialogs"
+            android:label="@string/dialogs_layout" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".layout.SuperDialog"
+            android:label="@string/super_dialog_layout"
+            android:theme="@style/DialogStyle" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
+            </intent-filter>
+        </activity>
     </application>
 
 </manifest>
