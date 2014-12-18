@@ -1,33 +1,27 @@
 
 package com.cooeeui.brand.zenlauncher.scenes.ui;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-
 import android.app.Dialog;
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.R;
-import com.cooeeui.brand.zenlauncher.config.IconConfig;
-import com.cooeeui.brand.zenlauncher.scenes.utils.BitmapUtils;
 
 public class ChangeIcon extends Dialog {
 
     private Context mContext;
     private Launcher mLauncher;
-    private ArrayList<Bitmap> mIcons;
 
-    private ArrayList<Bitmap> mAdded;
+    private int mSelect = -1;
 
     private int[] mRes = {
             R.raw.camera,
@@ -42,58 +36,44 @@ public class ChangeIcon extends Dialog {
         super(context, R.style.PopupStyle);
         mContext = context;
         mLauncher = (Launcher) context;
-        mIcons = new ArrayList<Bitmap>();
-        mAdded = new ArrayList<Bitmap>();
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        loadIcon();
         setContentView(R.layout.icon_popup);
 
-        ImageView mImage = (ImageView) findViewById(R.id.title_image);
+        final ImageView mImage = (ImageView) findViewById(R.id.title_image);
         TextView mText = (TextView) findViewById(R.id.title_text);
         GridView mGrid = (GridView) findViewById(R.id.gridview);
+
+        Button btn = (Button) findViewById(R.id.ok);
 
         mGrid.setAdapter(new ImageAdapter());
         mGrid.setOnItemClickListener(new GridView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                mLauncher.getWorkspace().changeIcon(mIcons.get(position), mRes[position]);
-                dismiss();
-                unLoadIcon(mIcons.get(position));
+                mSelect = position;
+                mImage.setImageResource(mRes[position]);
+
             }
         });
 
-        mImage.setImageBitmap(mIcons.get(0));
+        mImage.setImageResource(mRes[0]);
         mText.setText("Change Icon");
-    }
 
-    private void loadIcon() {
-        HashMap<Integer, Bitmap> map = mLauncher.getWorkspace().getBuildinIcon();
+        btn.setOnClickListener(new View.OnClickListener() {
 
-        for (int i = 0; i < mRes.length; i++) {
-            Bitmap b = map.get(mRes[i]);
-            if (b == null) {
-                b = BitmapUtils.getIcon(mLauncher.getResources(),
-                        mRes[i], IconConfig.getIconSize());
-                mAdded.add(b);
+            @Override
+            public void onClick(View v) {
+                if (mSelect != -1) {
+                    mLauncher.getWorkspace().changeIcon(mRes[mSelect]);
+                }
+                ChangeIcon.this.dismiss();
             }
-            mIcons.add(b);
-        }
-    }
-
-    private void unLoadIcon(Bitmap b) {
-        Bitmap unload;
-        for (int i = 0; i < mAdded.size(); i++) {
-            unload = mAdded.get(i);
-            if (unload != b) {
-                unload.recycle();
-            }
-        }
+        });
     }
 
     private class ImageAdapter extends BaseAdapter {
@@ -104,7 +84,7 @@ public class ChangeIcon extends Dialog {
 
         @Override
         public int getCount() {
-            return mIcons.size();
+            return mRes.length;
         }
 
         @Override
@@ -131,7 +111,8 @@ public class ChangeIcon extends Dialog {
                 imageView = (ImageView) convertView;
             }
 
-            imageView.setImageBitmap(mIcons.get(position));
+            imageView.setImageResource(mRes[position]);
+
             return imageView;
         }
 

@@ -9,7 +9,7 @@
        <item name="android:windowNoTitle">true</item>
     </style>
     
-    <style name="PopupStyle" parent="@android:style/Theme.Dialog">
+    <style name="PopupStyle" parent="@android:style/Theme.Holo.Dialog">
        <item name="android:windowNoTitle">true</item>
     </style>
 </resources>
