@@ -14,7 +14,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
-import com.cooeeui.brand.zenlauncher.LauncherAppState;
+import com.cooeeui.brand.zenlauncher.LauncherModel;
 import com.cooeeui.brand.zenlauncher.R;
 import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
 import com.cooeeui.brand.zenlauncher.config.IconConfig;
@@ -159,6 +159,8 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
         }
 
         mSelect.changeBitmap(b);
+
+        LauncherModel.updateItemInDatabase(mLauncher, i);
     }
 
     public void changeBubbleView(ShortcutInfo info) {
@@ -182,6 +184,7 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
         }
         mSelect.changeBitmap(b);
 
+        LauncherModel.updateItemInDatabase(mLauncher, i);
     }
 
     public void removeBubbleView() {
@@ -206,6 +209,8 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
         } else {
             mSelect = mBubbleViews.get(index);
         }
+
+        LauncherModel.deleteItemFromDatabase(mLauncher, i);
     }
 
     private void moveBubbleView(int position, float x, float y) {
@@ -346,10 +351,15 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     @Override
     public void onDropCompleted(BubbleView target) {
         if (target != null) {
+            ShortcutInfo si = (ShortcutInfo) mSelect.getTag();
+            ShortcutInfo ti = (ShortcutInfo) target.getTag();
             int tIndex = mBubbleViews.indexOf(target);
             int sIndex = mBubbleViews.indexOf(mSelect);
+
+            LauncherModel.modifyItemInDatabase(mLauncher, si, tIndex);
             mBubbleViews.set(tIndex, mSelect);
             mBubbleViews.set(sIndex, target);
+            LauncherModel.modifyItemInDatabase(mLauncher, ti, sIndex);
         }
         mLauncher.getDragLayer().removeView(mSelect);
         mDragController.addDropTarget(mSelect);

@@ -26,6 +26,7 @@ import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.cooeeui.brand.zenlauncher.LauncherSettings;
+import com.cooeeui.brand.zenlauncher.scenes.utils.IconNameOrId;
 
 /**
  * Represents a launchable icon on the workspace.
@@ -68,17 +69,11 @@ public class ShortcutInfo extends ItemInfo {
 
     @Override
     public void onAddToDatabase(ContentValues values) {
-        String titleStr = title != null ? title.toString() : null;
-        values.put(LauncherSettings.BaseLauncherColumns.TITLE, titleStr);
-
         String uri = intent != null ? intent.toUri(0) : null;
-        values.put(LauncherSettings.BaseLauncherColumns.INTENT, uri);
+        values.put(LauncherSettings.Favorites.INTENT, uri);
 
-        values.put(LauncherSettings.Favorites.POSITION, position);
-    }
-
-    public void updateValuesWithPosition(ContentValues values, int position) {
-        values.put(LauncherSettings.Favorites.POSITION, position);
+        String name = IconNameOrId.getIconName(mIconId);
+        values.put(LauncherSettings.Favorites.ICON_NAME, name);
     }
 
     @Override

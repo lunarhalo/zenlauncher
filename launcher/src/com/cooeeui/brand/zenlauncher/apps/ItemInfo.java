@@ -24,7 +24,6 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.util.Log;
 
-import com.cooeeui.brand.zenlauncher.LauncherModel;
 import com.cooeeui.brand.zenlauncher.LauncherSettings;
 
 /**
@@ -73,8 +72,6 @@ public class ItemInfo {
         itemType = info.itemType;
         title = info.title.toString();
         intent = info.intent;
-        // temporary debug:
-        LauncherModel.checkItemInfo(this);
     }
 
     public Intent getIntent() {
@@ -88,13 +85,6 @@ public class ItemInfo {
      */
     public void onAddToDatabase(ContentValues values) {
         values.put(LauncherSettings.BaseLauncherColumns.ITEM_TYPE, itemType);
-    }
-
-    /**
-     * Write the position field of this item to the DB
-     */
-    public void updateValues(ContentValues values, int position) {
-        values.put(LauncherSettings.Favorites.POSITION, position);
     }
 
     public static byte[] flattenBitmap(Bitmap bitmap) {
