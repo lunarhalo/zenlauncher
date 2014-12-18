@@ -56,8 +56,6 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     private boolean mPaused = true;
     private ArrayList<Runnable> mBindOnResumeCallbacks = new ArrayList<Runnable>();
 
-    private static final int REQUEST_PICK_WALLPAPER = 1;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -148,6 +146,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
                 return true;
 
             case R.id.settings:
+                startSetting();
                 return true;
 
             case R.id.zen:
@@ -185,6 +184,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
                 return true;
 
             case R.id.settings:
+                startSetting();
                 return true;
 
             case R.id.zen:
@@ -207,7 +207,16 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     private void startWallpaper() {
         final Intent pickWallpaper = new Intent(Intent.ACTION_SET_WALLPAPER);
-        startActivityForResult(pickWallpaper, REQUEST_PICK_WALLPAPER);
+        pickWallpaper.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+        startActivitySafely(pickWallpaper);
+    }
+
+    private void startSetting() {
+        Intent settings = new Intent(android.provider.Settings.ACTION_SETTINGS);
+        settings.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK
+                | Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
+        startActivitySafely(settings);
     }
 
     @Override
