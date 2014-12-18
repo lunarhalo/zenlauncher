@@ -21,11 +21,9 @@ import java.net.URISyntaxException;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 import android.app.SearchManager;
@@ -35,7 +33,6 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -160,8 +157,6 @@ public class LauncherModel extends BroadcastReceiver {
         public boolean isAllAppsButtonRank(int rank);
 
         public void onPageBoundSynchronously(int page);
-
-        public void dumpLogsToLocalData();
     }
 
     public interface ItemInfoFilter {
@@ -1253,19 +1248,6 @@ public class LauncherModel extends BroadcastReceiver {
             if (modified != null) {
                 final ArrayList<AppInfo> modifiedFinal = modified;
 
-                // Update the launcher db to reflect the changes
-                for (AppInfo a : modifiedFinal) {
-                    ArrayList<ItemInfo> infos =
-                            getItemInfoForComponentName(a.componentName);
-                    for (ItemInfo i : infos) {
-                        if (isShortcutInfoUpdateable(i)) {
-                            ShortcutInfo info = (ShortcutInfo) i;
-                            info.title = a.title.toString();
-                            // updateItemInDatabase(context, info);
-                        }
-                    }
-                }
-
                 mHandler.post(new Runnable() {
                     public void run() {
                         Callbacks cb = mCallbacks != null ? mCallbacks.get() : null;
@@ -1283,29 +1265,6 @@ public class LauncherModel extends BroadcastReceiver {
                 final ArrayList<String> removedPackageNames =
                         new ArrayList<String>(Arrays.asList(packages));
 
-                // Update the launcher db to reflect the removal of apps
-                if (packageRemoved) {
-                    for (String pn : removedPackageNames) {
-                        ArrayList<ItemInfo> infos = getItemInfoForPackageName(pn);
-                        for (ItemInfo i : infos) {
-                            deleteItemFromDatabase(context, i);
-                        }
-                    }
-
-                    // Remove any queued items from the install queue
-                    String spKey = LauncherAppState.getSharedPreferencesKey();
-                    SharedPreferences sp =
-                            context.getSharedPreferences(spKey, Context.MODE_PRIVATE);
-                } else {
-                    for (AppInfo a : removedApps) {
-                        ArrayList<ItemInfo> infos =
-                                getItemInfoForComponentName(a.componentName);
-                        for (ItemInfo i : infos) {
-                            deleteItemFromDatabase(context, i);
-                        }
-                    }
-                }
-
                 mHandler.post(new Runnable() {
                     public void run() {
                         Callbacks cb = mCallbacks != null ? mCallbacks.get() : null;
@@ -1316,16 +1275,6 @@ public class LauncherModel extends BroadcastReceiver {
                     }
                 });
             }
-
-            // Write all the logs to disk
-            mHandler.post(new Runnable() {
-                public void run() {
-                    Callbacks cb = mCallbacks != null ? mCallbacks.get() : null;
-                    if (callbacks == cb && cb != null) {
-                        callbacks.dumpLogsToLocalData();
-                    }
-                }
-            });
         }
     }
 
@@ -1364,120 +1313,8 @@ public class LauncherModel extends BroadcastReceiver {
             info.mIconId = iconId;
         }
 
-        if (intent != null) {
-            // ComponentName componentName = intent.getComponent();
-            // if (componentName != null && !isValidPackageComponent(manager,
-            // componentName)) {
-            // Log.d(TAG, "Invalid package found in getShortcutInfo: " +
-            // componentName);
-            // return null;
-            // } else {
-            // try {
-            // PackageInfo pi =
-            // manager.getPackageInfo(componentName.getPackageName(), 0);
-            // info.initFlagsAndFirstInstallTime(pi);
-            // } catch (NameNotFoundException e) {
-            // Log.d(TAG, "getPackInfo failed for package " +
-            // componentName.getPackageName());
-            // }
-            // }
-
-            // ResolveInfo resolveInfo = null;
-            // ComponentName oldComponent = intent.getComponent();
-            // Intent newIntent = new Intent(intent.getAction(), null);
-            // newIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-            // newIntent.setPackage(oldComponent.getPackageName());
-            // List<ResolveInfo> infos =
-            // manager.queryIntentActivities(newIntent, 0);
-            // for (ResolveInfo i : infos) {
-            // ComponentName cn = new ComponentName(i.activityInfo.packageName,
-            // i.activityInfo.name);
-            // if (cn.equals(oldComponent)) {
-            // resolveInfo = i;
-            // }
-            // }
-            // if (resolveInfo == null) {
-            // resolveInfo = manager.resolveActivity(intent, 0);
-            // }
-
-            // if (resolveInfo != null && icon == null) {
-            // icon = mIconCache.getIcon(componentName, resolveInfo,
-            // labelCache);
-            // info.customIcon = true;
-            // }
-
-            // from the resource
-            // if (resolveInfo != null) {
-            // ComponentName key =
-            // LauncherModel.getComponentNameFromResolveInfo(resolveInfo);
-            // if (labelCache != null && labelCache.containsKey(key)) {
-            // info.title = labelCache.get(key);
-            // } else {
-            // info.title = resolveInfo.activityInfo.loadLabel(manager);
-            // if (labelCache != null) {
-            // labelCache.put(key, info.title);
-            // }
-            // }
-            // }
-
-            // fall back to the class name of the activity
-            // if (info.title == null) {
-            // info.title = componentName.getClassName();
-            // }
-        }
-
         info.mIcon = icon;
         return info;
-    }
-
-    static ArrayList<ItemInfo> filterItemInfos(Collection<ItemInfo> infos,
-            ItemInfoFilter f) {
-        HashSet<ItemInfo> filtered = new HashSet<ItemInfo>();
-        for (ItemInfo i : infos) {
-            if (i instanceof ShortcutInfo) {
-                ShortcutInfo info = (ShortcutInfo) i;
-                ComponentName cn = info.intent.getComponent();
-                if (cn != null && f.filterItem(null, info, cn)) {
-                    filtered.add(info);
-                }
-            }
-        }
-        return new ArrayList<ItemInfo>(filtered);
-    }
-
-    private ArrayList<ItemInfo> getItemInfoForPackageName(final String pn) {
-        ItemInfoFilter filter = new ItemInfoFilter() {
-            @Override
-            public boolean filterItem(ItemInfo parent, ItemInfo info, ComponentName cn) {
-                return cn.getPackageName().equals(pn);
-            }
-        };
-        return filterItemInfos(sBgItemsIdMap.values(), filter);
-    }
-
-    private ArrayList<ItemInfo> getItemInfoForComponentName(final ComponentName cname) {
-        ItemInfoFilter filter = new ItemInfoFilter() {
-            @Override
-            public boolean filterItem(ItemInfo parent, ItemInfo info, ComponentName cn) {
-                return cn.equals(cname);
-            }
-        };
-        return filterItemInfos(sBgItemsIdMap.values(), filter);
-    }
-
-    public static boolean isShortcutInfoUpdateable(ItemInfo i) {
-        if (i instanceof ShortcutInfo) {
-            ShortcutInfo info = (ShortcutInfo) i;
-            // We need to check for ACTION_MAIN otherwise getComponent() might
-            // return null for some shortcuts (for instance, for shortcuts to
-            // web pages.)
-            Intent intent = info.intent;
-            ComponentName name = intent.getComponent();
-            if (Intent.ACTION_MAIN.equals(intent.getAction()) && name != null) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public static final Comparator<AppInfo> getAppNameComparator() {

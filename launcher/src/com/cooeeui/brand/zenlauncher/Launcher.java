@@ -412,12 +412,6 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     }
 
-    @Override
-    public void dumpLogsToLocalData() {
-        // TODO Auto-generated method stub
-
-    }
-
     void entryZenSetting() {
         Intent intent = new Intent(this, ZenSetting.class);
         startActivity(intent);
