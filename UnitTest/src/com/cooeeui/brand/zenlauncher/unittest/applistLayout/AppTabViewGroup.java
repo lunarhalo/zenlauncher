@@ -2,6 +2,10 @@
 package com.cooeeui.brand.zenlauncher.unittest.applistLayout;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.util.AttributeSet;
+import android.util.Log;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -9,12 +13,17 @@ import android.widget.ImageView;
 
 import com.cooeeui.brand.zenlauncher.unittest.R;
 
-public class AppTabViewGroup extends ViewGroup implements IAppGroup {
+public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
+
+    private int oldWidth = groupWidth + 1;
+    private int oldHeight = groupHeight + 1;
     private AppListUtil util = null;
     private ImageView tabImageView = null;
     private ClickButtonOnClickListener onClickListener = null;
-    private int padding = -1;
+    private int paddingTop = -1;
+    private int paddingLeft = -1;
     private int tabButtonWidth = -1;
+    private int oldNum = -1;
     private int[] tabIconId = new int[] {
             R.drawable.applayout_favourite,
             R.drawable.applayout_communication,
@@ -23,39 +32,39 @@ public class AppTabViewGroup extends ViewGroup implements IAppGroup {
             R.drawable.applayout_system,
             R.drawable.applayout_tool
     };
+    private int[] tabPotion = new int[tabIconId.length];
+    private MyButton[] myButtons = new MyButton[tabIconId.length];
 
-    public AppTabViewGroup(Context context, AppListUtil util,
-            ClickButtonOnClickListener onClickListener) {
-        super(context);
-        this.util = util;
-        this.onClickListener = onClickListener;
+    public AppTabViewGroup(Context context, AttributeSet attrs) {
+        super(context, attrs);
         // TODO Auto-generated constructor stub
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         // TODO Auto-generated method stub
-        for (int i = 0; i < this.getChildCount(); i++) {
-            View view = this.getChildAt(i);
-            int viewleft = view.getLeft();
-            int viewtop = view.getTop();
-            int viewright = view.getRight();
-            int viewbottom = view.getBottom();
-            view.layout(viewleft, viewtop, viewright, viewbottom);
+        super.onLayout(changed, l, t, r, b);
+        if (oldWidth != groupWidth || oldHeight != groupHeight) {
+            oldWidth = groupWidth;
+            oldHeight = groupHeight;
+            addTabButtonView();
         }
     }
 
-    @Override
-    public void initAddChildView() {
-        // TODO Auto-generated method stub
-        ImageView imageView = new ImageView(getContext());
-        imageView.setLeft(0);
-        imageView.setTop(0);
-        imageView.setRight(util.getAllScreenWidth());
-        imageView.setBottom((int) (util.getLineWidth() * util.getDensity()));
-        imageView.setBackgroundResource(R.drawable.applayout_split_line);
-        this.addView(imageView);
-        addTabButtonView();
+    public AppListUtil getUtil() {
+        return util;
+    }
+
+    public void setUtil(AppListUtil util) {
+        this.util = util;
+    }
+
+    public ClickButtonOnClickListener getOnClickListener() {
+        return onClickListener;
+    }
+
+    public void setOnClickListener(ClickButtonOnClickListener onClickListener) {
+        this.onClickListener = onClickListener;
     }
 
     /**
@@ -65,36 +74,113 @@ public class AppTabViewGroup extends ViewGroup implements IAppGroup {
         // TODO Auto-generated method stub
         if (tabIconId.length == util.tabName.length) {
             int tabNum = tabIconId.length;
-            tabButtonWidth = (int) ((util.getAllScreenWidth() / tabNum) * 0.8f);
-            padding = (this.getWidth() - tabButtonWidth * tabNum) / (tabNum * 2);
-            int viewtop = padding;
-            int viewbottom = viewtop + tabButtonWidth + padding;
-            tabImageView = new ImageView(getContext());
-            changeTabLeft(util.getTabNum());
-            tabImageView.setTop(viewbottom);
-            tabImageView.setBottom(viewbottom + (int) (util.getLineWidth() * util.getDensity()));
+            tabButtonWidth = (int) (groupHeight * 0.85f);
+            paddingTop = (int) ((groupHeight - tabButtonWidth) / 2f);
+            paddingLeft = (int) ((groupWidth / tabNum - tabButtonWidth) / 2f);
+            int imageWidth = (int) (util.getLineWidth() * util.getDensity());
+            tabImageView.setY(groupHeight - imageWidth);
             tabImageView.setBackgroundResource(R.drawable.applayout_split_line);
-            this.addView(tabImageView);
-            for (int i = 0; i < tabNum; i++) {
-                Button tabButton = new Button(getContext());
-                tabButton.setOnClickListener(onClickListener);
-                tabButton.setTag(util.tabName[i]);
-                tabButton.setBackgroundResource(tabIconId[i]);
-                int left = padding * (2 * i + 1) + tabButtonWidth * i;
-                tabButton.setLeft(left);
-                tabButton.setRight(left + tabButtonWidth);
-                tabButton.setTop(viewtop);
-                tabButton.setBottom(viewbottom);
-                this.addView(tabButton);
+            LayoutParams imageLp = new LayoutParams(tabButtonWidth, imageWidth);
+            tabImageView.setLayoutParams(imageLp);
+            for (int i = 0; i < myButtons.length; i++) {
+                MyButton tabButton = myButtons[i];
+                int px = paddingLeft * (2 * i + 1) + tabButtonWidth * i;
+                tabButton.setX(px);
+                tabPotion[i] = px + tabButtonWidth;
+                tabButton.setY(paddingTop);
+                LayoutParams lp = new LayoutParams(tabButtonWidth, tabButtonWidth);
+                tabButton.setLayoutParams(lp);
             }
+            changeTabLeft(util.getTabNum());
         }
     }
 
-    public void changeTabLeft(int num) {
-        if (tabImageView != null) {
-            int left = num * tabButtonWidth + padding * (2 * num + 1);
-            tabImageView.setLeft(left);
-            tabImageView.setRight(left + tabButtonWidth);
+    @Override
+    public boolean onTouchEvent(MotionEvent event) {
+        // TODO Auto-generated method stub
+        int x = (int) event.getX();
+        Log.v("", "AppTabViewGroup onTouchEvent x is " + x + " action is " + event.getAction());
+        switch (event.getAction()) {
+            case MotionEvent.ACTION_MOVE:
+                if (tabImageView != null) {
+                    tabImageView.setX(x);
+                    invalidate();
+                    changeValueByX(x);
+                }
+
+                break;
+            case MotionEvent.ACTION_UP:
+                changeValueByX(x);
+                changeTabLeft(oldNum);
+                break;
+            default:
+                break;
+        }
+        return true;
+    }
+
+    private void changeValueByX(int x) {
+        // TODO Auto-generated method stub
+        int num = getNumByX(x);
+        Log.v("", "whj num is " + num);
+        if (oldNum != num && num >= 0 && num < util.tabName.length) {
+            oldNum = num;
+            String value = util.tabName[num];
+            onClickListener.doneChangeByValue(value);
         }
     }
+
+    private int getNumByX(int x) {
+        // TODO Auto-generated method stub
+
+        if (x < tabPotion[0]) {
+            return 0;
+        } else {
+            for (int i = 1; i < tabPotion.length; i++) {
+                if (x < tabPotion[i] && x >= tabPotion[i - 1]) {
+                    return i;
+                }
+            }
+        }
+        return 0;
+    }
+
+    public void changeTabLeft(int num) {
+        if (tabImageView != null && num < tabPotion.length) {
+            int x = tabPotion[num] - tabButtonWidth;
+            tabImageView.setX(x);
+        }
+    }
+
+    @Override
+    public void initViewData() {
+        // TODO Auto-generated method stub
+        tabImageView = new ImageView(getContext());
+        this.addView(tabImageView);
+        for (int i = 0; i < myButtons.length; i++) {
+            MyButton tabButton = new MyButton(getContext());
+            tabButton.setOnClickListener(onClickListener);
+            tabButton.setTag(util.tabName[i]);
+            tabButton.setBackgroundResource(tabIconId[i]);
+            myButtons[i] = tabButton;
+            this.addView(tabButton);
+        }
+    }
+
+    private class MyButton extends Button {
+
+        public MyButton(Context context) {
+            super(context);
+            // TODO Auto-generated constructor stub
+        }
+
+        @Override
+        public boolean onTouchEvent(MotionEvent event) {
+            // TODO Auto-generated method stub
+            boolean ret = super.onTouchEvent(event);
+            Log.e("", "MyButton onTouchEvent action is " + event.getAction() + " ret is " + ret);
+            return false;
+        }
+    }
+
 }

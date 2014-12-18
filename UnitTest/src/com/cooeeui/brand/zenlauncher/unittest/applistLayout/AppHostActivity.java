@@ -3,9 +3,10 @@ package com.cooeeui.brand.zenlauncher.unittest.applistLayout;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.ViewGroup.LayoutParams;
 import android.view.MotionEvent;
 import android.view.Window;
+
+import com.cooeeui.brand.zenlauncher.unittest.R;
 
 public class AppHostActivity extends Activity {
     private AppHostViewGroup appHostParent = null;
@@ -15,10 +16,11 @@ public class AppHostActivity extends Activity {
         // TODO Auto-generated method stub
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+        this.setContentView(R.layout.apphostlayout);
         AppListUtil util = new AppListUtil(this);
-        appHostParent = new AppHostViewGroup(this, util);
-        LayoutParams lp = new LayoutParams(util.getAllScreenWidth(), util.getAllScreenHeight());
-        this.setContentView(appHostParent, lp);
+        appHostParent = (AppHostViewGroup) this.findViewById(R.id.appHostGroup);
+        appHostParent.setUtil(util);
+        appHostParent.initViewData();
     }
 
     @Override

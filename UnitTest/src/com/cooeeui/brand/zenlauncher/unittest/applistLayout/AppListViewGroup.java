@@ -3,7 +3,6 @@ package com.cooeeui.brand.zenlauncher.unittest.applistLayout;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -31,12 +30,18 @@ public class AppListViewGroup extends ViewGroup implements IAppGroup {
         }
     }
 
+    public void changeTextView(String text) {
+        if (testView != null) {
+            testView.setText(text);
+        }
+    }
+
     @Override
-    public void initAddChildView() {
+    public void initViewData() {
         // TODO Auto-generated method stub
         testView = new TextView(getContext());
-        int left = this.getWidth() / 3;
-        int top = this.getHeight() / 3;
+        int left = util.getAllScreenWidth() / 3;
+        int top = util.getAllScreenHeight() / 3;
         int right = left * 3;
         int bottom = top * 2;
         testView.setLeft(left);
@@ -46,11 +51,5 @@ public class AppListViewGroup extends ViewGroup implements IAppGroup {
         testView.setText(util.tabName[util.getTabNum()]);
         testView.setTextSize(20);
         this.addView(testView);
-    }
-
-    public void changeTextView(String text) {
-        if (testView != null) {
-            testView.setText(text);
-        }
     }
 }
