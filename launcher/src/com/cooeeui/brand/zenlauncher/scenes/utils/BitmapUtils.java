@@ -11,6 +11,20 @@ import android.graphics.BitmapFactory;
 
 public class BitmapUtils {
 
+    static int iconSize;
+
+    public static void setIconSize(int size) {
+        iconSize = size;
+    }
+
+    public static Bitmap getIcon(Resources resources, int iconId) {
+        return getIcon(resources, iconId, iconSize);
+    }
+
+    public static Bitmap resizeBitmap(Bitmap bm) {
+        return resizeBitmap(bm, iconSize, false);
+    }
+
     public static Bitmap resizeBitmap(Bitmap bm, int length, boolean recycle)
     {
         Bitmap tmp = Bitmap.createScaledBitmap(bm, length, length, true);

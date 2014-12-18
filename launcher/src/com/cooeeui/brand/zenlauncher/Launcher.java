@@ -342,7 +342,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         for (int i = start; i < end; i++) {
             final ItemInfo item = shortcuts.get(i);
             ShortcutInfo info = (ShortcutInfo) item;
-            mWorkspace.addBubbleView(info);
+            mWorkspace.addBubbleViewFromBind(info);
         }
     }
 

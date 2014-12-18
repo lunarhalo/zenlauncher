@@ -2,9 +2,9 @@
 package com.cooeeui.brand.zenlauncher.scenes;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.util.AttributeSet;
 import android.util.DisplayMetrics;
@@ -16,7 +16,6 @@ import android.widget.ImageView;
 import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.LauncherAppState;
 import com.cooeeui.brand.zenlauncher.R;
-import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
 import com.cooeeui.brand.zenlauncher.config.IconConfig;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
@@ -28,7 +27,6 @@ import com.cooeeui.brand.zenlauncher.scenes.utils.DropTarget;
 public class Workspace extends FrameLayout implements DragSource, View.OnTouchListener {
 
     private Launcher mLauncher;
-    private IconCache mIconCache;
     private DragController mDragController;
 
     private static final int WORKSPACE_STATE_NORMAL = 0;
@@ -51,6 +49,8 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     private BubbleView mSelect;
     private ImageView mBottomView;
 
+    private Bitmap mDefaultIcon;
+
     public Workspace(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
@@ -66,11 +66,11 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     public void setup(Launcher launcher, DragController controller) {
         mLauncher = launcher;
         mDragController = controller;
-        LauncherAppState app = LauncherAppState.getInstance();
-        mIconCache = app.getIconCache();
 
         mBottomView = (ImageView) findViewById(R.id.searchbar);
         init();
+
+        BitmapUtils.setIconSize(mIconSize);
     }
 
     public void startBind() {
@@ -91,9 +91,7 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
         update();
     }
 
-    public void addBubbleView(ShortcutInfo info) {
-        Bitmap b = BitmapUtils.resizeBitmap(info.mIcon, 144, false); // del
-
+    private void addBubbleView(ShortcutInfo info, Bitmap b) {
         BubbleView v = new BubbleView(mLauncher, b);
         v.setTag(info);
         addView(v);
@@ -104,44 +102,100 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
         v.setOnTouchListener(this);
 
         mDragController.addDropTarget(v);
-
-        mSelect = v;
     }
 
-    public void changeIcon(Bitmap b, int resId) {
+    public void addBubbleViewFromBind(ShortcutInfo info) {
+        Bitmap b = info.mIcon;
+        if (b == null) {
+            b = getDefaultIcon();
+            info.mRecycle = false;
+        }
+
+        addBubbleView(info, b);
+    }
+
+    public void addBubbleView(ShortcutInfo info) {
+        Bitmap b = info.mIcon;
+        int position = mBubbleViews.size();
+
+        if (b.getWidth() == mIconSize) {
+            info.mRecycle = false;
+        } else {
+            b = BitmapUtils.resizeBitmap(b, mIconSize, false);
+            info.mRecycle = true;
+        }
+
+        addBubbleView(info, b);
+        mSelect = mBubbleViews.get(position);
+
+        LauncherModel.addItemToDatabase(mLauncher, info, position);
+    }
+
+    private Bitmap getDefaultIcon() {
+        if (mDefaultIcon == null) {
+            mDefaultIcon = BitmapUtils.getIcon(Resources.getSystem(),
+                    android.R.mipmap.sym_def_app_icon);
+        }
+        return mDefaultIcon;
+    }
+
+    public void changeIcon(int iconId) {
         ShortcutInfo i = (ShortcutInfo) mSelect.getTag();
-        if (i.mResId == resId) {
+
+        if (i.mIconId == iconId) { // same icon
             return;
         }
-        // if (i.usingBuildinIcon) { //same icon
-        // mSelect.clearBitmap();
-        // }
-        i.usingBuildinIcon = true;
-        i.mResId = resId;
-        i.mIcon = b;
+        if (i.mRecycle) {
+            mSelect.clearBitmap();
+        }
+
+        Bitmap b = BitmapUtils.getIcon(mLauncher.getResources(), iconId);
+        i.mRecycle = true;
+        i.mIconId = iconId;
+        if (b == null) {
+            b = getDefaultIcon();
+            i.mRecycle = false;
+            i.mIconId = -1;
+        }
+
         mSelect.changeBitmap(b);
     }
 
     public void changeBubbleView(ShortcutInfo info) {
-        Bitmap b = BitmapUtils.resizeBitmap(info.mIcon, 144, false); // del
-
         ShortcutInfo i = (ShortcutInfo) mSelect.getTag();
-        // if (i.usingBuildinIcon) {
-        // mSelect.clearBitmap();
-        // }
-        i.usingBuildinIcon = false;
-        i.mResId = 0;
-        i.mIcon = b;
+        if (i.mIcon == info.mIcon) { // same icon
+            return;
+        }
+        if (i.mRecycle) {
+            mSelect.clearBitmap();
+        }
+        i.intent = info.intent;
+        i.mIcon = info.mIcon;
+        i.mIconId = -1;
+
+        Bitmap b = info.mIcon;
+        if (b.getWidth() == mIconSize) {
+            i.mRecycle = false;
+        } else {
+            b = BitmapUtils.resizeBitmap(b);
+            i.mRecycle = true;
+        }
         mSelect.changeBitmap(b);
-        // mSelect.setTag(info);
+
     }
 
     public void removeBubbleView() {
+        ShortcutInfo i = (ShortcutInfo) mSelect.getTag();
         int index = mBubbleViews.indexOf(mSelect);
+
         mBubbleViews.remove(mSelect);
         removeView(mSelect);
         mDragController.removeDropTarget(mSelect);
         update();
+
+        if (i.mRecycle) {
+            mSelect.clearBitmap();
+        }
 
         if (mBubbleViews.size() <= 0) {
             stopDrag();
@@ -240,8 +294,7 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
                     R.drawable.icon1, R.drawable.icon2, R.drawable.icon3
             };
             for (int i = 0; i < EDIT_VIEW_CAPACITY; i++) {
-                icon = BitmapUtils.getIcon(mLauncher.getResources(),
-                        iconId[i], IconConfig.getIconSize());
+                icon = BitmapUtils.getIcon(mLauncher.getResources(), iconId[i]);
                 BubbleView v = new BubbleView(mLauncher, icon);
                 v.setTag(i);
                 addView(v);
@@ -288,18 +341,6 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
 
     public boolean isFull() {
         return mBubbleViews.size() >= BUBBLE_VIEW_CAPACITY;
-    }
-
-    public HashMap<Integer, Bitmap> getBuildinIcon() {
-        HashMap<Integer, Bitmap> map = new HashMap<Integer, Bitmap>();
-
-        for (int i = 0; i < mBubbleViews.size(); i++) {
-            ShortcutInfo info = (ShortcutInfo) mBubbleViews.get(i).getTag();
-            if (info.usingBuildinIcon) {
-                map.put(info.mResId, info.mIcon);
-            }
-        }
-        return map;
     }
 
     @Override

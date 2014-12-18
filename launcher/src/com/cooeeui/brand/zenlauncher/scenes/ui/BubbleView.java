@@ -75,7 +75,9 @@ public class BubbleView extends View implements DropTarget {
     }
 
     public void clearBitmap() {
-        mBitmap.recycle();
-        mBitmap = null;
+        if (mBitmap != null && mBitmap.isRecycled()) {
+            mBitmap.recycle();
+            mBitmap = null;
+        }
     }
 }
