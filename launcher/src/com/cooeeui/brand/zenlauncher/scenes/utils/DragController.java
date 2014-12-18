@@ -3,13 +3,13 @@ package com.cooeeui.brand.zenlauncher.scenes.utils;
 
 import java.util.ArrayList;
 
-import com.cooeeui.brand.zenlauncher.Launcher;
-import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
-
 import android.graphics.Rect;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+
+import com.cooeeui.brand.zenlauncher.Launcher;
+import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 
 public class DragController {
 
@@ -58,10 +58,14 @@ public class DragController {
         mLauncher.getDragLayer().addView(view);
         mDragObject.dragSource = source;
         mLauncher.getDragLayer().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-        mOffsetX = mMotionDownX - (int) view.getTranslationX();
-        mOffsetY = mMotionDownY - (int) view.getTranslationY();
-        mMidOffsetX = mOffsetX - view.getWidth() / 2;
-        mMidOffsetY = mOffsetY - view.getHeight() / 2;
+        mOffsetX = mMotionDownX - (int) view.getTranslationX()
+                - (int) mLauncher.getWorkspace().getLeft();
+        mOffsetY = mMotionDownY - (int) view.getTranslationY()
+                - (int) mLauncher.getWorkspace().getTop();
+        mMidOffsetX = mOffsetX - view.getWidth() / 2
+                + (int) mLauncher.getWorkspace().getLeft();
+        mMidOffsetY = mOffsetY - view.getHeight() / 2
+                + (int) mLauncher.getWorkspace().getTop();
         mDragObject.dragView.move(mMotionDownX - mOffsetX, mMotionDownY - mOffsetY);
     }
 
