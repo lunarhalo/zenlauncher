@@ -25,14 +25,14 @@ import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragSource;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DropTarget;
 
-public class Workspace extends FrameLayout implements DragSource, View.OnTouchListener {
+public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchListener {
 
     private Launcher mLauncher;
     private DragController mDragController;
 
-    private static final int WORKSPACE_STATE_NORMAL = 0;
-    private static final int WORKSPACE_STATE_DRAG = 1;
-    private int mState = WORKSPACE_STATE_NORMAL;
+    private static final int SPEED_DIAL_STATE_NORMAL = 0;
+    private static final int SPEED_DIAL_STATE_DRAG = 1;
+    private int mState = SPEED_DIAL_STATE_NORMAL;
 
     private int mIconSize;
     private int mPadding;
@@ -52,15 +52,15 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
 
     private Bitmap mDefaultIcon;
 
-    public Workspace(Context context, AttributeSet attrs, int defStyle) {
+    public SpeedDial(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
 
-    public Workspace(Context context, AttributeSet attrs) {
+    public SpeedDial(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public Workspace(Context context) {
+    public SpeedDial(Context context) {
         super(context);
     }
 
@@ -297,7 +297,6 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
             mSize = widthSize;
             initSize();
         }
-        Log.v("suyu", "mSize = " + mSize);
 
         // set measured dimension of children to mIconSize for touch event.
         int sizeMeasureSpec = MeasureSpec.makeMeasureSpec(mIconSize, MeasureSpec.EXACTLY);
@@ -313,7 +312,7 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         int action = event.getAction();
-        if (mState == WORKSPACE_STATE_NORMAL) {
+        if (mState == SPEED_DIAL_STATE_NORMAL) {
             return false;
         }
 
@@ -336,8 +335,8 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     }
 
     public void startDrag(BubbleView view) {
-        if (mState != WORKSPACE_STATE_DRAG) {
-            mState = WORKSPACE_STATE_DRAG;
+        if (mState != SPEED_DIAL_STATE_DRAG) {
+            mState = SPEED_DIAL_STATE_DRAG;
             showEditViews();
         }
         mSelect = view;
@@ -347,8 +346,8 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     }
 
     public void stopDrag() {
-        if (mState != WORKSPACE_STATE_NORMAL) {
-            mState = WORKSPACE_STATE_NORMAL;
+        if (mState != SPEED_DIAL_STATE_NORMAL) {
+            mState = SPEED_DIAL_STATE_NORMAL;
             hideEditViews();
         }
     }

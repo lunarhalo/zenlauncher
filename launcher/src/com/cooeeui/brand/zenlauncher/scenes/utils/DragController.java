@@ -54,7 +54,7 @@ public class DragController {
     public void startDrag(DragSource source, BubbleView view) {
         // get a offset rectangle of workspace.
         Rect r = new Rect();
-        mLauncher.getWorkspace().getGlobalVisibleRect(r);
+        mLauncher.getSpeedDial().getGlobalVisibleRect(r);
         Rect rootRect = new Rect();
         mLauncher.getDragLayer().getGlobalVisibleRect(rootRect);
         r.offset(-rootRect.left, -rootRect.top);

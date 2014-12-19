@@ -73,10 +73,10 @@ public class PopupDialog extends Dialog {
             public void onClick(View v) {
                 if (mSelect != -1) {
                     if (mState == ADD_VIEW) {
-                        mLauncher.getWorkspace().addBubbleView(mApps.get(mSelect).makeShortcut());
-                        mLauncher.getWorkspace().update();
+                        mLauncher.getSpeedDial().addBubbleView(mApps.get(mSelect).makeShortcut());
+                        mLauncher.getSpeedDial().update();
                     } else {
-                        mLauncher.getWorkspace().changeBubbleView(
+                        mLauncher.getSpeedDial().changeBubbleView(
                                 mApps.get(mSelect).makeShortcut());
                     }
                 }

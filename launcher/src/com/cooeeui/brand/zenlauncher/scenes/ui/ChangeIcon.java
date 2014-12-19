@@ -69,7 +69,7 @@ public class ChangeIcon extends Dialog {
             @Override
             public void onClick(View v) {
                 if (mSelect != -1) {
-                    mLauncher.getWorkspace().changeIcon(mRes[mSelect]);
+                    mLauncher.getSpeedDial().changeIcon(mRes[mSelect]);
                 }
                 ChangeIcon.this.dismiss();
             }

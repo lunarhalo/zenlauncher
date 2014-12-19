@@ -9,7 +9,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.View;
 
-import com.cooeeui.brand.zenlauncher.scenes.Workspace;
+import com.cooeeui.brand.zenlauncher.scenes.SpeedDial;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DropTarget;
 
 public class BubbleView extends View implements DropTarget {

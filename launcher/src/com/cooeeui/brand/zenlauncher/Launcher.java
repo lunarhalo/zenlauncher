@@ -29,7 +29,7 @@ import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
 import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
 import com.cooeeui.brand.zenlauncher.scenes.LoadingView;
-import com.cooeeui.brand.zenlauncher.scenes.Workspace;
+import com.cooeeui.brand.zenlauncher.scenes.SpeedDial;
 import com.cooeeui.brand.zenlauncher.scenes.ZenSetting;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 import com.cooeeui.brand.zenlauncher.scenes.ui.ChangeIcon;
@@ -47,8 +47,9 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     LauncherModel mModel;
     IconCache mIconCache;
 
-    private Workspace mWorkspace;
+    private SpeedDial mSpeedDial;
     private DragLayer mDragLayer;
+    private View mWorkspace;
     private DragController mDragController;
     private ArrayList<AppInfo> mApps;
 
@@ -76,13 +77,18 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         mPaused = false;
 
         setContentView(R.layout.launcher);
+
         mDragLayer = (DragLayer) findViewById(R.id.drag_layer);
-        mWorkspace = (Workspace) mDragLayer.findViewById(R.id.workspace);
         mDragLayer.setup(this, mDragController);
-        mWorkspace.setup(this, mDragController);
+
+        mSpeedDial = (SpeedDial) mDragLayer.findViewById(R.id.speed_dial);
+        mSpeedDial.setup(this, mDragController);
+        mSpeedDial.setOnClickListener(this);
+
+        mWorkspace = findViewById(R.id.workspace);
         mWorkspace.setOnClickListener(this);
 
-        registerForContextMenu(mWorkspace);
+        registerForContextMenu(mSpeedDial);
         showLoadingView();
 
         mModel.startLoader(true);        
@@ -161,7 +167,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         getMenuInflater().inflate(R.menu.launcher_menu, menu);
-        if (mWorkspace.isFull()) {
+        if (mSpeedDial.isFull()) {
             menu.findItem(R.id.add).setVisible(false);
         }
     }
@@ -198,7 +204,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
-        if (mWorkspace.isFull()) {
+        if (mSpeedDial.isFull()) {
             menu.findItem(R.id.add).setVisible(false);
         } else {
             menu.findItem(R.id.add).setVisible(true);
@@ -224,7 +230,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     public boolean onLongClick(View v) {
         if (v instanceof BubbleView) {
             BubbleView view = (BubbleView) v;
-            mWorkspace.startDrag(view);
+            mSpeedDial.startDrag(view);
         }
         return true;
     }
@@ -247,14 +253,14 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         if (tag instanceof Integer) {
             Integer num = (Integer) v.getTag();
             switch (num.intValue()) {
-                case Workspace.EDIT_VIEW_ICON:
+                case SpeedDial.EDIT_VIEW_ICON:
                     new ChangeIcon(this).show();
                     break;
-                case Workspace.EDIT_VIEW_CHANGE:
+                case SpeedDial.EDIT_VIEW_CHANGE:
                     new PopupDialog(this, PopupDialog.CHANGE_VIEW).show();
                     break;
-                case Workspace.EDIT_VIEW_DELETE:
-                    mWorkspace.removeBubbleView();
+                case SpeedDial.EDIT_VIEW_DELETE:
+                    mSpeedDial.removeBubbleView();
                     break;
             }
             return;
@@ -269,16 +275,16 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
             }
         }
         
-        // stop workspace drag at last.
-        mWorkspace.stopDrag();
+        // stop speed dial drag at last.
+        mSpeedDial.stopDrag();
     }
 
     public DragLayer getDragLayer() {
         return mDragLayer;
     }
 
-    public Workspace getWorkspace() {
-        return mWorkspace;
+    public SpeedDial getSpeedDial() {
+        return mSpeedDial;
     }
 
     public ArrayList<AppInfo> getApps() {
@@ -287,7 +293,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     @Override
     public void onBackPressed() {
-        mWorkspace.stopDrag();
+        mSpeedDial.stopDrag();
     }
 
     @Override
@@ -323,7 +329,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     public void startBinding() {
         mBindOnResumeCallbacks.clear();
 
-        mWorkspace.startBind();
+        mSpeedDial.startBind();
     }
 
     @Override
@@ -341,12 +347,12 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         for (int i = start; i < end; i++) {
             final ItemInfo item = shortcuts.get(i);
             ShortcutInfo info = (ShortcutInfo) item;
-            mWorkspace.addBubbleViewFromBind(info);
+            mSpeedDial.addBubbleViewFromBind(info);
         }
     }
 
     protected void onFinishBindingItems() {
-        mWorkspace.finishBind();
+        mSpeedDial.finishBind();
         closeLoadingView();
     }
 
@@ -361,7 +367,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
             return;
         }
 
-        mWorkspace.post(new Runnable() {
+        mSpeedDial.post(new Runnable() {
             @Override
             public void run() {
                 onFinishBindingItems();
