@@ -346,11 +346,6 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         }
     }
 
-    protected void onFinishBindingItems() {
-        mWorkspace.finishBind();
-        closeLoadingView();
-    }
-
     @Override
     public void finishBindingItems() {
         Runnable r = new Runnable() {
@@ -362,12 +357,8 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
             return;
         }
 
-        mWorkspace.post(new Runnable() {
-            @Override
-            public void run() {
-                onFinishBindingItems();
-            }
-        });
+        mWorkspace.finishBind();
+        closeLoadingView();
     }
 
     @Override
