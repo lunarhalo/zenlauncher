@@ -34,6 +34,7 @@
             android:layout_weight="30"
             android:background="#ffff0000" >
 
+<!--
             <com.cooeeui.brand.zenlauncher.unittest.layout.FitCenterLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -46,6 +47,13 @@
                     android:background="#ff00ff00" >
                 </View>
             </com.cooeeui.brand.zenlauncher.unittest.layout.FitCenterLayout>
+-->
+
+            <com.cooeeui.brand.zenlauncher.unittest.layout.WorkspaceLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            </com.cooeeui.brand.zenlauncher.unittest.layout.WorkspaceLayout>
         </FrameLayout>
     </LinearLayout>
 
