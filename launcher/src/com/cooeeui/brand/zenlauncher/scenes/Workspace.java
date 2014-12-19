@@ -8,6 +8,7 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Rect;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
@@ -17,6 +18,7 @@ import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.LauncherModel;
 import com.cooeeui.brand.zenlauncher.R;
 import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
+import com.cooeeui.brand.zenlauncher.config.IconConfig;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 import com.cooeeui.brand.zenlauncher.scenes.utils.BitmapUtils;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
@@ -32,13 +34,10 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     private static final int WORKSPACE_STATE_DRAG = 1;
     private int mState = WORKSPACE_STATE_NORMAL;
 
-    public static final int ICON_SIZE_MAX = 144;
-    public static final int ICON_SIZE_MIN = 10;
     private int mIconSize;
     private int mPadding;
     private float[] mMidPoint = new float[2];
-    private int mWidth;
-    private int mHeight;
+    private int mSize;
 
     private static final int BUBBLE_VIEW_CAPACITY = 9;
     private ArrayList<BubbleView> mBubbleViews = new ArrayList<BubbleView>(BUBBLE_VIEW_CAPACITY);
@@ -88,8 +87,6 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
             v.setOnClickListener(mLauncher);
             v.setTag(tags[i]);
         }
-
-        BitmapUtils.setIconSize(ICON_SIZE_MAX);
     }
 
     public void startBind() {
@@ -113,6 +110,7 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     private void addBubbleView(ShortcutInfo info, Bitmap b) {
         BubbleView v = new BubbleView(mLauncher, b);
         v.setTag(info);
+        v.setSize(mIconSize);
         addView(v);
         mBubbleViews.add(v);
         v.setOnClickListener(mLauncher);
@@ -146,7 +144,7 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     private Bitmap getDefaultIcon() {
         if (mDefaultIcon == null) {
             mDefaultIcon = BitmapUtils.getIcon(Resources.getSystem(),
-                    android.R.mipmap.sym_def_app_icon);
+                    android.R.mipmap.sym_def_app_icon, mIconSize);
         }
         return mDefaultIcon;
     }
@@ -161,7 +159,7 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
             mSelect.clearBitmap();
         }
 
-        Bitmap b = BitmapUtils.getIcon(mLauncher.getResources(), iconId);
+        Bitmap b = BitmapUtils.getIcon(mLauncher.getResources(), iconId, mIconSize);
         i.mRecycle = true;
         i.mIconId = iconId;
         if (b == null) {
@@ -223,38 +221,33 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     }
 
     void initSize() {
-        int length;
-        if (mWidth > mHeight) {
-            mMidPoint[0] = (mWidth - mHeight) / 2;
-            mMidPoint[1] = 0;
-            length = mHeight;
-
-        } else {
-            mMidPoint[0] = 0;
-            mMidPoint[1] = (mHeight - mWidth) / 2;
-            length = mWidth;
-        }
-        mPadding = length / 10;
-        mIconSize = (length - mPadding * 2) / 3;
+        mMidPoint[0] = 0;
+        mMidPoint[1] = 0;
+        mPadding = mSize / 10;
+        mIconSize = (mSize - mPadding * 2) / 3;
         mMidPoint[1] += (mIconSize + mPadding);
-        if (mIconSize > ICON_SIZE_MAX) {
-            int offset = mIconSize - ICON_SIZE_MAX;
+        if (mIconSize > IconConfig.ICON_SIZE_MAX) {
+            int offset = mIconSize - IconConfig.ICON_SIZE_MAX;
             mPadding += offset;
             mMidPoint[0] += offset / 2;
             mMidPoint[1] += offset / 2;
-            mIconSize = ICON_SIZE_MAX;
-        } else if (mIconSize < ICON_SIZE_MIN) {
-            mIconSize = ICON_SIZE_MIN;
+            mIconSize = IconConfig.ICON_SIZE_MAX;
+        } else if (mIconSize < IconConfig.ICON_SIZE_MIN) {
+            mIconSize = IconConfig.ICON_SIZE_MIN;
         }
 
-        BitmapUtils.setIconSize(mIconSize);
+        // do not forget to change size of bubble views existed.
+        for (BubbleView v : mBubbleViews) {
+            v.setSize(mIconSize);
+        }
+
+        // update the position of bubble views.
+        update();
     }
 
     public void update() {
         int count = mBubbleViews.size();
 
-        Rect r = new Rect();
-        getGlobalVisibleRect(r);
         float startX = mMidPoint[0];
         float startY = mMidPoint[1];
         if (count > 6) {
@@ -289,15 +282,24 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        // catch the size from onMeasure.
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
-        if (mWidth != widthSize || mHeight != heightSize) {
-            mWidth = widthSize;
-            mHeight = heightSize;
+        if (widthSize != heightSize) {
+            try {
+                throw new Exception("width != height");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (mSize != widthSize) {
+            mSize = widthSize;
             initSize();
         }
+        Log.v("suyu", "mSize = " + mSize);
 
+        // set measured dimension of children to mIconSize for touch event.
         int sizeMeasureSpec = MeasureSpec.makeMeasureSpec(mIconSize, MeasureSpec.EXACTLY);
         int childCount = getChildCount();
         for (int i = 0; i < childCount; i++) {

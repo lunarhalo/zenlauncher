@@ -18,6 +18,7 @@ import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Toast;
@@ -84,7 +85,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         registerForContextMenu(mWorkspace);
         showLoadingView();
 
-        mModel.startLoader(true);
+        mModel.startLoader(true);        
     }
 
     void showLoadingView() {

@@ -23,10 +23,7 @@ public class BubbleView extends View implements DropTarget {
     Matrix mMatrix;
 
     public BubbleView(Context context, Bitmap bitmap) {
-        super(context);
-        mBitmap = bitmap;
-        mPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
-        mMatrix = new Matrix();
+        this(context, bitmap, bitmap.getWidth());
     }
 
     public BubbleView(Context context, Bitmap bitmap, int size) {
@@ -46,16 +43,10 @@ public class BubbleView extends View implements DropTarget {
         }
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int widthSize = MeasureSpec.getSize(widthMeasureSpec);
-
-        if (widthSize > Workspace.ICON_SIZE_MAX) {
-            setMeasuredDimension(mSize, mSize);
-            return;
-        } else {
-            mSize = widthSize;
-            setMeasuredDimension(mSize, mSize);
+    public void setSize(int size) {
+        if (size != mSize) {
+            mSize = size;
+            invalidate();
         }
     }
 
@@ -94,7 +85,7 @@ public class BubbleView extends View implements DropTarget {
     }
 
     public void clearBitmap() {
-        if (mBitmap != null && mBitmap.isRecycled()) {
+        if (mBitmap != null && !mBitmap.isRecycled()) {
             mBitmap.recycle();
             mBitmap = null;
         }
