@@ -91,7 +91,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         registerForContextMenu(mSpeedDial);
         showLoadingView();
 
-        mModel.startLoader(true);        
+        mModel.startLoader(true);
     }
 
     void showLoadingView() {
@@ -274,7 +274,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
                 return;
             }
         }
-        
+
         // stop speed dial drag at last.
         mSpeedDial.stopDrag();
     }
@@ -367,12 +367,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
             return;
         }
 
-        mSpeedDial.post(new Runnable() {
-            @Override
-            public void run() {
-                onFinishBindingItems();
-            }
-        });
+        onFinishBindingItems();
     }
 
     @Override

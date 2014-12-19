@@ -96,15 +96,6 @@ public class LauncherModel extends BroadcastReceiver {
     private boolean mWorkspaceLoaded;
     private boolean mAllAppsLoaded;
 
-    // When we are loading pages synchronously, we can't just post the binding
-    // of items on the side
-    // pages as this delays the rotation process. Instead, we wait for a
-    // callback from the first
-    // draw (in Workspace) to initiate the binding of the remaining side pages.
-    // Any time we start
-    // a normal load, we also clear this set of Runnables.
-    static final ArrayList<Runnable> mDeferredBindRunnables = new ArrayList<Runnable>();
-
     private WeakReference<Callbacks> mCallbacks;
 
     // < only access in worker thread >
@@ -240,8 +231,6 @@ public class LauncherModel extends BroadcastReceiver {
                     "main thread");
         }
 
-        // Clear any deferred bind runnables
-        mDeferredBindRunnables.clear();
         // Remove any queued bind runnables
         mHandler.cancelAllRunnablesOfType(MAIN_THREAD_BINDING_RUNNABLE);
         // Unbind all the workspace items
@@ -526,11 +515,6 @@ public class LauncherModel extends BroadcastReceiver {
             if (DEBUG_LOADERS) {
                 Log.d(TAG, "startLoader isLaunching=" + isLaunching);
             }
-
-            // Clear any deferred bind-runnables from the synchronized load
-            // process We must do this before any loading/binding is scheduled
-            // below.
-            mDeferredBindRunnables.clear();
 
             // Don't bother to start the thread if we know it's not going to do
             // anything
@@ -874,8 +858,7 @@ public class LauncherModel extends BroadcastReceiver {
 
                             iconId = IconNameOrId.getIconId(iconName);
 
-                            info = getShortcutInfo(manager, intent, context, c, iconId,
-                                    mLabelCache);
+                            info = getShortcutInfo(intent, iconId);
 
                             if (info != null) {
                                 info.id = id;
@@ -941,10 +924,7 @@ public class LauncherModel extends BroadcastReceiver {
         }
 
         private void bindWorkspaceItems(final Callbacks oldCallbacks,
-                final ArrayList<ItemInfo> workspaceItems,
-                ArrayList<Runnable> deferredBindRunnables) {
-            final boolean postOnMainThread = (deferredBindRunnables != null);
-
+                final ArrayList<ItemInfo> workspaceItems) {
             // Bind the workspace items
             int N = workspaceItems.size();
             for (int i = 0; i < N; i += ITEMS_CHUNK) {
@@ -960,11 +940,7 @@ public class LauncherModel extends BroadcastReceiver {
                         }
                     }
                 };
-                if (postOnMainThread) {
-                    deferredBindRunnables.add(r);
-                } else {
-                    runOnMainThread(r, MAIN_THREAD_BINDING_RUNNABLE);
-                }
+                runOnMainThread(r, MAIN_THREAD_BINDING_RUNNABLE);
             }
         }
 
@@ -1010,7 +986,7 @@ public class LauncherModel extends BroadcastReceiver {
             runOnMainThread(r, MAIN_THREAD_BINDING_RUNNABLE);
 
             // Load items on workspace
-            bindWorkspaceItems(oldCallbacks, workspaceItems, null);
+            bindWorkspaceItems(oldCallbacks, workspaceItems);
 
             // Tell the workspace that we're done binding items
             r = new Runnable() {
@@ -1297,13 +1273,7 @@ public class LauncherModel extends BroadcastReceiver {
         }
     }
 
-    /**
-     * Make an ShortcutInfo object for a shortcut that is an application. If c
-     * is not null, then it will be used to fill in missing data like the title
-     * and icon.
-     */
-    public ShortcutInfo getShortcutInfo(PackageManager manager, Intent intent, Context context,
-            Cursor c, int iconId, HashMap<Object, CharSequence> labelCache) {
+    public ShortcutInfo getShortcutInfo(Intent intent, int iconId) {
         final ShortcutInfo info = new ShortcutInfo();
         Bitmap icon = null;
 
@@ -1311,6 +1281,10 @@ public class LauncherModel extends BroadcastReceiver {
             icon = BitmapUtils.getIcon(mApp.getContext().getResources(), iconId);
             info.mRecycle = true;
             info.mIconId = iconId;
+        } else if (intent != null) {
+            icon = mIconCache.getIcon(intent);
+            info.mRecycle = false;
+            info.mIconId = -1;
         }
 
         info.mIcon = icon;
