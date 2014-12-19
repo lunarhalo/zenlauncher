@@ -1,7 +1,7 @@
 
-package com.cooeeui.brand.zenlauncher.unittest.layout;
+package com.cooeeui.brand.zenlauncher.scenes.ui;
 
-import com.cooeeui.brand.zenlauncher.unittest.R;
+import com.cooeeui.brand.zenlauncher.R;
 
 import android.content.Context;
 import android.content.res.TypedArray;

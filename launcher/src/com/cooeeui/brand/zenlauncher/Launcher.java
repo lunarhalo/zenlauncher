@@ -241,12 +241,6 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     @Override
     public void onClick(View v) {
-
-        if (v instanceof Workspace) {
-            mWorkspace.stopDrag();
-            return;
-        }
-
         Object tag = v.getTag();
 
         if (tag instanceof Integer) {
@@ -270,8 +264,12 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
             final Intent intent = shortcut.intent;
             if (intent != null) {
                 startActivitySafely(intent);
+                return;
             }
         }
+        
+        // stop workspace drag at last.
+        mWorkspace.stopDrag();
     }
 
     public DragLayer getDragLayer() {

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -42,14 +43,13 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     private static final int BUBBLE_VIEW_CAPACITY = 9;
     private ArrayList<BubbleView> mBubbleViews = new ArrayList<BubbleView>(BUBBLE_VIEW_CAPACITY);
 
-    public static final int EDIT_VIEW_ICON = 0;
-    public static final int EDIT_VIEW_CHANGE = 1;
-    public static final int EDIT_VIEW_DELETE = 2;
-    private static final int EDIT_VIEW_CAPACITY = 3;
-    private ArrayList<BubbleView> mEditViews = new ArrayList<BubbleView>(EDIT_VIEW_CAPACITY);
+    public static final int EDIT_VIEW_ICON = 0x100;
+    public static final int EDIT_VIEW_CHANGE = 0x101;
+    public static final int EDIT_VIEW_DELETE = 0x102;
 
     private BubbleView mSelect;
-    private LinearLayout mSearchLayout;
+    private View mSearchBar;
+    private View mEditBottomView;
 
     private Bitmap mDefaultIcon;
 
@@ -68,7 +68,27 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     public void setup(Launcher launcher, DragController controller) {
         mLauncher = launcher;
         mDragController = controller;
-        mSearchLayout = (LinearLayout) mLauncher.getDragLayer().findViewById(R.id.search_layout);
+        mSearchBar = mLauncher.getDragLayer().findViewById(R.id.search_bar);
+
+        // setup edit bottom view.
+        mEditBottomView = mLauncher.getDragLayer().findViewById(R.id.edit_bottom_view);
+        int[] ids = {
+                R.id.edit_bottom_change_icon,
+                R.id.edit_bottom_change_app,
+                R.id.edit_bottom_delete
+        };
+        int[] tags = {
+                EDIT_VIEW_ICON,
+                EDIT_VIEW_CHANGE,
+                EDIT_VIEW_DELETE
+        };
+        View v;
+        for (int i = 0; i < ids.length; i++) {
+            v = mLauncher.getDragLayer().findViewById(ids[i]);
+            v.setOnClickListener(mLauncher);
+            v.setTag(tags[i]);
+        }
+
         BitmapUtils.setIconSize(ICON_SIZE_MAX);
     }
 
@@ -233,6 +253,8 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     public void update() {
         int count = mBubbleViews.size();
 
+        Rect r = new Rect();
+        getGlobalVisibleRect(r);
         float startX = mMidPoint[0];
         float startY = mMidPoint[1];
         if (count > 6) {
@@ -302,36 +324,13 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     }
 
     private void showEditViews() {
-        mSearchLayout.setVisibility(View.INVISIBLE);
-        if (mEditViews.size() < EDIT_VIEW_CAPACITY) {
-            mEditViews.clear();
-            Bitmap icon = null;
-            int[] iconId = {
-                    R.drawable.icon1, R.drawable.icon2, R.drawable.icon3
-            };
-            for (int i = 0; i < EDIT_VIEW_CAPACITY; i++) {
-                icon = BitmapUtils.getIcon(mLauncher.getResources(), iconId[i]);
-                BubbleView v = new BubbleView(mLauncher, icon, mIconSize);
-                v.setTag(i);
-                mLauncher.getDragLayer().addView(v);
-                mEditViews.add(v);
-                v.setOnClickListener(mLauncher);
-
-                v.move(getLeft() + mMidPoint[0] + i * (mIconSize + mPadding),
-                        mSearchLayout.getTop());
-            }
-            return;
-        }
-        for (int i = 0; i < EDIT_VIEW_CAPACITY; i++) {
-            mEditViews.get(i).setVisibility(View.VISIBLE);
-        }
+        mSearchBar.setVisibility(View.INVISIBLE);
+        mEditBottomView.setVisibility(View.VISIBLE);
     }
 
     private void hideEditViews() {
-        for (int i = 0; i < EDIT_VIEW_CAPACITY; i++) {
-            mEditViews.get(i).setVisibility(View.INVISIBLE);
-        }
-        mSearchLayout.setVisibility(View.VISIBLE);
+        mEditBottomView.setVisibility(View.INVISIBLE);
+        mSearchBar.setVisibility(View.VISIBLE);
     }
 
     public void startDrag(BubbleView view) {

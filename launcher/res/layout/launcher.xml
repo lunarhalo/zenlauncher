@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:zenlauncher="http://schemas.android.com/apk/res/com.cooeeui.brand.zenlauncher"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/workspace_bg" >
@@ -10,42 +11,131 @@
         android:layout_height="match_parent" >
 
         <LinearLayout
+            android:id="@+id/workspace22"
             android:layout_width="match_parent"
-			android:layout_height="match_parent"
-			android:orientation="vertical" >
-		
-	        <FrameLayout
-	                android:layout_width="match_parent"
-	                android:layout_height="220dp" >
-	
-	                <ImageView
-	                    android:id="@+id/weatherclock"
-	                    android:layout_width="300dp"
-	                    android:layout_height="match_parent"
-	                    android:layout_gravity="center"
-	                    android:contentDescription="weatherclock"
-	                    android:src="@drawable/weatherclock" />
-	            </FrameLayout>
-	            
-	        <com.cooeeui.brand.zenlauncher.scenes.Workspace
-	            android:id="@+id/workspace"
-	            android:layout_width="match_parent"
-	            android:layout_height="240dp" >
+            android:layout_height="match_parent"
+            android:orientation="vertical" >
 
-	        </com.cooeeui.brand.zenlauncher.scenes.Workspace>
-	        <LinearLayout 
-	            android:id="@+id/search_layout"
-	            android:layout_width="match_parent"
-				android:layout_height="80dp"
-				android:orientation="horizontal" >
-		                
-		        <ImageView
-		                android:id="@+id/searchbar"
-		                android:layout_width="match_parent"
-		                android:layout_height="match_parent"
-		                android:src="@drawable/searchbar" />
-	        </LinearLayout>
-	        
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:orientation="vertical" >
+
+                <com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_gravity="top"
+                    android:layout_weight="60"
+                    zenlauncher:aspect_ratio="2.13"
+                    zenlauncher:width_weight="0.7" >
+
+                    <ImageView
+                        android:id="@+id/weatherclock"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_gravity="center"
+                        android:contentDescription="weatherclock"
+                        android:src="@drawable/weatherclock" />
+                </com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="0dp"
+                    android:layout_weight="40" >
+
+                    <com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        zenlauncher:aspect_ratio="1"
+                        zenlauncher:height_weight="0.7" >
+
+                        <com.cooeeui.brand.zenlauncher.scenes.Workspace
+                            android:id="@+id/workspace"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent" >
+                        </com.cooeeui.brand.zenlauncher.scenes.Workspace>
+                    </com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout>
+                </FrameLayout>
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:paddingBottom="6dp" >
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:paddingLeft="6dp"
+                    android:paddingRight="6dp" >
+
+                    <com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        zenlauncher:aspect_ratio="8.73" >
+
+                        <ImageView
+                            android:id="@+id/search_bar"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:contentDescription="searchbar"
+                            android:scaleType="fitXY"
+                            android:src="@drawable/searchbar"
+                            android:visibility="visible" />
+                    </com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout>
+                </FrameLayout>
+
+                <LinearLayout
+                    android:id="@+id/edit_bottom_view"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="horizontal"
+                    android:visibility="invisible" >
+
+                    <com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        zenlauncher:aspect_ratio="1"
+                        zenlauncher:height_weight="0.8" >
+
+                        <ImageView
+                            android:id="@+id/edit_bottom_change_icon"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/edit_bottom_change_icon" />
+                    </com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout>
+
+                    <com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        zenlauncher:aspect_ratio="1"
+                        zenlauncher:height_weight="0.8" >
+
+                        <ImageView
+                            android:id="@+id/edit_bottom_change_app"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/edit_bottom_change_app" />
+                    </com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout>
+
+                    <com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout
+                        android:layout_width="0dp"
+                        android:layout_height="match_parent"
+                        android:layout_weight="1"
+                        zenlauncher:aspect_ratio="1"
+                        zenlauncher:height_weight="0.8" >
+
+                        <ImageView
+                            android:id="@+id/edit_bottom_delete"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:src="@drawable/edit_bottom_delete" />
+                    </com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout>
+                </LinearLayout>
+            </FrameLayout>
         </LinearLayout>
     </com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer>
 

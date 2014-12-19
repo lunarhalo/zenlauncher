@@ -52,6 +52,10 @@ public class DragController {
     }
 
     public void startDrag(DragSource source, BubbleView view) {
+        // get global visible rectangle of workspace.
+        Rect r = new Rect();
+        mLauncher.getWorkspace().getGlobalVisibleRect(r);
+
         mDragging = true;
         mDragObject = new DropTarget.DragObject();
         mDragObject.dragView = view;
@@ -59,13 +63,13 @@ public class DragController {
         mDragObject.dragSource = source;
         mLauncher.getDragLayer().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
         mOffsetX = mMotionDownX - (int) view.getTranslationX()
-                - (int) mLauncher.getWorkspace().getLeft();
+                - r.left;
         mOffsetY = mMotionDownY - (int) view.getTranslationY()
-                - (int) mLauncher.getWorkspace().getTop();
+                - r.top;
         mMidOffsetX = mOffsetX - view.getWidth() / 2
-                + (int) mLauncher.getWorkspace().getLeft();
+                + r.left;
         mMidOffsetY = mOffsetY - view.getHeight() / 2
-                + (int) mLauncher.getWorkspace().getTop();
+                + r.top;
         mDragObject.dragView.move(mMotionDownX - mOffsetX, mMotionDownY - mOffsetY);
     }
 
