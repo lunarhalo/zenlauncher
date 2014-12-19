@@ -874,8 +874,7 @@ public class LauncherModel extends BroadcastReceiver {
 
                             iconId = IconNameOrId.getIconId(iconName);
 
-                            info = getShortcutInfo(manager, intent, context, c, iconId,
-                                    mLabelCache);
+                            info = getShortcutInfo(intent, iconId);
 
                             if (info != null) {
                                 info.id = id;
@@ -1297,13 +1296,7 @@ public class LauncherModel extends BroadcastReceiver {
         }
     }
 
-    /**
-     * Make an ShortcutInfo object for a shortcut that is an application. If c
-     * is not null, then it will be used to fill in missing data like the title
-     * and icon.
-     */
-    public ShortcutInfo getShortcutInfo(PackageManager manager, Intent intent, Context context,
-            Cursor c, int iconId, HashMap<Object, CharSequence> labelCache) {
+    public ShortcutInfo getShortcutInfo(Intent intent, int iconId) {
         final ShortcutInfo info = new ShortcutInfo();
         Bitmap icon = null;
 
@@ -1311,6 +1304,10 @@ public class LauncherModel extends BroadcastReceiver {
             icon = BitmapUtils.getIcon(mApp.getContext().getResources(), iconId);
             info.mRecycle = true;
             info.mIconId = iconId;
+        } else if (intent != null) {
+            icon = mIconCache.getIcon(intent);
+            info.mRecycle = false;
+            info.mIconId = -1;
         }
 
         info.mIcon = icon;
