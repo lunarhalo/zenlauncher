@@ -2,21 +2,21 @@
 package com.cooeeui.brand.zenlauncher.scenes;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 
 import android.content.Context;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
+import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
-import com.cooeeui.brand.zenlauncher.LauncherAppState;
+import com.cooeeui.brand.zenlauncher.LauncherModel;
 import com.cooeeui.brand.zenlauncher.R;
-import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
 import com.cooeeui.brand.zenlauncher.config.IconConfig;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
@@ -25,52 +25,68 @@ import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragSource;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DropTarget;
 
-public class Workspace extends FrameLayout implements DragSource, View.OnTouchListener {
+public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchListener {
 
     private Launcher mLauncher;
-    private IconCache mIconCache;
     private DragController mDragController;
 
-    private static final int WORKSPACE_STATE_NORMAL = 0;
-    private static final int WORKSPACE_STATE_DRAG = 1;
-    private int mState = WORKSPACE_STATE_NORMAL;
+    private static final int SPEED_DIAL_STATE_NORMAL = 0;
+    private static final int SPEED_DIAL_STATE_DRAG = 1;
+    private int mState = SPEED_DIAL_STATE_NORMAL;
 
     private int mIconSize;
-    private float mPadding;
+    private int mPadding;
     private float[] mMidPoint = new float[2];
+    private int mSize;
 
     private static final int BUBBLE_VIEW_CAPACITY = 9;
     private ArrayList<BubbleView> mBubbleViews = new ArrayList<BubbleView>(BUBBLE_VIEW_CAPACITY);
 
-    public static final int EDIT_VIEW_ICON = 0;
-    public static final int EDIT_VIEW_CHANGE = 1;
-    public static final int EDIT_VIEW_DELETE = 2;
-    private static final int EDIT_VIEW_CAPACITY = 3;
-    private ArrayList<BubbleView> mEditViews = new ArrayList<BubbleView>(EDIT_VIEW_CAPACITY);
+    public static final int EDIT_VIEW_ICON = 0x100;
+    public static final int EDIT_VIEW_CHANGE = 0x101;
+    public static final int EDIT_VIEW_DELETE = 0x102;
 
     private BubbleView mSelect;
-    private ImageView mBottomView;
+    private View mSearchBar;
+    private View mEditBottomView;
 
-    public Workspace(Context context, AttributeSet attrs, int defStyle) {
+    private Bitmap mDefaultIcon;
+
+    public SpeedDial(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
 
-    public Workspace(Context context, AttributeSet attrs) {
+    public SpeedDial(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
 
-    public Workspace(Context context) {
+    public SpeedDial(Context context) {
         super(context);
     }
 
     public void setup(Launcher launcher, DragController controller) {
         mLauncher = launcher;
         mDragController = controller;
-        LauncherAppState app = LauncherAppState.getInstance();
-        mIconCache = app.getIconCache();
+        mSearchBar = mLauncher.getDragLayer().findViewById(R.id.search_bar);
 
-        mBottomView = (ImageView) findViewById(R.id.searchbar);
-        init();
+        // setup edit bottom view.
+        mEditBottomView = mLauncher.getDragLayer().findViewById(R.id.edit_bottom_view);
+        int[] ids = {
+                R.id.edit_bottom_change_icon,
+                R.id.edit_bottom_change_app,
+                R.id.edit_bottom_delete
+        };
+        int[] tags = {
+                EDIT_VIEW_ICON,
+                EDIT_VIEW_CHANGE,
+                EDIT_VIEW_DELETE
+        };
+        View v;
+        for (int i = 0; i < ids.length; i++) {
+            v = mLauncher.getDragLayer().findViewById(ids[i]);
+            v.setOnClickListener(mLauncher);
+            v.setTag(tags[i]);
+        }
     }
 
     public void startBind() {
@@ -91,11 +107,10 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
         update();
     }
 
-    public void addBubbleView(ShortcutInfo info) {
-        Bitmap b = BitmapUtils.resizeBitmap(info.mIcon, 144, false); // del
-
+    private void addBubbleView(ShortcutInfo info, Bitmap b) {
         BubbleView v = new BubbleView(mLauncher, b);
         v.setTag(info);
+        v.setSize(mIconSize);
         addView(v);
         mBubbleViews.add(v);
         v.setOnClickListener(mLauncher);
@@ -104,44 +119,88 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
         v.setOnTouchListener(this);
 
         mDragController.addDropTarget(v);
-
-        mSelect = v;
     }
 
-    public void changeIcon(Bitmap b, int resId) {
+    public void addBubbleViewFromBind(ShortcutInfo info) {
+        Bitmap b = info.mIcon;
+        if (b == null) {
+            b = getDefaultIcon();
+            info.mRecycle = false;
+        }
+
+        addBubbleView(info, b);
+    }
+
+    public void addBubbleView(ShortcutInfo info) {
+        Bitmap b = info.mIcon;
+        int position = mBubbleViews.size();
+
+        addBubbleView(info, b);
+        mSelect = mBubbleViews.get(position);
+
+        LauncherModel.addItemToDatabase(mLauncher, info, position);
+    }
+
+    private Bitmap getDefaultIcon() {
+        if (mDefaultIcon == null) {
+            mDefaultIcon = BitmapUtils.getIcon(Resources.getSystem(),
+                    android.R.mipmap.sym_def_app_icon, mIconSize);
+        }
+        return mDefaultIcon;
+    }
+
+    public void changeIcon(int iconId) {
         ShortcutInfo i = (ShortcutInfo) mSelect.getTag();
-        if (i.mResId == resId) {
+
+        if (i.mIconId == iconId) { // same icon
             return;
         }
-        // if (i.usingBuildinIcon) { //same icon
-        // mSelect.clearBitmap();
-        // }
-        i.usingBuildinIcon = true;
-        i.mResId = resId;
-        i.mIcon = b;
+        if (i.mRecycle) {
+            mSelect.clearBitmap();
+        }
+
+        Bitmap b = BitmapUtils.getIcon(mLauncher.getResources(), iconId, mIconSize);
+        i.mRecycle = true;
+        i.mIconId = iconId;
+        if (b == null) {
+            b = getDefaultIcon();
+            i.mRecycle = false;
+            i.mIconId = -1;
+        }
+
         mSelect.changeBitmap(b);
+
+        LauncherModel.updateItemInDatabase(mLauncher, i);
     }
 
     public void changeBubbleView(ShortcutInfo info) {
-        Bitmap b = BitmapUtils.resizeBitmap(info.mIcon, 144, false); // del
-
         ShortcutInfo i = (ShortcutInfo) mSelect.getTag();
-        // if (i.usingBuildinIcon) {
-        // mSelect.clearBitmap();
-        // }
-        i.usingBuildinIcon = false;
-        i.mResId = 0;
-        i.mIcon = b;
+        if (i.mRecycle) {
+            mSelect.clearBitmap();
+        }
+        i.intent = info.intent;
+        i.mIcon = info.mIcon;
+        i.mIconId = -1;
+
+        Bitmap b = info.mIcon;
         mSelect.changeBitmap(b);
-        // mSelect.setTag(info);
+
+        LauncherModel.updateItemInDatabase(mLauncher, i);
     }
 
     public void removeBubbleView() {
+        ShortcutInfo i = (ShortcutInfo) mSelect.getTag();
         int index = mBubbleViews.indexOf(mSelect);
+
         mBubbleViews.remove(mSelect);
         removeView(mSelect);
         mDragController.removeDropTarget(mSelect);
         update();
+        LauncherModel.deleteItemFromDatabase(mLauncher, i);
+
+        if (i.mRecycle) {
+            mSelect.clearBitmap();
+        }
 
         if (mBubbleViews.size() <= 0) {
             stopDrag();
@@ -161,14 +220,29 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
         }
     }
 
-    void init() {
-        DisplayMetrics metrics = new DisplayMetrics();
-        mLauncher.getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        mIconSize = metrics.widthPixels * 96 / 720;
-        IconConfig.setIconSize(mIconSize);
-        mPadding = metrics.widthPixels * 36 / 720;
-        mMidPoint[0] = metrics.widthPixels * 180 / 720;
-        mMidPoint[1] = metrics.heightPixels - mIconSize * 4 - mPadding * 2;
+    void initSize() {
+        mMidPoint[0] = 0;
+        mMidPoint[1] = 0;
+        mPadding = mSize / 10;
+        mIconSize = (mSize - mPadding * 2) / 3;
+        mMidPoint[1] += (mIconSize + mPadding);
+        if (mIconSize > IconConfig.ICON_SIZE_MAX) {
+            int offset = mIconSize - IconConfig.ICON_SIZE_MAX;
+            mPadding += offset;
+            mMidPoint[0] += offset / 2;
+            mMidPoint[1] += offset / 2;
+            mIconSize = IconConfig.ICON_SIZE_MAX;
+        } else if (mIconSize < IconConfig.ICON_SIZE_MIN) {
+            mIconSize = IconConfig.ICON_SIZE_MIN;
+        }
+
+        // do not forget to change size of bubble views existed.
+        for (BubbleView v : mBubbleViews) {
+            v.setSize(mIconSize);
+        }
+
+        // update the position of bubble views.
+        update();
     }
 
     public void update() {
@@ -208,10 +282,29 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        // catch the size from onMeasure.
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
 
-        measureChildren(widthMeasureSpec, heightMeasureSpec);
+        if (widthSize != heightSize) {
+            try {
+                throw new Exception("width != height");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        if (mSize != widthSize) {
+            mSize = widthSize;
+            initSize();
+        }
+
+        // set measured dimension of children to mIconSize for touch event.
+        int sizeMeasureSpec = MeasureSpec.makeMeasureSpec(mIconSize, MeasureSpec.EXACTLY);
+        int childCount = getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            View child = getChildAt(i);
+            child.measure(sizeMeasureSpec, sizeMeasureSpec);
+        }
 
         setMeasuredDimension(widthSize, heightSize);
     }
@@ -219,7 +312,7 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     @Override
     public boolean onTouch(View v, MotionEvent event) {
         int action = event.getAction();
-        if (mState == WORKSPACE_STATE_NORMAL) {
+        if (mState == SPEED_DIAL_STATE_NORMAL) {
             return false;
         }
 
@@ -232,45 +325,18 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     }
 
     private void showEditViews() {
-        mBottomView.setVisibility(View.INVISIBLE);
-        if (mEditViews.size() < EDIT_VIEW_CAPACITY) {
-            mEditViews.clear();
-            Bitmap icon = null;
-            int[] iconId = {
-                    R.drawable.icon1, R.drawable.icon2, R.drawable.icon3
-            };
-            for (int i = 0; i < EDIT_VIEW_CAPACITY; i++) {
-                icon = BitmapUtils.getIcon(mLauncher.getResources(),
-                        iconId[i], IconConfig.getIconSize());
-                BubbleView v = new BubbleView(mLauncher, icon);
-                v.setTag(i);
-                addView(v);
-                mEditViews.add(v);
-                v.setOnClickListener(mLauncher);
-
-                // TODO: use dynamic layout to fit the device.
-                DisplayMetrics metrics = new DisplayMetrics();
-                mLauncher.getWindowManager().getDefaultDisplay().getMetrics(metrics);
-                float scale = metrics.widthPixels / 720.0f;
-                v.move((90 + i * 220) * scale, 1080 * scale);
-            }
-            return;
-        }
-        for (int i = 0; i < EDIT_VIEW_CAPACITY; i++) {
-            mEditViews.get(i).setVisibility(View.VISIBLE);
-        }
+        mSearchBar.setVisibility(View.INVISIBLE);
+        mEditBottomView.setVisibility(View.VISIBLE);
     }
 
     private void hideEditViews() {
-        for (int i = 0; i < EDIT_VIEW_CAPACITY; i++) {
-            mEditViews.get(i).setVisibility(View.INVISIBLE);
-        }
-        mBottomView.setVisibility(View.VISIBLE);
+        mEditBottomView.setVisibility(View.INVISIBLE);
+        mSearchBar.setVisibility(View.VISIBLE);
     }
 
     public void startDrag(BubbleView view) {
-        if (mState != WORKSPACE_STATE_DRAG) {
-            mState = WORKSPACE_STATE_DRAG;
+        if (mState != SPEED_DIAL_STATE_DRAG) {
+            mState = SPEED_DIAL_STATE_DRAG;
             showEditViews();
         }
         mSelect = view;
@@ -280,8 +346,8 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
     }
 
     public void stopDrag() {
-        if (mState != WORKSPACE_STATE_NORMAL) {
-            mState = WORKSPACE_STATE_NORMAL;
+        if (mState != SPEED_DIAL_STATE_NORMAL) {
+            mState = SPEED_DIAL_STATE_NORMAL;
             hideEditViews();
         }
     }
@@ -290,25 +356,18 @@ public class Workspace extends FrameLayout implements DragSource, View.OnTouchLi
         return mBubbleViews.size() >= BUBBLE_VIEW_CAPACITY;
     }
 
-    public HashMap<Integer, Bitmap> getBuildinIcon() {
-        HashMap<Integer, Bitmap> map = new HashMap<Integer, Bitmap>();
-
-        for (int i = 0; i < mBubbleViews.size(); i++) {
-            ShortcutInfo info = (ShortcutInfo) mBubbleViews.get(i).getTag();
-            if (info.usingBuildinIcon) {
-                map.put(info.mResId, info.mIcon);
-            }
-        }
-        return map;
-    }
-
     @Override
     public void onDropCompleted(BubbleView target) {
         if (target != null) {
+            ShortcutInfo si = (ShortcutInfo) mSelect.getTag();
+            ShortcutInfo ti = (ShortcutInfo) target.getTag();
             int tIndex = mBubbleViews.indexOf(target);
             int sIndex = mBubbleViews.indexOf(mSelect);
+
+            LauncherModel.modifyItemInDatabase(mLauncher, si, tIndex);
             mBubbleViews.set(tIndex, mSelect);
             mBubbleViews.set(sIndex, target);
+            LauncherModel.modifyItemInDatabase(mLauncher, ti, sIndex);
         }
         mLauncher.getDragLayer().removeView(mSelect);
         mDragController.addDropTarget(mSelect);

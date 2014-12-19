@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -17,7 +18,6 @@ import android.widget.TextView;
 import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.R;
 import com.cooeeui.brand.zenlauncher.apps.AppInfo;
-import com.cooeeui.brand.zenlauncher.config.IconConfig;
 
 public class PopupDialog extends Dialog {
 
@@ -28,6 +28,8 @@ public class PopupDialog extends Dialog {
     private Context mContext;
     private Launcher mLauncher;
     private ArrayList<AppInfo> mApps;
+
+    private int mSelect = -1;
 
     public PopupDialog(Context context, int state) {
         super(context, R.style.PopupStyle);
@@ -42,23 +44,19 @@ public class PopupDialog extends Dialog {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.icon_popup);
 
-        ImageView mImage = (ImageView) findViewById(R.id.title_image);
+        final ImageView mImage = (ImageView) findViewById(R.id.title_image);
         TextView mText = (TextView) findViewById(R.id.title_text);
         GridView mGrid = (GridView) findViewById(R.id.gridview);
+
+        Button btn = (Button) findViewById(R.id.ok);
 
         mGrid.setAdapter(new ImageAdapter());
         mGrid.setOnItemClickListener(new GridView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                if (mState == ADD_VIEW) {
-                    mLauncher.getWorkspace().addBubbleView(mApps.get(position).makeShortcut());
-                    mLauncher.getWorkspace().update();
-                } else {
-                    mLauncher.getWorkspace().changeBubbleView(mApps.get(position).makeShortcut());
-                }
-
-                dismiss();
+                mSelect = position;
+                mImage.setImageBitmap(mApps.get(position).iconBitmap);
             }
         });
 
@@ -68,6 +66,24 @@ public class PopupDialog extends Dialog {
         } else {
             mText.setText("Change");
         }
+
+        btn.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                if (mSelect != -1) {
+                    if (mState == ADD_VIEW) {
+                        mLauncher.getSpeedDial().addBubbleView(mApps.get(mSelect).makeShortcut());
+                        mLauncher.getSpeedDial().update();
+                    } else {
+                        mLauncher.getSpeedDial().changeBubbleView(
+                                mApps.get(mSelect).makeShortcut());
+                    }
+                }
+                PopupDialog.this.dismiss();
+            }
+        });
+
     }
 
     private class ImageAdapter extends BaseAdapter {
@@ -97,8 +113,6 @@ public class PopupDialog extends Dialog {
             if (convertView == null)
             {
                 imageView = new ImageView(mContext);
-                imageView.setLayoutParams(new GridView.LayoutParams(IconConfig.getIconSize(),
-                        IconConfig.getIconSize()));
                 imageView.setScaleType(ImageView.ScaleType.FIT_CENTER);
             }
             else

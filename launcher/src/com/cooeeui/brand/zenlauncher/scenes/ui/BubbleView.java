@@ -4,10 +4,12 @@ package com.cooeeui.brand.zenlauncher.scenes.ui;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.View;
 
+import com.cooeeui.brand.zenlauncher.scenes.SpeedDial;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DropTarget;
 
 public class BubbleView extends View implements DropTarget {
@@ -16,28 +18,36 @@ public class BubbleView extends View implements DropTarget {
 
     private Paint mPaint;
 
-    private int mWidth;
+    private int mSize;
 
-    private int mHeight;
+    Matrix mMatrix;
 
     public BubbleView(Context context, Bitmap bitmap) {
+        this(context, bitmap, bitmap.getWidth());
+    }
+
+    public BubbleView(Context context, Bitmap bitmap, int size) {
         super(context);
         mBitmap = bitmap;
-        mWidth = mBitmap.getWidth();
-        mHeight = mBitmap.getHeight();
         mPaint = new Paint(Paint.FILTER_BITMAP_FLAG);
+        mMatrix = new Matrix();
+        mSize = size;
     }
 
     @Override
     protected void onDraw(Canvas canvas) {
         if (mBitmap != null) {
-            canvas.drawBitmap(mBitmap, 0.0f, 0.0f, mPaint);
+            float scale = (float) mSize / (float) mBitmap.getWidth();
+            mMatrix.setScale(scale, scale);
+            canvas.drawBitmap(mBitmap, mMatrix, mPaint);
         }
     }
 
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        setMeasuredDimension(mWidth, mHeight);
+    public void setSize(int size) {
+        if (size != mSize) {
+            mSize = size;
+            invalidate();
+        }
     }
 
     public void move(float x, float y) {
@@ -65,8 +75,8 @@ public class BubbleView extends View implements DropTarget {
     public void getHitRectRelativeToDragLayer(Rect outRect) {
         outRect.left = (int) getTranslationX();
         outRect.top = (int) getTranslationY();
-        outRect.right = outRect.left + mWidth;
-        outRect.bottom = outRect.top + mHeight;
+        outRect.right = outRect.left + mSize;
+        outRect.bottom = outRect.top + mSize;
     }
 
     public void changeBitmap(Bitmap bitmap) {
@@ -75,7 +85,9 @@ public class BubbleView extends View implements DropTarget {
     }
 
     public void clearBitmap() {
-        mBitmap.recycle();
-        mBitmap = null;
+        if (mBitmap != null && !mBitmap.isRecycled()) {
+            mBitmap.recycle();
+            mBitmap = null;
+        }
     }
 }

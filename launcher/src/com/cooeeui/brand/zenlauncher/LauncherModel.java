@@ -21,22 +21,18 @@ import java.net.URISyntaxException;
 import java.text.Collator;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 
 import android.app.SearchManager;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
-import android.content.ContentProviderOperation;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
@@ -61,6 +57,7 @@ import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
 import com.cooeeui.brand.zenlauncher.apps.Utilities;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
 import com.cooeeui.brand.zenlauncher.scenes.utils.BitmapUtils;
+import com.cooeeui.brand.zenlauncher.scenes.utils.IconNameOrId;
 
 /**
  * Maintains in-memory state of the Launcher. It is expected that there should
@@ -98,15 +95,6 @@ public class LauncherModel extends BroadcastReceiver {
     // need to do a requery. These are only ever touched from the loader thread.
     private boolean mWorkspaceLoaded;
     private boolean mAllAppsLoaded;
-
-    // When we are loading pages synchronously, we can't just post the binding
-    // of items on the side
-    // pages as this delays the rotation process. Instead, we wait for a
-    // callback from the first
-    // draw (in Workspace) to initiate the binding of the remaining side pages.
-    // Any time we start
-    // a normal load, we also clear this set of Runnables.
-    static final ArrayList<Runnable> mDeferredBindRunnables = new ArrayList<Runnable>();
 
     private WeakReference<Callbacks> mCallbacks;
 
@@ -160,8 +148,6 @@ public class LauncherModel extends BroadcastReceiver {
         public boolean isAllAppsButtonRank(int rank);
 
         public void onPageBoundSynchronously(int page);
-
-        public void dumpLogsToLocalData();
     }
 
     public interface ItemInfoFilter {
@@ -239,40 +225,12 @@ public class LauncherModel extends BroadcastReceiver {
         return Bitmap.createBitmap(mDefaultIcon);
     }
 
-    public int getIconId(String name) {
-        if ("custom".equalsIgnoreCase(name)) {
-            return -1;
-        }
-        if ("camera".equalsIgnoreCase(name)) {
-            return R.raw.camera;
-        }
-        if ("contacts".equalsIgnoreCase(name)) {
-            return R.raw.contacts;
-        }
-        if ("setting".equalsIgnoreCase(name)) {
-            return R.raw.setting;
-        }
-        if ("dial".equalsIgnoreCase(name)) {
-            return R.raw.dial;
-        }
-        if ("sms".equalsIgnoreCase(name)) {
-            return R.raw.sms;
-        }
-        if ("browser".equalsIgnoreCase(name)) {
-            return R.raw.browser;
-        }
-
-        return -1;
-    }
-
     public void unbindItemInfosAndClearQueuedBindRunnables() {
         if (sWorkerThread.getThreadId() == Process.myTid()) {
             throw new RuntimeException("Expected unbindLauncherItemInfos() to be called from the " +
                     "main thread");
         }
 
-        // Clear any deferred bind runnables
-        mDeferredBindRunnables.clear();
         // Remove any queued bind runnables
         mHandler.cancelAllRunnablesOfType(MAIN_THREAD_BINDING_RUNNABLE);
         // Unbind all the workspace items
@@ -297,128 +255,6 @@ public class LauncherModel extends BroadcastReceiver {
             }
         };
         runOnMainThread(r);
-    }
-
-    /**
-     * Check whether the item and the item id are matched, and this function
-     * should be run on work thread and with synchronized sBgLock.
-     * 
-     * @param itemId item id in database
-     * @param item ItemInfo object
-     * @param stackTrace stack trace for save exception
-     */
-    static void checkItemInfoLocked(
-            final long itemId, final ItemInfo item, StackTraceElement[] stackTrace) {
-        ItemInfo modelItem = sBgItemsIdMap.get(itemId);
-        if (modelItem != null && item != modelItem) {
-            // check all the data is consistent
-            if (modelItem instanceof ShortcutInfo && item instanceof ShortcutInfo) {
-                ShortcutInfo modelShortcut = (ShortcutInfo) modelItem;
-                ShortcutInfo shortcut = (ShortcutInfo) item;
-                if (modelShortcut.title.toString().equals(shortcut.title.toString()) &&
-                        modelShortcut.intent.filterEquals(shortcut.intent) &&
-                        modelShortcut.id == shortcut.id &&
-                        modelShortcut.itemType == shortcut.itemType &&
-                        modelShortcut.position == shortcut.position) {
-                    // For all intents and purposes, this is the same object
-                    return;
-                }
-            }
-
-            // the modelItem needs to match up perfectly with item if our model
-            // is to be consistent with the database-- for now, just require
-            // modelItem == item or the equality check above
-            String msg = "item: " + ((item != null) ? item.toString() : "null") +
-                    "modelItem: " +
-                    ((modelItem != null) ? modelItem.toString() : "null") +
-                    "Error: ItemInfo passed to checkItemInfo doesn't match original";
-            RuntimeException e = new RuntimeException(msg);
-            if (stackTrace != null) {
-                e.setStackTrace(stackTrace);
-            }
-            // TODO: something breaks this in the upgrade path
-            // throw e;
-        }
-    }
-
-    public static void checkItemInfo(final ItemInfo item) {
-        final StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-        final long itemId = item.id;
-        Runnable r = new Runnable() {
-            public void run() {
-                synchronized (sBgLock) {
-                    checkItemInfoLocked(itemId, item, stackTrace);
-                }
-            }
-        };
-        runOnWorkerThread(r);
-    }
-
-    public static void updateItemInDatabaseHelper(Context context, final ContentValues values,
-            final ItemInfo item, final String callingFunction) {
-        final long itemId = item.id;
-        final Uri uri = LauncherSettings.Favorites.getContentUri(itemId, false);
-        final ContentResolver cr = context.getContentResolver();
-
-        final StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-        Runnable r = new Runnable() {
-            public void run() {
-                cr.update(uri, values, null, null);
-                updateItemArrays(item, itemId, stackTrace);
-            }
-        };
-        runOnWorkerThread(r);
-    }
-
-    static void updateItemsInDatabaseHelper(Context context,
-            final ArrayList<ContentValues> valuesList,
-            final ArrayList<ItemInfo> items, final String callingFunction) {
-        final ContentResolver cr = context.getContentResolver();
-
-        final StackTraceElement[] stackTrace = new Throwable().getStackTrace();
-        Runnable r = new Runnable() {
-            public void run() {
-                ArrayList<ContentProviderOperation> ops =
-                        new ArrayList<ContentProviderOperation>();
-                int count = items.size();
-                for (int i = 0; i < count; i++) {
-                    ItemInfo item = items.get(i);
-                    final long itemId = item.id;
-                    final Uri uri = LauncherSettings.Favorites.getContentUri(itemId, false);
-                    ContentValues values = valuesList.get(i);
-
-                    ops.add(ContentProviderOperation.newUpdate(uri).withValues(values).build());
-                    updateItemArrays(item, itemId, stackTrace);
-
-                }
-                try {
-                    cr.applyBatch(LauncherProvider.AUTHORITY, ops);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        };
-        runOnWorkerThread(r);
-    }
-
-    static void updateItemArrays(ItemInfo item, long itemId, StackTraceElement[] stackTrace) {
-        // Lock on mBgLock *after* the db operation
-        synchronized (sBgLock) {
-            checkItemInfoLocked(itemId, item, stackTrace);
-
-            // Items are added/removed from the corresponding FolderInfo
-            // elsewhere, such as in Workspace.onDrop. Here, we just add/remove
-            // them from the list of items that are on the desktop, as
-            // appropriate.
-            ItemInfo modelItem = sBgItemsIdMap.get(itemId);
-            if (modelItem.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION) {
-                if (!sBgWorkspaceItems.contains(modelItem)) {
-                    sBgWorkspaceItems.add(modelItem);
-                }
-            } else {
-                sBgWorkspaceItems.remove(modelItem);
-            }
-        }
     }
 
     public void flushWorkerThread() {
@@ -450,56 +286,56 @@ public class LauncherModel extends BroadcastReceiver {
         }
     }
 
+    private static void updateShortcutInfoInDB(Context context, final ContentValues values,
+            final ShortcutInfo item) {
+        final long itemId = item.id;
+        final Uri uri = LauncherSettings.Favorites.getContentUri(itemId, false);
+        final ContentResolver cr = context.getContentResolver();
+
+        Runnable r = new Runnable() {
+            public void run() {
+                cr.update(uri, values, null, null);
+            }
+        };
+        runOnWorkerThread(r);
+    }
+
     /**
      * Move item in the DB to a new position
      */
-    static void modifyItemInDatabase(Context context, final ShortcutInfo item, int position) {
-        item.position = position;
-
+    public static void modifyItemInDatabase(Context context, final ShortcutInfo item, int position) {
         final ContentValues values = new ContentValues();
         values.put(LauncherSettings.Favorites.POSITION, position);
 
-        updateItemInDatabaseHelper(context, values, item, "modifyItemInDatabase");
+        updateShortcutInfoInDB(context, values, item);
     }
 
     /**
      * Update an item to the database in a specified container.
      */
-    static void updateShortcutInDatabase(Context context, final ShortcutInfo shortcut) {
+    public static void updateItemInDatabase(Context context, final ShortcutInfo item) {
         final ContentValues values = new ContentValues();
-        shortcut.onAddToDatabase(values);
-        shortcut.updateValuesWithPosition(values, shortcut.position);
-        updateItemInDatabaseHelper(context, values, shortcut, "updateItemInDatabase");
+
+        item.onAddToDatabase(values);
+
+        updateShortcutInfoInDB(context, values, item);
     }
 
     /**
      * Add an item to the database in a specified container.
      */
-    static void addItemToDatabase(Context context, final ItemInfo item, final int position) {
-        item.position = position;
-
+    public static void addItemToDatabase(Context context, final ShortcutInfo item, int position) {
         final ContentValues values = new ContentValues();
         final ContentResolver cr = context.getContentResolver();
-        item.onAddToDatabase(values);
 
+        item.onAddToDatabase(values);
         item.id = LauncherAppState.getLauncherProvider().generateNewItemId();
         values.put(LauncherSettings.Favorites._ID, item.id);
-        item.updateValues(values, item.position);
+        values.put(LauncherSettings.Favorites.POSITION, position);
 
         Runnable r = new Runnable() {
             public void run() {
                 cr.insert(LauncherSettings.Favorites.CONTENT_URI, values);
-
-                // Lock on mBgLock *after* the db operation
-                synchronized (sBgLock) {
-                    checkItemInfoLocked(item.id, item, null);
-                    sBgItemsIdMap.put(item.id, item);
-                    switch (item.itemType) {
-                        case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
-                            sBgWorkspaceItems.add(item);
-                            break;
-                    }
-                }
             }
         };
         runOnWorkerThread(r);
@@ -511,23 +347,13 @@ public class LauncherModel extends BroadcastReceiver {
      * @param context
      * @param item
      */
-    static void deleteItemFromDatabase(Context context, final ItemInfo item) {
+    public static void deleteItemFromDatabase(Context context, final ItemInfo item) {
         final ContentResolver cr = context.getContentResolver();
         final Uri uriToDelete = LauncherSettings.Favorites.getContentUri(item.id, false);
 
         Runnable r = new Runnable() {
             public void run() {
                 cr.delete(uriToDelete, null, null);
-
-                // Lock on mBgLock *after* the db operation
-                synchronized (sBgLock) {
-                    switch (item.itemType) {
-                        case LauncherSettings.Favorites.ITEM_TYPE_APPLICATION:
-                            sBgWorkspaceItems.remove(item);
-                            break;
-                    }
-                    sBgItemsIdMap.remove(item.id);
-                }
             }
         };
         runOnWorkerThread(r);
@@ -689,11 +515,6 @@ public class LauncherModel extends BroadcastReceiver {
             if (DEBUG_LOADERS) {
                 Log.d(TAG, "startLoader isLaunching=" + isLaunching);
             }
-
-            // Clear any deferred bind-runnables from the synchronized load
-            // process We must do this before any loading/binding is scheduled
-            // below.
-            mDeferredBindRunnables.clear();
 
             // Don't bother to start the thread if we know it's not going to do
             // anything
@@ -1035,10 +856,9 @@ public class LauncherModel extends BroadcastReceiver {
                             iconName = c.getString(iconNameIndex);
                             position = c.getInt(positionIndex);
 
-                            iconId = getIconId(iconName);
+                            iconId = IconNameOrId.getIconId(iconName);
 
-                            info = getShortcutInfo(manager, intent, context, c, iconId,
-                                    mLabelCache);
+                            info = getShortcutInfo(intent, iconId);
 
                             if (info != null) {
                                 info.id = id;
@@ -1104,10 +924,7 @@ public class LauncherModel extends BroadcastReceiver {
         }
 
         private void bindWorkspaceItems(final Callbacks oldCallbacks,
-                final ArrayList<ItemInfo> workspaceItems,
-                ArrayList<Runnable> deferredBindRunnables) {
-            final boolean postOnMainThread = (deferredBindRunnables != null);
-
+                final ArrayList<ItemInfo> workspaceItems) {
             // Bind the workspace items
             int N = workspaceItems.size();
             for (int i = 0; i < N; i += ITEMS_CHUNK) {
@@ -1123,11 +940,7 @@ public class LauncherModel extends BroadcastReceiver {
                         }
                     }
                 };
-                if (postOnMainThread) {
-                    deferredBindRunnables.add(r);
-                } else {
-                    runOnMainThread(r, MAIN_THREAD_BINDING_RUNNABLE);
-                }
+                runOnMainThread(r, MAIN_THREAD_BINDING_RUNNABLE);
             }
         }
 
@@ -1173,7 +986,7 @@ public class LauncherModel extends BroadcastReceiver {
             runOnMainThread(r, MAIN_THREAD_BINDING_RUNNABLE);
 
             // Load items on workspace
-            bindWorkspaceItems(oldCallbacks, workspaceItems, null);
+            bindWorkspaceItems(oldCallbacks, workspaceItems);
 
             // Tell the workspace that we're done binding items
             r = new Runnable() {
@@ -1411,19 +1224,6 @@ public class LauncherModel extends BroadcastReceiver {
             if (modified != null) {
                 final ArrayList<AppInfo> modifiedFinal = modified;
 
-                // Update the launcher db to reflect the changes
-                for (AppInfo a : modifiedFinal) {
-                    ArrayList<ItemInfo> infos =
-                            getItemInfoForComponentName(a.componentName);
-                    for (ItemInfo i : infos) {
-                        if (isShortcutInfoUpdateable(i)) {
-                            ShortcutInfo info = (ShortcutInfo) i;
-                            info.title = a.title.toString();
-                            updateItemInDatabase(context, info);
-                        }
-                    }
-                }
-
                 mHandler.post(new Runnable() {
                     public void run() {
                         Callbacks cb = mCallbacks != null ? mCallbacks.get() : null;
@@ -1441,29 +1241,6 @@ public class LauncherModel extends BroadcastReceiver {
                 final ArrayList<String> removedPackageNames =
                         new ArrayList<String>(Arrays.asList(packages));
 
-                // Update the launcher db to reflect the removal of apps
-                if (packageRemoved) {
-                    for (String pn : removedPackageNames) {
-                        ArrayList<ItemInfo> infos = getItemInfoForPackageName(pn);
-                        for (ItemInfo i : infos) {
-                            deleteItemFromDatabase(context, i);
-                        }
-                    }
-
-                    // Remove any queued items from the install queue
-                    String spKey = LauncherAppState.getSharedPreferencesKey();
-                    SharedPreferences sp =
-                            context.getSharedPreferences(spKey, Context.MODE_PRIVATE);
-                } else {
-                    for (AppInfo a : removedApps) {
-                        ArrayList<ItemInfo> infos =
-                                getItemInfoForComponentName(a.componentName);
-                        for (ItemInfo i : infos) {
-                            deleteItemFromDatabase(context, i);
-                        }
-                    }
-                }
-
                 mHandler.post(new Runnable() {
                     public void run() {
                         Callbacks cb = mCallbacks != null ? mCallbacks.get() : null;
@@ -1474,16 +1251,6 @@ public class LauncherModel extends BroadcastReceiver {
                     }
                 });
             }
-
-            // Write all the logs to disk
-            mHandler.post(new Runnable() {
-                public void run() {
-                    Callbacks cb = mCallbacks != null ? mCallbacks.get() : null;
-                    if (callbacks == cb && cb != null) {
-                        callbacks.dumpLogsToLocalData();
-                    }
-                }
-            });
         }
     }
 
@@ -1506,162 +1273,22 @@ public class LauncherModel extends BroadcastReceiver {
         }
     }
 
-    /**
-     * This is called from the code that adds shortcuts from the intent
-     * receiver. This doesn't have a Cursor, but
-     */
-    public ShortcutInfo getShortcutInfo(PackageManager manager, Intent intent, Context context) {
-        return getShortcutInfo(manager, intent, context, null, -1, null);
-    }
-
-    /**
-     * Make an ShortcutInfo object for a shortcut that is an application. If c
-     * is not null, then it will be used to fill in missing data like the title
-     * and icon.
-     */
-    public ShortcutInfo getShortcutInfo(PackageManager manager, Intent intent, Context context,
-            Cursor c, int iconId, HashMap<Object, CharSequence> labelCache) {
+    public ShortcutInfo getShortcutInfo(Intent intent, int iconId) {
         final ShortcutInfo info = new ShortcutInfo();
         Bitmap icon = null;
 
-        if (iconId > 0) {
-            icon = BitmapUtils.getIcon(mApp.getContext().getResources(),
-                    iconId, 144); // modify later
-            info.usingBuildinIcon = true;
-            info.mResId = iconId;
+        if (iconId != -1) {
+            icon = BitmapUtils.getIcon(mApp.getContext().getResources(), iconId);
+            info.mRecycle = true;
+            info.mIconId = iconId;
+        } else if (intent != null) {
+            icon = mIconCache.getIcon(intent);
+            info.mRecycle = false;
+            info.mIconId = -1;
         }
 
-        if (intent != null) {
-            // ComponentName componentName = intent.getComponent();
-            // if (componentName != null && !isValidPackageComponent(manager,
-            // componentName)) {
-            // Log.d(TAG, "Invalid package found in getShortcutInfo: " +
-            // componentName);
-            // return null;
-            // } else {
-            // try {
-            // PackageInfo pi =
-            // manager.getPackageInfo(componentName.getPackageName(), 0);
-            // info.initFlagsAndFirstInstallTime(pi);
-            // } catch (NameNotFoundException e) {
-            // Log.d(TAG, "getPackInfo failed for package " +
-            // componentName.getPackageName());
-            // }
-            // }
-
-            // ResolveInfo resolveInfo = null;
-            // ComponentName oldComponent = intent.getComponent();
-            // Intent newIntent = new Intent(intent.getAction(), null);
-            // newIntent.addCategory(Intent.CATEGORY_LAUNCHER);
-            // newIntent.setPackage(oldComponent.getPackageName());
-            // List<ResolveInfo> infos =
-            // manager.queryIntentActivities(newIntent, 0);
-            // for (ResolveInfo i : infos) {
-            // ComponentName cn = new ComponentName(i.activityInfo.packageName,
-            // i.activityInfo.name);
-            // if (cn.equals(oldComponent)) {
-            // resolveInfo = i;
-            // }
-            // }
-            // if (resolveInfo == null) {
-            // resolveInfo = manager.resolveActivity(intent, 0);
-            // }
-
-            // if (resolveInfo != null && icon == null) {
-            // icon = mIconCache.getIcon(componentName, resolveInfo,
-            // labelCache);
-            // info.customIcon = true;
-            // }
-
-            // from the resource
-            // if (resolveInfo != null) {
-            // ComponentName key =
-            // LauncherModel.getComponentNameFromResolveInfo(resolveInfo);
-            // if (labelCache != null && labelCache.containsKey(key)) {
-            // info.title = labelCache.get(key);
-            // } else {
-            // info.title = resolveInfo.activityInfo.loadLabel(manager);
-            // if (labelCache != null) {
-            // labelCache.put(key, info.title);
-            // }
-            // }
-            // }
-
-            // fall back to the class name of the activity
-            // if (info.title == null) {
-            // info.title = componentName.getClassName();
-            // }
-        }
-
-        // the fallback icon
-        if (icon == null) {
-            icon = getFallbackIcon();
-            info.usingFallbackIcon = true;
-        }
         info.mIcon = icon;
-        info.itemType = LauncherSettings.Favorites.ITEM_TYPE_APPLICATION;
         return info;
-    }
-
-    static ArrayList<ItemInfo> filterItemInfos(Collection<ItemInfo> infos,
-            ItemInfoFilter f) {
-        HashSet<ItemInfo> filtered = new HashSet<ItemInfo>();
-        for (ItemInfo i : infos) {
-            if (i instanceof ShortcutInfo) {
-                ShortcutInfo info = (ShortcutInfo) i;
-                ComponentName cn = info.intent.getComponent();
-                if (cn != null && f.filterItem(null, info, cn)) {
-                    filtered.add(info);
-                }
-            }
-        }
-        return new ArrayList<ItemInfo>(filtered);
-    }
-
-    /**
-     * Update an item to the database in a specified container.
-     */
-    static void updateItemInDatabase(Context context, final ItemInfo item) {
-        final ContentValues values = new ContentValues();
-        item.onAddToDatabase(values);
-        item.updateValues(values, item.position);
-        updateItemInDatabaseHelper(context, values, item, "updateItemInDatabase");
-    }
-
-    private ArrayList<ItemInfo> getItemInfoForPackageName(final String pn) {
-        ItemInfoFilter filter = new ItemInfoFilter() {
-            @Override
-            public boolean filterItem(ItemInfo parent, ItemInfo info, ComponentName cn) {
-                return cn.getPackageName().equals(pn);
-            }
-        };
-        return filterItemInfos(sBgItemsIdMap.values(), filter);
-    }
-
-    private ArrayList<ItemInfo> getItemInfoForComponentName(final ComponentName cname) {
-        ItemInfoFilter filter = new ItemInfoFilter() {
-            @Override
-            public boolean filterItem(ItemInfo parent, ItemInfo info, ComponentName cn) {
-                return cn.equals(cname);
-            }
-        };
-        return filterItemInfos(sBgItemsIdMap.values(), filter);
-    }
-
-    public static boolean isShortcutInfoUpdateable(ItemInfo i) {
-        if (i instanceof ShortcutInfo) {
-            ShortcutInfo info = (ShortcutInfo) i;
-            // We need to check for ACTION_MAIN otherwise getComponent() might
-            // return null for some shortcuts (for instance, for shortcuts to
-            // web pages.)
-            Intent intent = info.intent;
-            ComponentName name = intent.getComponent();
-            if (info.itemType == LauncherSettings.Favorites.ITEM_TYPE_APPLICATION &&
-                    Intent.ACTION_MAIN.equals(intent.getAction()) && name != null) {
-                return true;
-            }
-        }
-        return false;
     }
 
     public static final Comparator<AppInfo> getAppNameComparator() {

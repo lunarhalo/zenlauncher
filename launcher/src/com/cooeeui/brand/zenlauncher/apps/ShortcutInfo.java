@@ -16,7 +16,6 @@
 
 package com.cooeeui.brand.zenlauncher.apps;
 
-import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -27,35 +26,18 @@ import android.graphics.Bitmap;
 import android.util.Log;
 
 import com.cooeeui.brand.zenlauncher.LauncherSettings;
+import com.cooeeui.brand.zenlauncher.scenes.utils.IconNameOrId;
 
 /**
  * Represents a launchable icon on the workspace.
  */
 public class ShortcutInfo extends ItemInfo {
 
-    public boolean usingFallbackIcon;
-
-    /**
-     * The application icon.
-     */
     public Bitmap mIcon;
 
-    public boolean usingBuildinIcon;
+    public boolean mRecycle;
 
-    /**
-     * The resource id if usingBuildinIcon is true.
-     */
-    public int mResId;
-
-    /**
-     * The time at which the application was first installed.
-     */
-    long firstInstallTime;
-
-    /**
-     * The flag of this application.
-     */
-    int flags = 0;
+    public int mIconId;
 
     @Override
     public Intent getIntent() {
@@ -69,11 +51,9 @@ public class ShortcutInfo extends ItemInfo {
     public ShortcutInfo(AppInfo info) {
         super(info);
         intent = new Intent(info.intent);
-        usingBuildinIcon = false;
-        mResId = 0;
-        flags = info.flags;
-        firstInstallTime = info.firstInstallTime;
         mIcon = info.iconBitmap;
+        mIconId = -1;
+        mRecycle = false;
     }
 
     public static PackageInfo getPackageInfo(Context context, String packageName) {
@@ -87,44 +67,13 @@ public class ShortcutInfo extends ItemInfo {
         return pi;
     }
 
-    public void initFlagsAndFirstInstallTime(PackageInfo pi) {
-        flags = AppInfo.initFlags(pi);
-        firstInstallTime = AppInfo.initFirstInstallTime(pi);
-    }
-
-    /**
-     * Creates the application intent based on a component name and various
-     * launch flags. Sets {@link #itemType} to
-     * {@link LauncherSettings.BaseLauncherColumns#ITEM_TYPE_APPLICATION}.
-     * 
-     * @param className the class name of the component representing the intent
-     * @param launchFlags the launch flags
-     */
-    final void setActivity(Context context, ComponentName className, int launchFlags) {
-        intent = new Intent(Intent.ACTION_MAIN);
-        intent.addCategory(Intent.CATEGORY_LAUNCHER);
-        intent.setComponent(className);
-        intent.setFlags(launchFlags);
-        itemType = LauncherSettings.BaseLauncherColumns.ITEM_TYPE_APPLICATION;
-        initFlagsAndFirstInstallTime(getPackageInfo(context, intent.getComponent().getPackageName()));
-    }
-
     @Override
     public void onAddToDatabase(ContentValues values) {
-        String titleStr = title != null ? title.toString() : null;
-        values.put(LauncherSettings.BaseLauncherColumns.TITLE, titleStr);
-
         String uri = intent != null ? intent.toUri(0) : null;
-        values.put(LauncherSettings.BaseLauncherColumns.INTENT, uri);
+        values.put(LauncherSettings.Favorites.INTENT, uri);
 
-        values.put(LauncherSettings.Favorites.POSITION, position);
-        if (usingBuildinIcon) {
-            values.put(LauncherSettings.BaseLauncherColumns.ICON_TYPE, mResId);
-        }
-    }
-
-    public void updateValuesWithPosition(ContentValues values, int position) {
-        values.put(LauncherSettings.Favorites.POSITION, position);
+        String name = IconNameOrId.getIconName(mIconId);
+        values.put(LauncherSettings.Favorites.ICON_NAME, name);
     }
 
     @Override
