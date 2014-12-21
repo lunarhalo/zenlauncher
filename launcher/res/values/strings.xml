@@ -3,13 +3,12 @@
 
     <!-- Application name -->
     <string name="application_name">Zen Launcher</string>
-    <!-- Displayed when user selects a shortcut for an app that was uninstalled [CHAR_LIMIT=none]-->
+    <!-- Displayed when user selects a shortcut for an app that was uninstalled [CHAR_LIMIT=none] -->
     <string name="activity_not_found">App isn\'t installed.</string>
     <!-- Message displayed when an external application attemps to create a shortcut that already exists -->
     <string name="shortcut_duplicate">Shortcut already exists.</string>
     <!-- Message displayed when a shortcut is uninstalled by an external application -->
     <string name="shortcut_uninstalled">Shortcut was removed.</string>
-
     <string name="add">Add</string>
     <string name="wallpaper">Wallpaper</string>
     <string name="settings">System settings</string>
@@ -18,4 +17,8 @@
     <string name="desktop_search">Desktop Search</string>
     <string name="status_bar_setting">Status Bar Setting</string>
     <string name="about_zen">About Zen</string>
+    <string name="always">Always</string>
+    <string name="once">For once</string>
+    <string name="chooseApp">Choose to use the application:</string>
+
 </resources>
