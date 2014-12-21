@@ -6,13 +6,10 @@ import java.util.ArrayList;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
-import android.graphics.Rect;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.LauncherModel;
@@ -240,9 +237,6 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
         for (BubbleView v : mBubbleViews) {
             v.setSize(mIconSize);
         }
-
-        // update the position of bubble views.
-        update();
     }
 
     public void update() {

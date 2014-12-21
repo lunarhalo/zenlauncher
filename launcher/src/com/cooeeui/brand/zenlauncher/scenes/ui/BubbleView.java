@@ -9,7 +9,6 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.view.View;
 
-import com.cooeeui.brand.zenlauncher.scenes.SpeedDial;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DropTarget;
 
 public class BubbleView extends View implements DropTarget {
@@ -46,13 +45,17 @@ public class BubbleView extends View implements DropTarget {
     public void setSize(int size) {
         if (size != mSize) {
             mSize = size;
-            invalidate();
         }
     }
 
     public void move(float x, float y) {
         setTranslationX(x);
         setTranslationY(y);
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        setMeasuredDimension(mSize, mSize);
     }
 
     @Override
