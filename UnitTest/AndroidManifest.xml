@@ -86,8 +86,6 @@
             android:label="@string/super_dialog_layout"
             android:theme="@style/DialogStyle" >
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
             </intent-filter>
         </activity>
