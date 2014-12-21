@@ -30,13 +30,11 @@
                     zenlauncher:aspect_ratio="2.13"
                     zenlauncher:width_weight="0.7" >
 
-                    <ImageView
+                    <com.cooeeui.brand.zenlauncher.weatherclock.WeatherClockGroup
                         android:id="@+id/weatherclock"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        android:layout_gravity="center"
-                        android:contentDescription="weatherclock"
-                        android:src="@drawable/weatherclock" />
+                        android:layout_gravity="center" />
                 </com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout>
 
                 <FrameLayout
