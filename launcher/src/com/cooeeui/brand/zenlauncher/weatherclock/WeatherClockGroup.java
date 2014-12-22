@@ -23,6 +23,8 @@ public class WeatherClockGroup extends RelativeLayout {
     private static final String ACTION_TIME_CHANGED = Intent.ACTION_TIME_CHANGED;
     private static final String ACTION_TIME_TICK = Intent.ACTION_TIME_TICK;
     private MyTimeBroadCast myTimeBroadCast = null;
+    private IntentFilter intentFilter;
+    private Context mContext;
     private boolean isConnecNet = false;// 判断手机是否连上网络
     private ConnectivityManager connectivityManager = null;
     private ClickIntent clickIntent = null;
@@ -46,12 +48,20 @@ public class WeatherClockGroup extends RelativeLayout {
         isConnecNet = getConnecNet();
         time = new Time();
         myTimeBroadCast = new MyTimeBroadCast();
-        IntentFilter intentFilter = new IntentFilter();
+        intentFilter = new IntentFilter();
         intentFilter.addAction(ACTION_DATE_CHANGED);
         intentFilter.addAction(ACTION_TIME_CHANGED);
         intentFilter.addAction(ACTION_TIME_TICK);
-        context.registerReceiver(myTimeBroadCast, intentFilter);
-        // TODO Auto-generated constructor stub
+
+        mContext = context;
+    }
+
+    public void register() {
+        mContext.registerReceiver(myTimeBroadCast, intentFilter);
+    }
+
+    public void unRegister() {
+        mContext.unregisterReceiver(myTimeBroadCast);
     }
 
     /**

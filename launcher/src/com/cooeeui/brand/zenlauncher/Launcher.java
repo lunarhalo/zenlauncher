@@ -35,6 +35,7 @@ import com.cooeeui.brand.zenlauncher.scenes.ui.ChangeIcon;
 import com.cooeeui.brand.zenlauncher.scenes.ui.PopupDialog;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer;
+import com.cooeeui.brand.zenlauncher.weatherclock.WeatherClockGroup;
 
 public class Launcher extends Activity implements View.OnClickListener, OnLongClickListener,
         LauncherModel.Callbacks {
@@ -51,6 +52,8 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     private Workspace mWorkspace;
     private DragController mDragController;
     private ArrayList<AppInfo> mApps;
+
+    private WeatherClockGroup mWeather;
 
     private Dialog mLoading;
 
@@ -87,6 +90,8 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         mWorkspace = (Workspace) findViewById(R.id.workspace);
         mWorkspace.setOnClickListener(this);
 
+        mWeather = (WeatherClockGroup) findViewById(R.id.weatherclock);
+
         showLoadingView();
 
         mModel.startLoader(true);
@@ -113,6 +118,18 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
             mLoading.dismiss();
             mLoading = null;
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mWeather.register();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mWeather.unRegister();
     }
 
     @Override
