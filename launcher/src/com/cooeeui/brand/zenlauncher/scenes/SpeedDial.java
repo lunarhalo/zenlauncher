@@ -237,6 +237,8 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
         for (BubbleView v : mBubbleViews) {
             v.setSize(mIconSize);
         }
+
+        update();
     }
 
     public void update() {
@@ -244,6 +246,10 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
 
         float startX = mMidPoint[0];
         float startY = mMidPoint[1];
+
+        if (count == 0) {
+            return;
+        }
         if (count > 6) {
             startY += (mIconSize + mPadding);
         }
