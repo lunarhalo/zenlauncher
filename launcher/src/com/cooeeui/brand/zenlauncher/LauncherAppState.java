@@ -27,6 +27,7 @@ import android.content.res.Configuration;
 import android.content.res.Resources;
 import android.util.Log;
 
+import com.cooeeui.brand.zenlauncher.appIntentUtils.AppIntentUtil;
 import com.cooeeui.brand.zenlauncher.apps.AppFilter;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.debug.MemoryTracker;
@@ -46,6 +47,7 @@ public class LauncherAppState {
     private static Context sContext;
 
     private static LauncherAppState INSTANCE;
+    private static AppIntentUtil appIntentUtil = null;
 
     // private DynamicGrid mDynamicGrid;
 
@@ -169,5 +171,15 @@ public class LauncherAppState {
 
     public int getLongPressTimeout() {
         return mLongPressTimeout;
+    }
+
+    public static void setAppIntentUtil(AppIntentUtil appIntent) {
+        // TODO Auto-generated method stub
+        appIntentUtil = appIntent;
+    }
+
+    public static AppIntentUtil getAppIntentUtil() {
+        // TODO Auto-generated method stub
+        return appIntentUtil;
     }
 }

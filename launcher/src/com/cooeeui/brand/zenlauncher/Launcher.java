@@ -22,6 +22,7 @@ import android.view.View.OnLongClickListener;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.Toast;
 
+import com.cooeeui.brand.zenlauncher.appIntentUtils.AppIntentUtil;
 import com.cooeeui.brand.zenlauncher.apps.AppInfo;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
@@ -64,7 +65,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         LauncherAppState.setApplicationContext(getApplicationContext());
         LauncherAppState app = LauncherAppState.getInstance();
-
+        LauncherAppState.setAppIntentUtil(new AppIntentUtil(this));// 将appIntent的帮助类传递到AppState
         // the LauncherApplication should call this, but in case of
         // instrumentation it might not be present yet
         mSharedPrefs = getSharedPreferences(
@@ -271,6 +272,8 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
             if (intent != null) {
                 startActivitySafely(intent);
                 return;
+            } else if (intent == null && "*BROWSER*".equals(shortcut.title)) {
+                LauncherAppState.getAppIntentUtil().startBrowserIntent();
             }
         }
 

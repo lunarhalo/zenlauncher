@@ -7,7 +7,7 @@ public class IconNameOrId {
     public static final String ICON_NAME_PACKAGE = "package";
     public static final String ICON_NAME_CAMERA = "camera";
     public static final String ICON_NAME_CONTACTS = "contacts";
-    public static final String ICON_NAME_SETTING = "setting";
+    public static final String ICON_NAME_DEFAULTAPP = "defaultApp";
     public static final String ICON_NAME_DIAL = "dial";
     public static final String ICON_NAME_SMS = "sms";
     public static final String ICON_NAME_BROWSER = "browser";
@@ -22,7 +22,7 @@ public class IconNameOrId {
         if (ICON_NAME_CONTACTS.equalsIgnoreCase(name)) {
             return R.raw.contacts;
         }
-        if (ICON_NAME_SETTING.equalsIgnoreCase(name)) {
+        if (ICON_NAME_DEFAULTAPP.equalsIgnoreCase(name)) {
             return R.raw.setting;
         }
         if (ICON_NAME_DIAL.equalsIgnoreCase(name)) {
@@ -48,7 +48,7 @@ public class IconNameOrId {
                 name = ICON_NAME_CONTACTS;
                 break;
             case R.raw.setting:
-                name = ICON_NAME_SETTING;
+                name = ICON_NAME_DEFAULTAPP;
                 break;
             case R.raw.dial:
                 name = ICON_NAME_DIAL;

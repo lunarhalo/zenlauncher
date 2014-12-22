@@ -867,6 +867,9 @@ public class LauncherModel extends BroadcastReceiver {
 
                                 sBgWorkspaceItems.add(info);
                                 sBgItemsIdMap.put(info.id, info);
+                                if ("*BROWSER*".equalsIgnoreCase(intentDescription)) {
+                                    info.title = "*BROWSER*";
+                                }
 
                             } else {
                                 throw new RuntimeException("Unexpected null ShortcutInfo");

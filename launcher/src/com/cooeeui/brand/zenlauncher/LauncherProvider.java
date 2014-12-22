@@ -40,6 +40,7 @@ import android.util.Log;
 import android.util.Xml;
 
 import com.cooeeui.brand.zenlauncher.LauncherSettings.Favorites;
+import com.cooeeui.brand.zenlauncher.appIntentUtils.AppIntentUtil;
 import com.cooeeui.brand.zenlauncher.config.ProviderConfig;
 
 public class LauncherProvider extends ContentProvider {
@@ -49,7 +50,7 @@ public class LauncherProvider extends ContentProvider {
     private static final String DATABASE_NAME = "launcher.db";
 
     private static final int DATABASE_VERSION = 1;
-
+    private static AppIntentUtil appIntentUtil = null;
     static final String AUTHORITY = ProviderConfig.AUTHORITY;
 
     static final String TABLE_FAVORITES = "favorites";
@@ -436,21 +437,26 @@ public class LauncherProvider extends ContentProvider {
         private long addAppShortcut(SQLiteDatabase db, ContentValues values, TypedArray a) {
 
             long id = -1;
-            String intentName = a.getString(R.styleable.Favorite_intent);
             String position = a.getString(R.styleable.Favorite_position);
             String iconName = a.getString(R.styleable.Favorite_iconName);
+            Intent intent = LauncherAppState.getAppIntentUtil().getIntentByUri(
+                    a.getString(R.styleable.Favorite_intent),
+                    iconName);
             String pkgName = mContext.getPackageName();
             values.put(Favorites.ICON_PACKAGE, pkgName);
             values.put(Favorites.ICON_NAME, iconName);
             values.put(Favorites.POSITION, position);
-            values.put(Favorites.INTENT, intentName);
+            if (intent != null) {
+                values.put(Favorites.INTENT, intent.toUri(0));
+            } else {
+                values.put(Favorites.INTENT, a.getString(R.styleable.Favorite_intent));
+            }
             values.put(Favorites._ID, generateNewItemId());
             if (dbInsertAndCheck(this, db, TABLE_FAVORITES, null, values) < 0) {
                 return -1;
             }
             return id;
         }
-
     }
 
     /**
