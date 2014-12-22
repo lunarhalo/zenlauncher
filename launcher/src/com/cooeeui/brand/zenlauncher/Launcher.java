@@ -49,7 +49,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     private SpeedDial mSpeedDial;
     private DragLayer mDragLayer;
-    private View mWorkspace;
+    private Workspace mWorkspace;
     private DragController mDragController;
     private ArrayList<AppInfo> mApps;
 
@@ -85,7 +85,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         mSpeedDial.setup(this, mDragController);
         mSpeedDial.setOnClickListener(this);
 
-        mWorkspace = findViewById(R.id.workspace);
+        mWorkspace = (Workspace) findViewById(R.id.workspace);
         mWorkspace.setOnClickListener(this);
 
         registerForContextMenu(mWorkspace);
