@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <com.cooeeui.brand.zenlauncher.applistlayout.AppHostViewGroup
+        android:id="@+id/appHostGroup"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/applayout_wallpaper" >
+
+        <com.cooeeui.brand.zenlauncher.applistlayout.AppNameViewGroup
+            android:id="@+id/appNameGroup"
+            android:layout_width="match_parent"
+            android:layout_height="45dp"
+            android:layout_alignParentTop="true" >
+
+            <TextView
+                android:id="@+id/titleText"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_alignParentLeft="true"
+                android:layout_centerVertical="true"
+                android:gravity="center_vertical"
+                android:paddingLeft="8dp"
+                android:textColor="#ffffffff"
+                android:textSize="30sp" />
+
+            <Button
+                android:id="@+id/optionButton"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
+                android:layout_alignParentRight="true"
+                android:layout_centerVertical="true"
+                android:background="@drawable/applayout_option" />
+
+            <ImageView
+                android:id="@+id/imageLine"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_alignParentBottom="true"
+                android:background="@drawable/applayout_split_line" />
+        </com.cooeeui.brand.zenlauncher.applistlayout.AppNameViewGroup>
+
+        <com.cooeeui.brand.zenlauncher.applistlayout.AppTabViewGroup
+            android:id="@+id/appTabGroup"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:layout_alignParentBottom="true" >
+
+            <ImageView
+                android:id="@+id/imageTabLine"
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_alignParentTop="true"
+                android:background="@drawable/applayout_split_line" />
+        </com.cooeeui.brand.zenlauncher.applistlayout.AppTabViewGroup>
+    </com.cooeeui.brand.zenlauncher.applistlayout.AppHostViewGroup>
+
+</RelativeLayout>
