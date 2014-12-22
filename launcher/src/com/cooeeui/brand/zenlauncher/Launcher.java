@@ -13,13 +13,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.cooeeui.brand.zenlauncher.appIntentUtils.AppIntentUtil;
@@ -88,10 +87,16 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         mWorkspace = (Workspace) findViewById(R.id.workspace);
         mWorkspace.setOnClickListener(this);
 
-        registerForContextMenu(mWorkspace);
         showLoadingView();
 
         mModel.startLoader(true);
+
+        try {
+            getWindow().addFlags(
+                    WindowManager.LayoutParams.class.getField("FLAG_NEEDS_MENU_KEY").getInt(null));
+        } catch (Exception e) {
+            // Ignore
+        }
     }
 
     void showLoadingView() {
@@ -138,37 +143,6 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         if (mModel != null) {
             mModel.unbindItemInfosAndClearQueuedBindRunnables();
-        }
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.add:
-                new PopupDialog(this, PopupDialog.ADD_VIEW).show();
-                return true;
-
-            case R.id.wallpaper:
-                startWallpaper();
-                return true;
-
-            case R.id.settings:
-                startSetting();
-                return true;
-
-            case R.id.zen:
-                entryZenSetting();
-                return true;
-        }
-        return super.onContextItemSelected(item);
-    }
-
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        getMenuInflater().inflate(R.menu.launcher_menu, menu);
-        if (mSpeedDial.isFull()) {
-            menu.findItem(R.id.add).setVisible(false);
         }
     }
 
