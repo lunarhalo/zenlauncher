@@ -13,13 +13,12 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.ContextMenu;
-import android.view.ContextMenu.ContextMenuInfo;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.cooeeui.brand.zenlauncher.appIntentUtils.AppIntentUtil;
@@ -36,6 +35,7 @@ import com.cooeeui.brand.zenlauncher.scenes.ui.ChangeIcon;
 import com.cooeeui.brand.zenlauncher.scenes.ui.PopupDialog;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer;
+import com.cooeeui.brand.zenlauncher.weatherclock.WeatherClockGroup;
 
 public class Launcher extends Activity implements View.OnClickListener, OnLongClickListener,
         LauncherModel.Callbacks {
@@ -52,6 +52,8 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     private Workspace mWorkspace;
     private DragController mDragController;
     private ArrayList<AppInfo> mApps;
+
+    private WeatherClockGroup mWeather;
 
     private Dialog mLoading;
 
@@ -88,10 +90,18 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         mWorkspace = (Workspace) findViewById(R.id.workspace);
         mWorkspace.setOnClickListener(this);
 
-        registerForContextMenu(mWorkspace);
+        mWeather = (WeatherClockGroup) findViewById(R.id.weatherclock);
+
         showLoadingView();
 
         mModel.startLoader(true);
+
+        try {
+            getWindow().addFlags(
+                    WindowManager.LayoutParams.class.getField("FLAG_NEEDS_MENU_KEY").getInt(null));
+        } catch (Exception e) {
+            // Ignore
+        }
     }
 
     void showLoadingView() {
@@ -108,6 +118,18 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
             mLoading.dismiss();
             mLoading = null;
         }
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        mWeather.register();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        mWeather.unRegister();
     }
 
     @Override
@@ -138,37 +160,6 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         if (mModel != null) {
             mModel.unbindItemInfosAndClearQueuedBindRunnables();
-        }
-    }
-
-    @Override
-    public boolean onContextItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.add:
-                new PopupDialog(this, PopupDialog.ADD_VIEW).show();
-                return true;
-
-            case R.id.wallpaper:
-                startWallpaper();
-                return true;
-
-            case R.id.settings:
-                startSetting();
-                return true;
-
-            case R.id.zen:
-                entryZenSetting();
-                return true;
-        }
-        return super.onContextItemSelected(item);
-    }
-
-    @Override
-    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
-        super.onCreateContextMenu(menu, v, menuInfo);
-        getMenuInflater().inflate(R.menu.launcher_menu, menu);
-        if (mSpeedDial.isFull()) {
-            menu.findItem(R.id.add).setVisible(false);
         }
     }
 
