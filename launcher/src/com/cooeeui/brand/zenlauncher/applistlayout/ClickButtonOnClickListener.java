@@ -81,14 +81,12 @@ public class ClickButtonOnClickListener implements OnClickListener {
                 util.getPreferences().edit().putInt(util.gettabNumKey(), tabNum).commit();
             }
             // TODO: the code following will make drawer disappear.
-            //nameViewGroup.setTextName(nameTag);
-            applistGroup.changeTextView(nameTag);
+            // nameViewGroup.setTextName(nameTag);
+            // applistGroup.changeTextView(nameTag);
         }
-
     }
 
     private void doneSomethingInOption() {
         Toast.makeText(context, "Option", Toast.LENGTH_SHORT).show();
     }
-
 }
