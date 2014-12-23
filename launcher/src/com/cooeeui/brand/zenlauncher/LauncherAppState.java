@@ -49,8 +49,6 @@ public class LauncherAppState {
     private static LauncherAppState INSTANCE;
     private static AppIntentUtil appIntentUtil = null;
 
-    // private DynamicGrid mDynamicGrid;
-
     public static LauncherAppState getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new LauncherAppState();
@@ -174,12 +172,10 @@ public class LauncherAppState {
     }
 
     public static void setAppIntentUtil(AppIntentUtil appIntent) {
-        // TODO Auto-generated method stub
         appIntentUtil = appIntent;
     }
 
     public static AppIntentUtil getAppIntentUtil() {
-        // TODO Auto-generated method stub
         return appIntentUtil;
     }
 }

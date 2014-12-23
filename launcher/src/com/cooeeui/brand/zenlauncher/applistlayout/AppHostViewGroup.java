@@ -5,7 +5,9 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
+import android.view.View;
 
+import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.R;
 
 public class AppHostViewGroup extends MyRelativeLayout implements IAppGroup {
@@ -13,15 +15,24 @@ public class AppHostViewGroup extends MyRelativeLayout implements IAppGroup {
     private AppNameViewGroup nameViewGroup = null;
     private AppTabViewGroup tabViewGroup = null;
     private AppListViewGroup applistGroup = null;
+    private boolean isApplistGroupAdded;
     private ClickButtonOnClickListener onClickListener = null;
     private AppListUtil util = null;
     private int oldWidth = groupWidth + 1;
     private int oldHeight = groupHeight + 1;
+    private Launcher mLauncher;
 
     public AppHostViewGroup(Context context, AttributeSet attrs) {
         super(context, attrs);
+    }
 
-        // TODO Auto-generated constructor stub
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+
+        // set translation y at first.
+        setVisibility(View.VISIBLE);
+        setTranslationY(MeasureSpec.getSize(heightMeasureSpec));
     }
 
     public AppNameViewGroup getNameViewGroup() {
@@ -66,16 +77,13 @@ public class AppHostViewGroup extends MyRelativeLayout implements IAppGroup {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        // TODO Auto-generated method stub
         super.onDraw(canvas);
     }
 
-    @Override
     public void initViewData() {
-        // TODO Auto-generated method stub
         SharedPreferences preferences =
                 getContext().getSharedPreferences(util.getPreferencesName(),
-                        getContext().MODE_PRIVATE);
+                        Context.MODE_PRIVATE);
         int tabNum = preferences.getInt(util.gettabNumKey(), 0);
         util.setPreferences(preferences);
         util.setTabNum(tabNum);
@@ -96,7 +104,6 @@ public class AppHostViewGroup extends MyRelativeLayout implements IAppGroup {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        // TODO Auto-generated method stub
         super.onLayout(changed, l, t, r, b);
         if (oldWidth != groupWidth || oldHeight != groupHeight) {
             oldWidth = groupWidth;
@@ -106,14 +113,22 @@ public class AppHostViewGroup extends MyRelativeLayout implements IAppGroup {
     }
 
     private void addApplistGroup() {
-        // TODO Auto-generated method stub
         int listY = nameViewGroup.groupHeight;
         int listHeight = (this.groupHeight - nameViewGroup.groupHeight - tabViewGroup.groupHeight);
         applistGroup.setX(0);
         applistGroup.setY(listY);
         LayoutParams listLp = new LayoutParams(groupWidth, listHeight);
-        this.addView(applistGroup, listLp);
+        applistGroup.setLayoutParams(listLp);
         applistGroup.initViewData();
+
+        // check duplicate.
+        if (!isApplistGroupAdded) {
+            this.addView(applistGroup, listLp);
+            isApplistGroupAdded = true;
+        }
     }
 
+    public void setup(Launcher launcher) {
+        mLauncher = launcher;
+    }
 }

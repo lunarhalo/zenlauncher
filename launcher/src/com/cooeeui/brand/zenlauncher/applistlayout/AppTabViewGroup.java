@@ -34,12 +34,10 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
 
     public AppTabViewGroup(Context context, AttributeSet attrs) {
         super(context, attrs);
-        // TODO Auto-generated constructor stub
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        // TODO Auto-generated method stub
         super.onLayout(changed, l, t, r, b);
         if (oldWidth != groupWidth || oldHeight != groupHeight) {
             oldWidth = groupWidth;
@@ -68,7 +66,6 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
      * 添加底边的tab
      */
     private void addTabButtonView() {
-        // TODO Auto-generated method stub
         if (tabIconId.length == util.tabName.length) {
             int tabNum = tabIconId.length;
             tabButtonWidth = (int) (groupHeight * 0.85f);
@@ -94,7 +91,6 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
-        // TODO Auto-generated method stub
         int x = (int) event.getX();
         Log.v("", "AppTabViewGroup onTouchEvent x is " + x + " action is " + event.getAction());
         switch (event.getAction()) {
@@ -117,7 +113,6 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
     }
 
     private void changeValueByX(int x) {
-        // TODO Auto-generated method stub
         int num = getNumByX(x);
         Log.v("", "whj num is " + num);
         if (oldNum != num && num >= 0 && num < util.tabName.length) {
@@ -128,8 +123,6 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
     }
 
     private int getNumByX(int x) {
-        // TODO Auto-generated method stub
-
         if (x < tabPotion[0]) {
             return 0;
         } else {
@@ -151,7 +144,6 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
 
     @Override
     public void initViewData() {
-        // TODO Auto-generated method stub
         tabImageView = new ImageView(getContext());
         this.addView(tabImageView);
         for (int i = 0; i < myButtons.length; i++) {
@@ -168,12 +160,10 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
 
         public MyButton(Context context) {
             super(context);
-            // TODO Auto-generated constructor stub
         }
 
         @Override
         public boolean onTouchEvent(MotionEvent event) {
-            // TODO Auto-generated method stub
             boolean ret = super.onTouchEvent(event);
             Log.e("", "MyButton onTouchEvent action is " + event.getAction() + " ret is " + ret);
             return false;

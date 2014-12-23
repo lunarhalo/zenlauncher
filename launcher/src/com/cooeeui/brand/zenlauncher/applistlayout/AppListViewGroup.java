@@ -2,24 +2,23 @@
 package com.cooeeui.brand.zenlauncher.applistlayout;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 public class AppListViewGroup extends ViewGroup implements IAppGroup {
     private TextView testView = null;
+    private boolean isTestViewAdded;
     private AppListUtil util = null;
 
     public AppListViewGroup(Context context, AppListUtil util) {
         super(context);
         this.util = util;
-        // TODO Auto-generated constructor stub
+        testView = new TextView(context);
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        // TODO Auto-generated method stub
         for (int i = 0; i < this.getChildCount(); i++) {
             View view = this.getChildAt(i);
             int viewleft = view.getLeft();
@@ -38,8 +37,6 @@ public class AppListViewGroup extends ViewGroup implements IAppGroup {
 
     @Override
     public void initViewData() {
-        // TODO Auto-generated method stub
-        testView = new TextView(getContext());
         int left = util.getAllScreenWidth() / 3;
         int top = util.getAllScreenHeight() / 3;
         int right = left * 3;
@@ -50,6 +47,11 @@ public class AppListViewGroup extends ViewGroup implements IAppGroup {
         testView.setBottom(bottom);
         testView.setText(util.tabName[util.getTabNum()]);
         testView.setTextSize(20);
-        this.addView(testView);
+        
+        // check duplicate.
+        if (!isTestViewAdded) {
+            this.addView(testView);
+            isTestViewAdded = true;
+        }
     }
 }

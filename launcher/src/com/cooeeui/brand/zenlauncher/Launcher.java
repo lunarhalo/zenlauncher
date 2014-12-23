@@ -5,23 +5,34 @@ import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import android.animation.ValueAnimator;
+import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.gesture.GestureOverlayView;
+import android.gesture.GestureOverlayView.OnGestureListener;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.cooeeui.brand.zenlauncher.appIntentUtils.AppIntentUtil;
+import com.cooeeui.brand.zenlauncher.applistlayout.AppHostViewGroup;
+import com.cooeeui.brand.zenlauncher.applistlayout.AppListUtil;
 import com.cooeeui.brand.zenlauncher.apps.AppInfo;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
@@ -29,6 +40,7 @@ import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
 import com.cooeeui.brand.zenlauncher.scenes.LoadingView;
 import com.cooeeui.brand.zenlauncher.scenes.SpeedDial;
+import com.cooeeui.brand.zenlauncher.scenes.Workspace;
 import com.cooeeui.brand.zenlauncher.scenes.ZenSetting;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 import com.cooeeui.brand.zenlauncher.scenes.ui.ChangeIcon;
@@ -50,15 +62,20 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     private SpeedDial mSpeedDial;
     private DragLayer mDragLayer;
     private Workspace mWorkspace;
+    private AppHostViewGroup mDrawer;
     private DragController mDragController;
     private ArrayList<AppInfo> mApps;
-
     private WeatherClockGroup mWeather;
+
+    private GestureDetector mGestureDetector;
 
     private Dialog mLoading;
     private boolean mOnResumeNeedsLoad;
     private boolean mPaused = true;
     private ArrayList<Runnable> mBindOnResumeCallbacks = new ArrayList<Runnable>();
+
+    private ValueAnimator mAnimator;
+    private float mAnimatorValue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -91,6 +108,33 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         mWorkspace.setOnClickListener(this);
 
         mWeather = (WeatherClockGroup) findViewById(R.id.weatherclock);
+
+        mDrawer = (AppHostViewGroup) findViewById(R.id.appHostGroup);
+        mDrawer.setup(this);
+        AppListUtil util = new AppListUtil(this);
+        mDrawer.setUtil(util);
+        mDrawer.initViewData();
+
+        mGestureDetector = new GestureDetector(this, new LauncherGestureLisenter());
+
+        mAnimator = ValueAnimator.ofFloat(0, 1);
+        mAnimator.setDuration(getResources().getInteger(
+                R.integer.swipe_animation_duration));
+        mAnimator.addUpdateListener(new AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                Float value = (Float) animation.getAnimatedValue();
+                mWorkspace.setAlpha(1.0f - 0.8f * value);
+                mWorkspace.setPivotX(mWorkspace.getWidth() * 0.5f);
+                mWorkspace.setPivotY(mWorkspace.getHeight() * 0.5f);
+                mWorkspace.setScaleX(1.0f - 0.8f * value);
+                mWorkspace.setScaleY(1.0f - 0.8f * value);
+
+                mDrawer.setTranslationY(mDrawer.getHeight() * (1 - value));
+                mAnimatorValue = value;
+            }
+        });
+        mAnimatorValue = 0.0f;
 
         showLoadingView();
 
@@ -286,6 +330,10 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         return mSpeedDial;
     }
 
+    public AppHostViewGroup getDrawer() {
+        return mDrawer;
+    }
+
     public ArrayList<AppInfo> getApps() {
         return mApps;
     }
@@ -419,5 +467,39 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     void entryZenSetting() {
         Intent intent = new Intent(this, ZenSetting.class);
         startActivity(intent);
+    }
+
+    public void swipeUp() {
+        mAnimator.setFloatValues(mAnimatorValue, 1);
+        mAnimator.start();
+    }
+
+    public void swipeDown() {
+        mAnimator.setFloatValues(mAnimatorValue, 0);
+        mAnimator.start();
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        mGestureDetector.onTouchEvent(ev);
+        return super.dispatchTouchEvent(ev);
+    }
+
+    class LauncherGestureLisenter extends SimpleOnGestureListener {
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            final float SENSITIVITY = 1000;
+            Log.v("suyu", "velocityX = " + velocityX + ", velocityY = " + velocityY);
+
+            if (velocityY > SENSITIVITY) {
+                swipeDown();
+                return true;
+            } else if (velocityY < -SENSITIVITY) {
+                swipeUp();
+                return true;
+            }
+
+            return false;
+        }
     }
 }

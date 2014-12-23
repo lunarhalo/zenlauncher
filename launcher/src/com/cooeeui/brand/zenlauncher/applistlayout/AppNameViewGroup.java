@@ -34,7 +34,6 @@ public class AppNameViewGroup extends MyRelativeLayout implements IAppGroup {
 
     public AppNameViewGroup(Context context, AttributeSet attrs) {
         super(context, attrs);
-        // TODO Auto-generated constructor stub
     }
 
     @Override
@@ -48,13 +47,11 @@ public class AppNameViewGroup extends MyRelativeLayout implements IAppGroup {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        // TODO Auto-generated method stub
         super.onDraw(canvas);
     }
 
     // @Override
     // protected void onLayout(boolean changed, int l, int t, int r, int b) {
-    // // TODO Auto-generated method stub
     // for (int i = 0; i < this.getChildCount(); i++) {
     // View view = this.getChildAt(i);
     // int viewleft = view.getLeft();
