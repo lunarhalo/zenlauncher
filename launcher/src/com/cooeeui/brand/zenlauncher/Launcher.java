@@ -188,6 +188,9 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
             }
             mBindOnResumeCallbacks.clear();
         }
+        if (mWeather != null) {
+            mWeather.changeTimeAndDate();
+        }
     }
 
     @Override

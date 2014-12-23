@@ -114,7 +114,7 @@ public class WeatherClockGroup extends RelativeLayout {
         changeTimeAndDate();
     }
 
-    private void changeTimeAndDate() {
+    public void changeTimeAndDate() {
         // TODO Auto-generated method stub
         time.setToNow();
         int hour = time.hour;
