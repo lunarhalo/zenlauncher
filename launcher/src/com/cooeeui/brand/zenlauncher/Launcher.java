@@ -13,6 +13,7 @@ import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.util.Log;
@@ -64,6 +65,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     private SpeedDial mSpeedDial;
     private DragLayer mDragLayer;
     private Workspace mWorkspace;
+    private View mBackground;
     private AppHostViewGroup mDrawer;
     private DragController mDragController;
     private ArrayList<AppInfo> mApps;
@@ -120,6 +122,8 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         mDrawer.setUtil(util);
         mDrawer.initViewData();
 
+        mBackground = findViewById(R.id.background);
+
         mGestureDetector = new GestureDetector(this, new LauncherGestureLisenter());
 
         mAnimator = ValueAnimator.ofFloat(0, 1);
@@ -136,7 +140,11 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
                 mWorkspace.setScaleY(1.0f - 0.8f * value);
 
                 mDrawer.setTranslationY(mDrawer.getHeight() * (1 - value));
+                mDrawer.setVisibility(View.VISIBLE);
                 mAnimatorValue = value;
+
+                float alpha = 0.75f * value * 255;
+                mBackground.setBackgroundColor(Color.argb((int) alpha, 0, 0, 0));
             }
         });
         mAnimatorValue = 0.0f;
@@ -492,7 +500,6 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     @Override
     public void onPageBoundSynchronously(int page) {
         // TODO Auto-generated method stub
-
     }
 
     void entryZenSetting() {
@@ -500,12 +507,25 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         startActivity(intent);
     }
 
+    boolean canSwipe() {
+        boolean ret = true;
+        if (searchUtils != null && SearchUtils.isSearchState)
+            ret = false;
+        if (mDragController.isDragging())
+            ret = false;
+        return ret;
+    }
+
     public void swipeUp() {
+        if (!canSwipe())
+            return;
         mAnimator.setFloatValues(mAnimatorValue, 1);
         mAnimator.start();
     }
 
     public void swipeDown() {
+        if (!canSwipe())
+            return;
         mAnimator.setFloatValues(mAnimatorValue, 0);
         mAnimator.start();
     }
@@ -537,8 +557,10 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (searchUtils != null && searchUtils.isSearchState) {
+            if (searchUtils != null && SearchUtils.isSearchState) {
                 searchUtils.stopSearchBar();
+            } else {
+                swipeDown();
             }
         }
         return super.onKeyUp(keyCode, event);

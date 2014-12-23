@@ -29,10 +29,6 @@ public class AppHostViewGroup extends MyRelativeLayout implements IAppGroup {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-        // set translation y at first.
-        setVisibility(View.VISIBLE);
-        setTranslationY(MeasureSpec.getSize(heightMeasureSpec));
     }
 
     public AppNameViewGroup getNameViewGroup() {

@@ -80,9 +80,9 @@ public class ClickButtonOnClickListener implements OnClickListener {
             if (util.getPreferences() != null) {
                 util.getPreferences().edit().putInt(util.gettabNumKey(), tabNum).commit();
             }
-            // TODO: the code following will make drawer disappear.
-            // nameViewGroup.setTextName(nameTag);
-            // applistGroup.changeTextView(nameTag);
+
+            nameViewGroup.setTextName(nameTag);
+            applistGroup.changeTextView(nameTag);
         }
     }
 
