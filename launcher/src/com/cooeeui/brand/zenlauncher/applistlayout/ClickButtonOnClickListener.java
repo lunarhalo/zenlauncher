@@ -45,8 +45,6 @@ public class ClickButtonOnClickListener implements OnClickListener {
 
     @Override
     public void onClick(View v) {
-        // TODO Auto-generated method stub
-
         Object tag = v.getTag();
         if (tag instanceof String) {
             String nameTag = (String) tag;
@@ -82,15 +80,13 @@ public class ClickButtonOnClickListener implements OnClickListener {
             if (util.getPreferences() != null) {
                 util.getPreferences().edit().putInt(util.gettabNumKey(), tabNum).commit();
             }
+
             nameViewGroup.setTextName(nameTag);
             applistGroup.changeTextView(nameTag);
         }
-
     }
 
     private void doneSomethingInOption() {
-        // TODO Auto-generated method stub
         Toast.makeText(context, "Option", Toast.LENGTH_SHORT).show();
     }
-
 }

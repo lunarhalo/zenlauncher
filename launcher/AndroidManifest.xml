@@ -37,10 +37,6 @@
         <activity
             android:name=".scenes.ZenSetting"
             android:theme="@android:style/Theme.NoTitleBar" />
-        <activity
-            android:name="com.cooeeui.brand.zenlauncher.applistlayout.AppHostActivity"
-            android:screenOrientation="portrait" >
-        </activity>
         <!-- The settings provider contains Home's data, like the workspace favorites -->
         <provider
             android:name=".LauncherProvider"

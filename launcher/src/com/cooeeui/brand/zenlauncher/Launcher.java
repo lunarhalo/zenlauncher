@@ -5,25 +5,35 @@ import java.io.FileDescriptor;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 
+import android.animation.ValueAnimator;
+import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.app.Activity;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.util.Log;
+import android.view.GestureDetector;
+import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.cooeeui.brand.zenlauncher.appIntentUtils.AppIntentUtil;
+import com.cooeeui.brand.zenlauncher.applistlayout.AppHostViewGroup;
+import com.cooeeui.brand.zenlauncher.applistlayout.AppListUtil;
 import com.cooeeui.brand.zenlauncher.apps.AppInfo;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
@@ -31,6 +41,7 @@ import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
 import com.cooeeui.brand.zenlauncher.scenes.LoadingView;
 import com.cooeeui.brand.zenlauncher.scenes.SpeedDial;
+import com.cooeeui.brand.zenlauncher.scenes.Workspace;
 import com.cooeeui.brand.zenlauncher.scenes.ZenSetting;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 import com.cooeeui.brand.zenlauncher.scenes.ui.ChangeIcon;
@@ -54,10 +65,13 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     private SpeedDial mSpeedDial;
     private DragLayer mDragLayer;
     private Workspace mWorkspace;
+    private View mBackground;
+    private AppHostViewGroup mDrawer;
     private DragController mDragController;
     private ArrayList<AppInfo> mApps;
-
     private WeatherClockGroup mWeather;
+
+    private GestureDetector mGestureDetector;
 
     private Dialog mLoading;
     private boolean mOnResumeNeedsLoad;
@@ -66,6 +80,9 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     private SearchBarGroup searchBarGroup = null;
     private SearchUtils searchUtils = null;
     public static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
+
+    private ValueAnimator mAnimator;
+    private float mAnimatorValue;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -99,6 +116,39 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         mWeather = (WeatherClockGroup) findViewById(R.id.weatherclock);
 
+        mDrawer = (AppHostViewGroup) findViewById(R.id.appHostGroup);
+        mDrawer.setup(this);
+        AppListUtil util = new AppListUtil(this);
+        mDrawer.setUtil(util);
+        mDrawer.initViewData();
+
+        mBackground = findViewById(R.id.background);
+
+        mGestureDetector = new GestureDetector(this, new LauncherGestureLisenter());
+
+        mAnimator = ValueAnimator.ofFloat(0, 1);
+        mAnimator.setDuration(getResources().getInteger(
+                R.integer.swipe_animation_duration));
+        mAnimator.addUpdateListener(new AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                Float value = (Float) animation.getAnimatedValue();
+                mWorkspace.setAlpha(1.0f - 0.8f * value);
+                mWorkspace.setPivotX(mWorkspace.getWidth() * 0.5f);
+                mWorkspace.setPivotY(mWorkspace.getHeight() * 0.5f);
+                mWorkspace.setScaleX(1.0f - 0.8f * value);
+                mWorkspace.setScaleY(1.0f - 0.8f * value);
+
+                mDrawer.setTranslationY(mDrawer.getHeight() * (1 - value));
+                mDrawer.setVisibility(View.VISIBLE);
+                mAnimatorValue = value;
+
+                float alpha = 0.75f * value * 255;
+                mBackground.setBackgroundColor(Color.argb((int) alpha, 0, 0, 0));
+            }
+        });
+        mAnimatorValue = 0.0f;
+
         searchBarGroup = (SearchBarGroup) this.findViewById(R.id.search_bar);
         searchUtils = new SearchUtils(this, mWeather, mSpeedDial, searchBarGroup);
         searchBarGroup.setActivity(this);
@@ -119,7 +169,6 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // TODO Auto-generated method stub
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK && requestCode == VOICE_RECOGNITION_REQUEST_CODE) {
             ArrayList<String> matchResults = data
@@ -320,6 +369,10 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         return mSpeedDial;
     }
 
+    public AppHostViewGroup getDrawer() {
+        return mDrawer;
+    }
+
     public ArrayList<AppInfo> getApps() {
         return mApps;
     }
@@ -447,7 +500,6 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     @Override
     public void onPageBoundSynchronously(int page) {
         // TODO Auto-generated method stub
-
     }
 
     void entryZenSetting() {
@@ -455,12 +507,60 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         startActivity(intent);
     }
 
+    boolean canSwipe() {
+        boolean ret = true;
+        if (searchUtils != null && SearchUtils.isSearchState)
+            ret = false;
+        if (mDragController.isDragging())
+            ret = false;
+        return ret;
+    }
+
+    public void swipeUp() {
+        if (!canSwipe())
+            return;
+        mAnimator.setFloatValues(mAnimatorValue, 1);
+        mAnimator.start();
+    }
+
+    public void swipeDown() {
+        if (!canSwipe())
+            return;
+        mAnimator.setFloatValues(mAnimatorValue, 0);
+        mAnimator.start();
+    }
+
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent ev) {
+        mGestureDetector.onTouchEvent(ev);
+        return super.dispatchTouchEvent(ev);
+    }
+
+    class LauncherGestureLisenter extends SimpleOnGestureListener {
+        @Override
+        public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            final float SENSITIVITY = 1000;
+            Log.v("suyu", "velocityX = " + velocityX + ", velocityY = " + velocityY);
+
+            if (velocityY > SENSITIVITY) {
+                swipeDown();
+                return true;
+            } else if (velocityY < -SENSITIVITY) {
+                swipeUp();
+                return true;
+            }
+
+            return false;
+        }
+    }
+
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        // TODO Auto-generated method stub
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (searchUtils != null && searchUtils.isSearchState) {
+            if (searchUtils != null && SearchUtils.isSearchState) {
                 searchUtils.stopSearchBar();
+            } else {
+                swipeDown();
             }
         }
         return super.onKeyUp(keyCode, event);

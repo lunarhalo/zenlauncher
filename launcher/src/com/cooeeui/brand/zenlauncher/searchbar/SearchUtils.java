@@ -80,7 +80,6 @@ public class SearchUtils {
 
                     @Override
                     public void onAnimationUpdate(ValueAnimator animation) {
-                        // TODO Auto-generated method stub
                         float targetY = (Float) animation.getAnimatedValue();
                         searchBarParent.setTranslationY(targetY);
                     }
@@ -106,14 +105,11 @@ public class SearchUtils {
 
         @Override
         public void onAnimationStart(Animator animation) {
-            // TODO Auto-generated method stub
-
+            // do nothing.
         }
 
         @Override
         public void onAnimationEnd(Animator animation) {
-            // TODO Auto-generated method stub
-
             if (animation == startBarTranslateAnim) {
                 Log.v("", "startBarTranslateAnim onAnimationEnd is end");
                 // speedDial.setTranslationX(speedDial.getWidth() * (-2));
@@ -130,14 +126,12 @@ public class SearchUtils {
 
         @Override
         public void onAnimationCancel(Animator animation) {
-            // TODO Auto-generated method stub
-
+            // do nothing.
         }
 
         @Override
         public void onAnimationRepeat(Animator animation) {
-            // TODO Auto-generated method stub
-
+            // do nothing.
         }
 
     }
@@ -154,7 +148,6 @@ public class SearchUtils {
      * 停止搜索模式
      */
     public void stopSearchBar() {
-        // TODO Auto-generated method stub
         if (!isAnimDone) {
             return;
         }
@@ -168,7 +161,6 @@ public class SearchUtils {
 
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
-                    // TODO Auto-generated method stub
                     float targetY = (Float) animation.getAnimatedValue();
                     searchBarParent.setTranslationY(targetY);
                 }
@@ -194,7 +186,6 @@ public class SearchUtils {
     }
 
     public void clearValue() {
-        // TODO Auto-generated method stub
         searchBarGroup.clearValue();
     }
 }

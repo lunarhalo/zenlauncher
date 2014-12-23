@@ -8,29 +8,22 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
-import android.graphics.Color;
 import android.net.Uri;
 import android.speech.RecognizerIntent;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
-import android.widget.TextView;
 import android.widget.Toast;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.R;
-import com.cooeeui.brand.zenlauncher.Workspace;
 
 public class SearchBarGroup extends RelativeLayout {
     private EditText searchText = null;
@@ -52,7 +45,6 @@ public class SearchBarGroup extends RelativeLayout {
 
     public SearchBarGroup(Context context, AttributeSet attrs) {
         super(context, attrs);
-        // TODO Auto-generated constructor stub
     }
 
     public void setSearchUtils(SearchUtils searchUtils) {
@@ -60,8 +52,6 @@ public class SearchBarGroup extends RelativeLayout {
     }
 
     public void initSearchBar() {
-        // TODO Auto-generated method stub
-
         searchText = (EditText) this.findViewById(R.id.searchText);
         soundsButton = (Button) this.findViewById(R.id.soundsButton);
         searchOnClickListener = new SearchOnClickListener();
@@ -90,7 +80,6 @@ public class SearchBarGroup extends RelativeLayout {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        // TODO Auto-generated method stub
         super.onLayout(changed, l, t, r, b);
         int width = r - l;
         int height = b - t;
@@ -106,7 +95,6 @@ public class SearchBarGroup extends RelativeLayout {
      */
 
     private void setfrontViewdata() {
-        // TODO Auto-generated method stub
         frontView.setX(searchText.getX());
         frontView.setY(searchText.getY());
         LayoutParams frontLp = new LayoutParams(searchText.getWidth(), searchText.getHeight());
@@ -115,7 +103,6 @@ public class SearchBarGroup extends RelativeLayout {
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // TODO Auto-generated method stub
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
@@ -125,7 +112,6 @@ public class SearchBarGroup extends RelativeLayout {
      * @param textvalue
      */
     public void searchByText(String textvalue) {
-        // TODO Auto-generated method stub
         String uriString = searchBegin + textvalue + searchEnd;
         Uri uri = Uri.parse(uriString);
         searchIntent.setData(uri);
@@ -136,7 +122,6 @@ public class SearchBarGroup extends RelativeLayout {
      * 通过语音搜索
      */
     private void searchBySounds() {
-        // TODO Auto-generated method stub
         soundsUtils.startVoiceRecognitionActivity();
     }
 
@@ -244,14 +229,13 @@ public class SearchBarGroup extends RelativeLayout {
 
         @Override
         public void onClick(View v) {
-            // TODO Auto-generated method stub
             Object tag = v.getTag();
             if (tag instanceof String) {
                 String tagName = (String) tag;
                 if ("frontView".equals(tagName)) {
                     searchUtils.startSearchAnim();
                 }
-                if (searchUtils.isSearchState) {
+                if (SearchUtils.isSearchState) {
                     if (searchTextName.equals(tagName)) {
                         textvalue = getSearchData();
                         if (textvalue != null) {
@@ -270,26 +254,22 @@ public class SearchBarGroup extends RelativeLayout {
     }
 
     public void setActivity(Activity mainActivity) {
-        // TODO Auto-generated method stub
         this.mainActivity = mainActivity;
     }
 
     public void startSearchBar() {
-        // TODO Auto-generated method stub
         searchText.setEnabled(true);
         searchText.setCursorVisible(true);
         this.removeView(frontView);
     }
 
     public void stopSearchBar() {
-        // TODO Auto-generated method stub
         clearValue();
         searchText.setEnabled(false);
         this.addView(frontView);
     }
 
     public void clearValue() {
-        // TODO Auto-generated method stub
         searchText.setText("");
         searchText.setCursorVisible(true);
     }
