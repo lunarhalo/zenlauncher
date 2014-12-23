@@ -73,14 +73,32 @@
                         android:layout_height="match_parent"
                         zenlauncher:aspect_ratio="8.73" >
 
-                        <ImageView
+                        <com.cooeeui.brand.zenlauncher.searchbar.SearchBarGroup
                             android:id="@+id/search_bar"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:contentDescription="searchbar"
-                            android:scaleType="fitXY"
-                            android:src="@drawable/searchbar"
-                            android:visibility="visible" />
+                            android:background="@drawable/search_back"
+                            android:scaleType="fitXY" >
+
+                            <EditText
+                                android:id="@+id/searchText"
+                                android:layout_width="match_parent"
+                                android:layout_height="match_parent"
+                                android:layout_centerVertical="true"
+                                android:layout_marginLeft="15dp"
+                                android:background="@color/transparent"
+                                android:hint="@string/goole_search_hint"
+                                android:textSize="20sp" />
+
+                            <Button
+                                android:id="@+id/soundsButton"
+                                android:layout_width="25dp"
+                                android:layout_height="30dp"
+                                android:layout_alignParentRight="true"
+                                android:layout_centerVertical="true"
+                                android:layout_marginRight="15dp"
+                                android:background="@drawable/suonds" />
+                        </com.cooeeui.brand.zenlauncher.searchbar.SearchBarGroup>
                     </com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout>
                 </FrameLayout>
 
