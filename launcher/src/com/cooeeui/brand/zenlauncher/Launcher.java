@@ -12,7 +12,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.speech.RecognizerIntent;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -35,6 +37,8 @@ import com.cooeeui.brand.zenlauncher.scenes.ui.ChangeIcon;
 import com.cooeeui.brand.zenlauncher.scenes.ui.PopupDialog;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer;
+import com.cooeeui.brand.zenlauncher.searchbar.SearchBarGroup;
+import com.cooeeui.brand.zenlauncher.searchbar.SearchUtils;
 import com.cooeeui.brand.zenlauncher.weatherclock.WeatherClockGroup;
 
 public class Launcher extends Activity implements View.OnClickListener, OnLongClickListener,
@@ -59,6 +63,9 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     private boolean mPaused = true;
     private ArrayList<Runnable> mBindOnResumeCallbacks = new ArrayList<Runnable>();
+    private SearchBarGroup searchBarGroup = null;
+    private SearchUtils searchUtils = null;
+    public static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +99,12 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         mWeather = (WeatherClockGroup) findViewById(R.id.weatherclock);
 
+        searchBarGroup = (SearchBarGroup) this.findViewById(R.id.search_bar);
+        searchUtils = new SearchUtils(this, mWeather, mSpeedDial, searchBarGroup);
+        searchBarGroup.setActivity(this);
+        searchBarGroup.setSearchUtils(searchUtils);
+        searchBarGroup.initSearchBar();
+
         showLoadingView();
 
         mModel.startLoader(true);
@@ -101,6 +114,21 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
                     WindowManager.LayoutParams.class.getField("FLAG_NEEDS_MENU_KEY").getInt(null));
         } catch (Exception e) {
             // Ignore
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // TODO Auto-generated method stub
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK && requestCode == VOICE_RECOGNITION_REQUEST_CODE) {
+            ArrayList<String> matchResults = data
+                    .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
+            String voice_str = matchResults.get(0).toString();// 只要最相似的就行，去第一个
+            Log.v("", "voice_str is " + voice_str);
+            if (voice_str != null && !voice_str.equals("")) {
+                searchBarGroup.searchByText(voice_str);
+            }
         }
     }
 
@@ -138,7 +166,9 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         mPaused = true;
         mDragController.cancelDrag();
-
+        if (searchUtils != null && searchUtils.isSearchState) {
+            searchUtils.clearValue();
+        }
     }
 
     @Override
@@ -258,16 +288,17 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         }
 
         if (tag instanceof ShortcutInfo) {
-            final ShortcutInfo shortcut = (ShortcutInfo) tag;
-            final Intent intent = shortcut.intent;
-            if (intent != null) {
-                startActivitySafely(intent);
-                return;
-            } else if (intent == null && "*BROWSER*".equals(shortcut.title)) {
-                LauncherAppState.getAppIntentUtil().startBrowserIntent();
+            if (!SearchUtils.isSearchState) {
+                final ShortcutInfo shortcut = (ShortcutInfo) tag;
+                final Intent intent = shortcut.intent;
+                if (intent != null) {
+                    startActivitySafely(intent);
+                    return;
+                } else if (intent == null && "*BROWSER*".equals(shortcut.title)) {
+                    LauncherAppState.getAppIntentUtil().startBrowserIntent();
+                }
             }
         }
-
         // stop speed dial drag at last.
         mSpeedDial.stopDrag();
     }
@@ -408,5 +439,16 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     void entryZenSetting() {
         Intent intent = new Intent(this, ZenSetting.class);
         startActivity(intent);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        // TODO Auto-generated method stub
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            if (searchUtils != null && searchUtils.isSearchState) {
+                searchUtils.stopSearchBar();
+            }
+        }
+        return super.onKeyUp(keyCode, event);
     }
 }
