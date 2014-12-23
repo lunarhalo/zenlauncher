@@ -108,10 +108,6 @@ public class LauncherModel extends BroadcastReceiver {
     // configuration change.
     static final Object sBgLock = new Object();
 
-    // sBgItemsIdMap maps *all* the ItemInfos (shortcuts, apps)
-    // created by LauncherModel to their ids
-    static final HashMap<Long, ItemInfo> sBgItemsIdMap = new HashMap<Long, ItemInfo>();
-
     // sBgWorkspaceItems is passed to bindItems, which expects a list of all
     // shortcuts created by LauncherModel that are directly on the home screen.
     static final ArrayList<ItemInfo> sBgWorkspaceItems = new ArrayList<ItemInfo>();
@@ -306,6 +302,7 @@ public class LauncherModel extends BroadcastReceiver {
     public static void modifyItemInDatabase(Context context, final ShortcutInfo item, int position) {
         final ContentValues values = new ContentValues();
         values.put(LauncherSettings.Favorites.POSITION, position);
+        item.position = position;
 
         updateShortcutInfoInDB(context, values, item);
     }
@@ -332,10 +329,12 @@ public class LauncherModel extends BroadcastReceiver {
         item.id = LauncherAppState.getLauncherProvider().generateNewItemId();
         values.put(LauncherSettings.Favorites._ID, item.id);
         values.put(LauncherSettings.Favorites.POSITION, position);
+        item.position = position;
 
         Runnable r = new Runnable() {
             public void run() {
                 cr.insert(LauncherSettings.Favorites.CONTENT_URI, values);
+                sBgWorkspaceItems.add(item);
             }
         };
         runOnWorkerThread(r);
@@ -354,6 +353,7 @@ public class LauncherModel extends BroadcastReceiver {
         Runnable r = new Runnable() {
             public void run() {
                 cr.delete(uriToDelete, null, null);
+                sBgWorkspaceItems.remove(item);
             }
         };
         runOnWorkerThread(r);
@@ -790,7 +790,6 @@ public class LauncherModel extends BroadcastReceiver {
         private void clearSBgDataStructures() {
             synchronized (sBgLock) {
                 sBgWorkspaceItems.clear();
-                sBgItemsIdMap.clear();
             }
         }
 
@@ -866,7 +865,6 @@ public class LauncherModel extends BroadcastReceiver {
                                 info.position = position;
 
                                 sBgWorkspaceItems.add(info);
-                                sBgItemsIdMap.put(info.id, info);
                                 if ("*BROWSER*".equalsIgnoreCase(intentDescription)) {
                                     info.title = "*BROWSER*";
                                 }
@@ -891,20 +889,9 @@ public class LauncherModel extends BroadcastReceiver {
                     return;
                 }
 
-                if (true) {
-                    // Update the max item id after we load an old db
-                    long maxItemId = 0;
-                    // If we're importing we use the old screen order.
-                    for (ItemInfo item : sBgItemsIdMap.values()) {
-                        maxItemId = Math.max(maxItemId, item.id);
-                    }
-                    LauncherAppState.getLauncherProvider().updateMaxItemId(maxItemId);
-                }
-
                 if (DEBUG_LOADERS) {
                     Logger.debug(TAG, "loaded workspace in " + (SystemClock.uptimeMillis() - t)
                             + "ms");
-                    Logger.debug(TAG, "workspace layout: ");
                 }
             }
         }

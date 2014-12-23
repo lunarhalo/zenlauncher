@@ -56,7 +56,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     private WeatherClockGroup mWeather;
 
     private Dialog mLoading;
-
+    private boolean mOnResumeNeedsLoad;
     private boolean mPaused = true;
     private ArrayList<Runnable> mBindOnResumeCallbacks = new ArrayList<Runnable>();
 
@@ -146,6 +146,12 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         super.onResume();
 
         mPaused = false;
+
+        if (mOnResumeNeedsLoad) {
+            mModel.startLoader(true);
+            mOnResumeNeedsLoad = false;
+        }
+
         if (mBindOnResumeCallbacks.size() > 0) {
             for (int i = 0; i < mBindOnResumeCallbacks.size(); i++) {
                 mBindOnResumeCallbacks.get(i).run();
@@ -315,7 +321,12 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     @Override
     public boolean setLoadOnResume() {
-        return false;
+        if (mPaused) {
+            mOnResumeNeedsLoad = true;
+            return true;
+        } else {
+            return false;
+        }
     }
 
     @Override
