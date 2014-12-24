@@ -2,9 +2,13 @@
 package com.cooeeui.brand.zenlauncher.applistlayout;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.widget.Toast;
+import android.widget.PopupWindow;
+
+import com.cooeeui.brand.zenlauncher.R;
 
 public class ClickButtonOnClickListener implements OnClickListener {
 
@@ -13,6 +17,16 @@ public class ClickButtonOnClickListener implements OnClickListener {
     private AppListViewGroup applistGroup = null;
     private AppTabViewGroup tabViewGroup = null;
     private AppListUtil util = null;
+    private PopMenuGroup mPopMenuGroup = null;
+    private PopupWindow mPopupWindow = null;
+
+    public PopMenuGroup getmPopMenuGroup() {
+        return mPopMenuGroup;
+    }
+
+    public void setmPopMenuGroup(PopMenuGroup mPopMenuGroup) {
+        this.mPopMenuGroup = mPopMenuGroup;
+    }
 
     public AppListViewGroup getApplistGroup() {
         return applistGroup;
@@ -48,14 +62,33 @@ public class ClickButtonOnClickListener implements OnClickListener {
         Object tag = v.getTag();
         if (tag instanceof String) {
             String nameTag = (String) tag;
-            doneChangeByValue(nameTag);
+            doneChangeByValue(nameTag, v);
         }
     }
 
-    public void doneChangeByValue(String nameTag) {
+    public void doneChangeByValue(String nameTag, View v) {
         if (nameTag.equals(util.optionName)) {
-            doneSomethingInOption();
-        } else {
+            doneSomethingInOption(v);
+        } else if (mPopMenuGroup != null && (nameTag.contains(mPopMenuGroup.mPopTag))) {
+            if (nameTag.equals(context.getResources().getString(R.string.classify)
+                    + mPopMenuGroup.mPopTag)) {
+                applistGroup.classifyApp();
+            } else if (nameTag.equals(context.getResources().getString(R.string.unload)
+                    + mPopMenuGroup.mPopTag)) {
+                applistGroup.unloadApp();
+            } else if (nameTag.equals(context.getResources().getString(R.string.hideicon)
+                    + mPopMenuGroup.mPopTag)) {
+                applistGroup.hideIcon();
+            } else if (nameTag.equals(context.getResources().getString(R.string.zen_settings)
+                    + mPopMenuGroup.mPopTag)) {
+                applistGroup.ZenSettings();
+            }
+            if (mPopupWindow != null && mPopupWindow.isShowing()) {
+                mPopupWindow.dismiss();
+            }
+
+        }
+        else {
             int tabNum = 0;
             if (nameTag.equals(util.tabName[0])) {
                 tabViewGroup.changeTabLeft(0);
@@ -86,7 +119,23 @@ public class ClickButtonOnClickListener implements OnClickListener {
         }
     }
 
-    private void doneSomethingInOption() {
-        Toast.makeText(context, "Option", Toast.LENGTH_SHORT).show();
+    private void doneSomethingInOption(View view) {
+        if (mPopMenuGroup == null) {
+            mPopMenuGroup = new PopMenuGroup(context, this);
+        }
+        if (mPopupWindow == null) {
+            int popWidth = context.getResources().getDimensionPixelSize(R.dimen.popmenu_width);
+            int popHeight = context.getResources().getDimensionPixelSize(R.dimen.popmenu_height);
+            mPopupWindow = new PopupWindow(mPopMenuGroup, popWidth, popHeight);
+            mPopupWindow.setBackgroundDrawable(new
+                    ColorDrawable(Color.argb(255, 0, 0, 0)));
+        }
+        mPopupWindow.setOutsideTouchable(true);
+        mPopupWindow.setFocusable(true);
+        int xoff = context.getResources().getDimensionPixelSize(R.dimen.popmenu_xoff);
+        int yoff = context.getResources().getDimensionPixelSize(R.dimen.popmenu_yoff);
+        mPopupWindow.showAsDropDown(view, xoff, yoff);
+
     }
+
 }
