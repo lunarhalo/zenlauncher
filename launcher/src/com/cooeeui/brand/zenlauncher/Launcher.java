@@ -157,8 +157,21 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         mModel.startLoader(true);
 
+        showOptionMenu();
+    }
+
+    public void showOptionMenu() {
         try {
             getWindow().addFlags(
+                    WindowManager.LayoutParams.class.getField("FLAG_NEEDS_MENU_KEY").getInt(null));
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
+
+    public void hideOptionMenu() {
+        try {
+            getWindow().clearFlags(
                     WindowManager.LayoutParams.class.getField("FLAG_NEEDS_MENU_KEY").getInt(null));
         } catch (Exception e) {
             // Ignore
@@ -281,6 +294,11 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
+
+        if (SearchUtils.isSearchState) {
+            return false;
+        }
+
         if (mSpeedDial.isFull()) {
             menu.findItem(R.id.add).setVisible(false);
         } else {
