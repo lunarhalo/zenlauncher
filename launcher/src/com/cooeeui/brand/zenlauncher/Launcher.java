@@ -38,6 +38,7 @@ import com.cooeeui.brand.zenlauncher.apps.AppInfo;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
 import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
+import com.cooeeui.brand.zenlauncher.config.IconConfig;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
 import com.cooeeui.brand.zenlauncher.scenes.LoadingView;
 import com.cooeeui.brand.zenlauncher.scenes.SpeedDial;
@@ -88,6 +89,8 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        
+        IconConfig.init(this);
 
         LauncherAppState.setApplicationContext(getApplicationContext());
         LauncherAppState app = LauncherAppState.getInstance();

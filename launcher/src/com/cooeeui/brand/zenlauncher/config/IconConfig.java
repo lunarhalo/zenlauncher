@@ -1,11 +1,24 @@
 
 package com.cooeeui.brand.zenlauncher.config;
 
-public class IconConfig {
-    public static final int ICON_SIZE_MAX = 144;
-    public static final int ICON_SIZE_MIN = 10;
+import com.cooeeui.brand.zenlauncher.utils.DensityUtil;
 
-    static int iconSize = ICON_SIZE_MAX;
+import android.content.Context;
+
+public class IconConfig {
+    public static final int ICON_SIZE_MAX_DP = 72;
+    public static final int ICON_SIZE_MIN_DP = 36;
+    public static int iconSizeMax;
+    public static int iconSizeMin;
+
+    static int iconSize;
+    
+    public static void init(Context context) {
+        iconSizeMax = DensityUtil.dip2px(context, ICON_SIZE_MAX_DP);
+        iconSizeMin = DensityUtil.dip2px(context, ICON_SIZE_MIN_DP);
+        
+        iconSize = iconSizeMax;
+    }
 
     /**
      * Set the global icon size. Only called by workspace#init().
