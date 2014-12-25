@@ -9,7 +9,9 @@ import android.widget.GridView;
 
 public class ZenGridView extends GridView {
 
-    private int defaultColumns = 4;
+    int defaultColumns = 4;
+    int countPerPage;
+    boolean isOnePage;
 
     public ZenGridView(Context context) {
         super(context);
@@ -26,6 +28,7 @@ public class ZenGridView extends GridView {
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         int width = MeasureSpec.getSize(widthMeasureSpec);
+        int height = MeasureSpec.getSize(heightMeasureSpec);
         int columns = defaultColumns;
         int maxWidth = IconConfig.iconSizeMax;
         int minWidth = IconConfig.iconSizeMin;
@@ -35,11 +38,26 @@ public class ZenGridView extends GridView {
             columns = width / minWidth;
         }
         setNumColumns(columns);
+        
+        int size = width / columns;
+        countPerPage = columns * (height / size);
+        
+        if (isOnePage) {
+            // TODO: setTranslationY();
+        }
 
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
     public void setDefaultColumns(int defaultColumns) {
         this.defaultColumns = defaultColumns;
+    }
+    
+    public void setIsOnePage(boolean isOnePage) {
+        this.isOnePage = isOnePage;
+    }
+    
+    public int getCountPerPage() {
+        return countPerPage;
     }
 }

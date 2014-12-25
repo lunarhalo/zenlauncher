@@ -7,7 +7,6 @@ import java.util.ArrayList;
 
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
-import android.app.Activity;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
@@ -16,6 +15,7 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.speech.RecognizerIntent;
+import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
@@ -30,14 +30,15 @@ import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.cooeeui.brand.zenlauncher.appIntentUtils.AppIntentUtil;
-import com.cooeeui.brand.zenlauncher.applistlayout.AppHostViewGroup;
-import com.cooeeui.brand.zenlauncher.applistlayout.AppListUtil;
 import com.cooeeui.brand.zenlauncher.apps.AppInfo;
 import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ItemInfo;
 import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
+import com.cooeeui.brand.zenlauncher.category.CategoryData;
 import com.cooeeui.brand.zenlauncher.config.IconConfig;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
+import com.cooeeui.brand.zenlauncher.scene.drawer.AppListUtil;
+import com.cooeeui.brand.zenlauncher.scenes.Drawer;
 import com.cooeeui.brand.zenlauncher.scenes.LoadingView;
 import com.cooeeui.brand.zenlauncher.scenes.SpeedDial;
 import com.cooeeui.brand.zenlauncher.scenes.Workspace;
@@ -51,7 +52,8 @@ import com.cooeeui.brand.zenlauncher.searchbar.SearchBarGroup;
 import com.cooeeui.brand.zenlauncher.searchbar.SearchUtils;
 import com.cooeeui.brand.zenlauncher.weatherclock.WeatherClockGroup;
 
-public class Launcher extends Activity implements View.OnClickListener, OnLongClickListener,
+public class Launcher extends FragmentActivity implements View.OnClickListener,
+        OnLongClickListener,
         LauncherModel.Callbacks {
 
     public static final String TAG = "Launcher";
@@ -65,7 +67,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     private DragLayer mDragLayer;
     private Workspace mWorkspace;
     private View mBackground;
-    private AppHostViewGroup mDrawer;
+    private Drawer mDrawer;
     private DragController mDragController;
     private ArrayList<AppInfo> mApps;
     private WeatherClockGroup mWeather;
@@ -87,7 +89,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
-        
+
         IconConfig.init(this);
 
         LauncherAppState.setApplicationContext(getApplicationContext());
@@ -117,7 +119,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         mWeather = (WeatherClockGroup) findViewById(R.id.weatherclock);
 
-        mDrawer = (AppHostViewGroup) findViewById(R.id.appHostGroup);
+        mDrawer = (Drawer) findViewById(R.id.appHostGroup);
         mDrawer.setup(this);
         AppListUtil util = new AppListUtil(this);
         mDrawer.setUtil(util);
@@ -134,7 +136,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
                 Float value = (Float) animation.getAnimatedValue();
-                mWorkspace.setAlpha(1.0f - 0.8f * value);
+                mWorkspace.setAlpha(1.0f - value);
                 mWorkspace.setPivotX(mWorkspace.getWidth() * 0.5f);
                 mWorkspace.setPivotY(mWorkspace.getHeight() * 0.5f);
                 mWorkspace.setScaleX(1.0f - 0.8f * value);
@@ -390,7 +392,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         return mSpeedDial;
     }
 
-    public AppHostViewGroup getDrawer() {
+    public Drawer getDrawer() {
         return mDrawer;
     }
 
@@ -485,6 +487,10 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     @Override
     public void bindAllApplications(ArrayList<AppInfo> apps) {
         mApps = apps;
+        
+        CategoryData.init(this, mApps);
+        
+        mDrawer.notifyDataSetChanged();
     }
 
     @Override
@@ -561,14 +567,17 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
             final float SENSITIVITY = 1000;
+            final float FORCE_Y = 2.5f;
             Log.v("suyu", "velocityX = " + velocityX + ", velocityY = " + velocityY);
 
-            if (velocityY > SENSITIVITY) {
-                swipeDown();
-                return true;
-            } else if (velocityY < -SENSITIVITY) {
-                swipeUp();
-                return true;
+            if (Math.abs(velocityY / velocityX) >= FORCE_Y) {
+                if (velocityY > SENSITIVITY) {
+                    swipeDown();
+                    return true;
+                } else if (velocityY < -SENSITIVITY) {
+                    swipeUp();
+                    return true;
+                }
             }
 
             return false;

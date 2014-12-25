@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:zenlauncher="http://schemas.android.com/apk/res/com.cooeeui.brand.zenlauncher"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+
+    <com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        zenlauncher:aspect_ratio="1"
+        zenlauncher:height_weight="0.8"
+        zenlauncher:width_weight="0.8" >
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical" >
+
+            <com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="70"
+                zenlauncher:aspect_ratio="1" >
+
+                <ImageView
+                    android:id="@+id/icon_image"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/icon1" />
+            </com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="5dp" />
+
+            <com.cooeeui.brand.zenlauncher.scenes.ui.ZenTextView
+                android:id="@+id/icon_text"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="30"
+                android:gravity="center"
+                android:text="example"
+                android:textColor="#ffffff" />
+        </LinearLayout>
+    </com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout>
+
+</FrameLayout>

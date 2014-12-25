@@ -1,5 +1,5 @@
 
-package com.cooeeui.brand.zenlauncher.applistlayout;
+package com.cooeeui.brand.zenlauncher.scene.drawer;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -13,7 +13,7 @@ import com.cooeeui.brand.zenlauncher.R;
 public class ClickButtonOnClickListener implements OnClickListener {
 
     private Context context = null;
-    private AppNameViewGroup nameViewGroup = null;
+    private TitleBar nameViewGroup = null;
     private AppListViewGroup applistGroup = null;
     private AppTabViewGroup tabViewGroup = null;
     private AppListUtil util = null;
@@ -36,11 +36,11 @@ public class ClickButtonOnClickListener implements OnClickListener {
         this.applistGroup = applistGroup;
     }
 
-    public AppNameViewGroup getNameViewGroup() {
+    public TitleBar getNameViewGroup() {
         return nameViewGroup;
     }
 
-    public void setNameViewGroup(AppNameViewGroup nameViewGroup) {
+    public void setNameViewGroup(TitleBar nameViewGroup) {
         this.nameViewGroup = nameViewGroup;
     }
 

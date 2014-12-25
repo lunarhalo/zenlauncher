@@ -1,5 +1,5 @@
 
-package com.cooeeui.brand.zenlauncher.applistlayout;
+package com.cooeeui.brand.zenlauncher.scene.drawer;
 
 import android.content.Context;
 import android.graphics.Color;
@@ -61,7 +61,6 @@ public class PopMenuGroup extends LinearLayout {
     }
 
     private void setChildSize() {
-
         int childHeight = mAllHeight / mChildCount;
         for (int i = 0; i < mChildCount; i++) {
             PopRelativeLayout layout = layoutChilds[i];
