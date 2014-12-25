@@ -327,6 +327,10 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     public void onClick(View v) {
         Object tag = v.getTag();
 
+        if (SearchUtils.isSearchState) {
+            return;
+        }
+
         if (tag instanceof Integer) {
             Integer num = (Integer) v.getTag();
             switch (num.intValue()) {
@@ -344,15 +348,13 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         }
 
         if (tag instanceof ShortcutInfo) {
-            if (!SearchUtils.isSearchState) {
-                final ShortcutInfo shortcut = (ShortcutInfo) tag;
-                final Intent intent = shortcut.intent;
-                if (intent != null) {
-                    startActivitySafely(intent);
-                    return;
-                } else if (intent == null && "*BROWSER*".equals(shortcut.title)) {
-                    LauncherAppState.getAppIntentUtil().startBrowserIntent();
-                }
+            final ShortcutInfo shortcut = (ShortcutInfo) tag;
+            final Intent intent = shortcut.intent;
+            if (intent != null) {
+                startActivitySafely(intent);
+                return;
+            } else if (intent == null && "*BROWSER*".equals(shortcut.title)) {
+                LauncherAppState.getAppIntentUtil().startBrowserIntent();
             }
         }
         // stop speed dial drag at last.
