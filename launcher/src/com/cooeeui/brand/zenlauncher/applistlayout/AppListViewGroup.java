@@ -2,6 +2,7 @@
 package com.cooeeui.brand.zenlauncher.applistlayout;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
@@ -47,11 +48,44 @@ public class AppListViewGroup extends ViewGroup implements IAppGroup {
         testView.setBottom(bottom);
         testView.setText(util.tabName[util.getTabNum()]);
         testView.setTextSize(20);
-        
+
         // check duplicate.
         if (!isTestViewAdded) {
             this.addView(testView);
             isTestViewAdded = true;
         }
+    }
+
+    /**
+     * 重新分类
+     */
+
+    public void classifyApp() {
+        // TODO Auto-generated method stub
+        Log.v("", "popmenu classifyApp");
+    }
+
+    /**
+     * 卸载应用
+     */
+    public void unloadApp() {
+        // TODO Auto-generated method stub
+        Log.v("", "popmenu unloadApp");
+    }
+
+    /**
+     * 隐藏图标
+     */
+    public void hideIcon() {
+        // TODO Auto-generated method stub
+        Log.v("", "popmenu hideIcon");
+    }
+
+    /**
+     * 开启Zen设置
+     */
+    public void ZenSettings() {
+        // TODO Auto-generated method stub
+        Log.v("", "popmenu ZenSettings");
     }
 }

@@ -21,5 +21,8 @@
     <string name="once">For once</string>
     <string name="chooseApp">Choose to use the application:</string>
     <string name="goole_search_hint">Google</string>
+    <string name="classify">Reclassify</string>
+    <string name="unload">UnloadApp</string>
+    <string name="hideicon">HideIcon</string>
 
 </resources>

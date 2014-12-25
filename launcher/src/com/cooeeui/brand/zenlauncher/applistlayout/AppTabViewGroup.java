@@ -118,7 +118,7 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
         if (oldNum != num && num >= 0 && num < util.tabName.length) {
             oldNum = num;
             String value = util.tabName[num];
-            onClickListener.doneChangeByValue(value);
+            onClickListener.doneChangeByValue(value, null);
         }
     }
 

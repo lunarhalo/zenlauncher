@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
-import android.view.View;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.R;
