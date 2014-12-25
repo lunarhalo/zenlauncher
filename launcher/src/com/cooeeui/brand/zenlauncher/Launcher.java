@@ -26,8 +26,6 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup.LayoutParams;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -77,8 +75,8 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     private boolean mOnResumeNeedsLoad;
     private boolean mPaused = true;
     private ArrayList<Runnable> mBindOnResumeCallbacks = new ArrayList<Runnable>();
-    private SearchBarGroup searchBarGroup = null;
-    private SearchUtils searchUtils = null;
+    private SearchBarGroup mSearchBarGroup = null;
+    private SearchUtils mSearchUtils = null;
     public static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
 
     private ValueAnimator mAnimator;
@@ -149,11 +147,11 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         });
         mAnimatorValue = 0.0f;
 
-        searchBarGroup = (SearchBarGroup) this.findViewById(R.id.search_bar);
-        searchUtils = new SearchUtils(this, mWeather, mSpeedDial, searchBarGroup);
-        searchBarGroup.setActivity(this);
-        searchBarGroup.setSearchUtils(searchUtils);
-        searchBarGroup.initSearchBar();
+        mSearchBarGroup = (SearchBarGroup) this.findViewById(R.id.search_bar);
+        mSearchUtils = new SearchUtils(this, mWeather, mSpeedDial, mSearchBarGroup);
+        mSearchBarGroup.setActivity(this);
+        mSearchBarGroup.setSearchUtils(mSearchUtils);
+        mSearchBarGroup.initSearchBar();
 
         showLoadingView();
 
@@ -176,7 +174,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
             String voice_str = matchResults.get(0).toString();// 只要最相似的就行，去第一个
             Log.v("", "voice_str is " + voice_str);
             if (voice_str != null && !voice_str.equals("")) {
-                searchBarGroup.searchByText(voice_str);
+                mSearchBarGroup.searchByText(voice_str);
             }
         }
     }
@@ -215,8 +213,8 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         mPaused = true;
         mDragController.cancelDrag();
-        if (searchUtils != null && searchUtils.isSearchState) {
-            searchUtils.clearValue();
+        if (mSearchUtils != null && mSearchUtils.isSearchState) {
+            mSearchUtils.clearValue();
         }
     }
 
@@ -509,7 +507,7 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
     boolean canSwipe() {
         boolean ret = true;
-        if (searchUtils != null && SearchUtils.isSearchState)
+        if (mSearchUtils != null && SearchUtils.isSearchState)
             ret = false;
         if (mDragController.isDragging())
             ret = false;
@@ -557,8 +555,8 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (searchUtils != null && SearchUtils.isSearchState) {
-                searchUtils.stopSearchBar();
+            if (mSearchUtils != null && SearchUtils.isSearchState) {
+                mSearchUtils.stopSearchBar();
             } else {
                 swipeDown();
             }

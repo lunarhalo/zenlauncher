@@ -3,7 +3,6 @@
 
     <!-- Application name -->
     <string name="application_name">禅桌面</string>
-
     <string name="add">添加</string>
     <string name="wallpaper">设置壁纸</string>
     <string name="settings">系统设置</string>
@@ -12,4 +11,8 @@
     <string name="desktop_search">桌面搜索</string>
     <string name="status_bar_setting">状态栏设置</string>
     <string name="about_zen">关于Zen</string>
+    <string name="classify">重新分类</string>
+    <string name="unload">卸载应用</string>
+    <string name="hideicon">隐藏图标</string>
+
 </resources>
