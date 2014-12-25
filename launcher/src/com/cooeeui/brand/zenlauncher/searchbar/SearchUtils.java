@@ -8,10 +8,10 @@ import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.content.Context;
 import android.util.Log;
 import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.FrameLayout;
 
+import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.scenes.SpeedDial;
 import com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout;
 import com.cooeeui.brand.zenlauncher.weatherclock.WeatherClockGroup;
@@ -34,6 +34,7 @@ public class SearchUtils {
     private float oldweatherClockGroupX = -1;
     public InputMethodManager inputMethodManager = null;
     private boolean isAnimDone = true;// 判断动画是否执行完毕 ，没执行完上一个动画之前不能执行下一个动画
+    private Launcher mLauncher;
 
     public InputMethodManager getInputMethodManager() {
         if (inputMethodManager == null) {
@@ -50,6 +51,7 @@ public class SearchUtils {
         this.speedDial = speedDial;
         this.weatherClockGroup = weatherClockGroup;
         myAnimationListener = new MyAnimatorListener();
+        mLauncher = (Launcher) context;
     }
 
     public void startSearchAnim() {
@@ -58,6 +60,7 @@ public class SearchUtils {
         }
         if (!isSearchState) {
             isSearchState = true;
+            mLauncher.hideOptionMenu();
             // 搜索框的父类的父类的父类的坐标
             if (searchBarParent == null) {
                 if (searchBarGroup.getParent() instanceof FitCenterLayout) {
@@ -171,6 +174,7 @@ public class SearchUtils {
 
         if (isSearchState) {
             isSearchState = false;
+            mLauncher.showOptionMenu();
             // speedDial.setTranslationX(speedDial.getWidth() * 2);
             // weatherClockGroup.setTranslationX(weatherClockGroup.getWidth() *
             // 2);

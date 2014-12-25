@@ -157,8 +157,21 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
 
         mModel.startLoader(true);
 
+        showOptionMenu();
+    }
+
+    public void showOptionMenu() {
         try {
             getWindow().addFlags(
+                    WindowManager.LayoutParams.class.getField("FLAG_NEEDS_MENU_KEY").getInt(null));
+        } catch (Exception e) {
+            // Ignore
+        }
+    }
+
+    public void hideOptionMenu() {
+        try {
+            getWindow().clearFlags(
                     WindowManager.LayoutParams.class.getField("FLAG_NEEDS_MENU_KEY").getInt(null));
         } catch (Exception e) {
             // Ignore
@@ -281,6 +294,11 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     @Override
     public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
+
+        if (SearchUtils.isSearchState) {
+            return false;
+        }
+
         if (mSpeedDial.isFull()) {
             menu.findItem(R.id.add).setVisible(false);
         } else {
@@ -327,6 +345,10 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
     public void onClick(View v) {
         Object tag = v.getTag();
 
+        if (SearchUtils.isSearchState) {
+            return;
+        }
+
         if (tag instanceof Integer) {
             Integer num = (Integer) v.getTag();
             switch (num.intValue()) {
@@ -344,15 +366,13 @@ public class Launcher extends Activity implements View.OnClickListener, OnLongCl
         }
 
         if (tag instanceof ShortcutInfo) {
-            if (!SearchUtils.isSearchState) {
-                final ShortcutInfo shortcut = (ShortcutInfo) tag;
-                final Intent intent = shortcut.intent;
-                if (intent != null) {
-                    startActivitySafely(intent);
-                    return;
-                } else if (intent == null && "*BROWSER*".equals(shortcut.title)) {
-                    LauncherAppState.getAppIntentUtil().startBrowserIntent();
-                }
+            final ShortcutInfo shortcut = (ShortcutInfo) tag;
+            final Intent intent = shortcut.intent;
+            if (intent != null) {
+                startActivitySafely(intent);
+                return;
+            } else if (intent == null && "*BROWSER*".equals(shortcut.title)) {
+                LauncherAppState.getAppIntentUtil().startBrowserIntent();
             }
         }
         // stop speed dial drag at last.

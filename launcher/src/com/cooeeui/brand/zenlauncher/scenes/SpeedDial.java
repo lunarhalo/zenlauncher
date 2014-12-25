@@ -159,6 +159,7 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
         Bitmap b = BitmapUtils.getIcon(mLauncher.getResources(), iconId, mIconSize);
         i.mRecycle = true;
         i.mIconId = iconId;
+        i.mIcon = null;
         if (b == null) {
             b = getDefaultIcon();
             i.mRecycle = false;
@@ -174,13 +175,13 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
         ShortcutInfo i = (ShortcutInfo) mSelect.getTag();
         if (i.mRecycle) {
             mSelect.clearBitmap();
+            i.mRecycle = false;
         }
         i.intent = info.intent;
         i.mIcon = info.mIcon;
         i.mIconId = -1;
 
-        Bitmap b = info.mIcon;
-        mSelect.changeBitmap(b);
+        mSelect.changeBitmap(info.mIcon);
 
         LauncherModel.updateItemInDatabase(mLauncher, i);
     }
@@ -197,6 +198,7 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
 
         if (i.mRecycle) {
             mSelect.clearBitmap();
+            i.mRecycle = false;
         }
 
         if (mBubbleViews.size() <= 0) {

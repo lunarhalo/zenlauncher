@@ -5,7 +5,7 @@
     android:versionName="1.0" >
 
     <uses-sdk
-        android:minSdkVersion="11"
+        android:minSdkVersion="14"
         android:targetSdkVersion="19" />
 
     <application
@@ -86,6 +86,15 @@
             android:label="@string/super_dialog_layout"
             android:theme="@style/DialogStyle" >
             <intent-filter>
+                <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".page.PageActivity"
+            android:label="page" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
             </intent-filter>
         </activity>
