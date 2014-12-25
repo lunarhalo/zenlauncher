@@ -14,19 +14,24 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
 import com.cooeeui.brand.zenlauncher.R;
-import com.viewpagerindicator.PageIndicator;
+import com.cooeeui.brand.zenlauncher.category.CategoryData;
+import com.cooeeui.brand.zenlauncher.category.CategoryHelper;
+import com.cooeeui.brand.zenlauncher.config.GridConfig;
 import com.viewpagerindicator.UnderlinePageIndicator;
 
 public class AppListViewGroup extends FrameLayout {
-    PageAdapter mAdapter;
-    ViewPager mPager;
-    PageIndicator mIndicator;
+    PageAdapter mAdapters[];
     Context mContext;
+    int mTab;
 
     public AppListViewGroup(Context context, AttributeSet attrs) {
         super(context, attrs);
 
         mContext = context;
+        // TODO: should we read it from preference?
+        mTab = 0;
+
+        mAdapters = new PageAdapter[CategoryHelper.COUNT];
     }
 
     @Override
@@ -34,25 +39,34 @@ public class AppListViewGroup extends FrameLayout {
         super.onFinishInflate();
 
         FragmentActivity activity = (FragmentActivity) mContext;
-        mAdapter = new PageAdapter(activity.getSupportFragmentManager());
+        for (int i = 0; i < mAdapters.length; i++) {
+            mAdapters[i] = new PageAdapter(activity.getSupportFragmentManager(), i);
 
-        mPager = (ViewPager) findViewById(R.id.pager);
-        mPager.setAdapter(mAdapter);
+            ViewPager pager = (ViewPager) findViewById(R.id.pager_0 + 2 * i);
+            pager.setAdapter(mAdapters[i]);
 
-        mIndicator = (UnderlinePageIndicator) findViewById(R.id.indicator);
-        mIndicator.setViewPager(mPager);
+            UnderlinePageIndicator indicator = (UnderlinePageIndicator) findViewById(R.id.indicator_0
+                    + 2 * i);
+            indicator.setViewPager(pager);
+        }
+
+        setTab(mTab);
     }
 
     class PageAdapter extends FragmentPagerAdapter {
-        int mCount = 2;
+        int mCount;
+        int mTab;
 
-        public PageAdapter(FragmentManager fm) {
+        public PageAdapter(FragmentManager fm, int tab) {
             super(fm);
+
+            mCount = 1;
+            mTab = tab;
         }
 
         @Override
         public Fragment getItem(int position) {
-            return GridFragment.newInstance(position);
+            return GridFragment.newInstance(mTab, position);
         }
 
         @Override
@@ -86,16 +100,36 @@ public class AppListViewGroup extends FrameLayout {
                 notifyDataSetChanged();
             }
         }
+
+        public int getTab() {
+            return mTab;
+        }
     }
 
     public void notifyDataSetChanged() {
         Log.v("suyu", "AppListViewGroup notifyDataSetChanged");
-        mAdapter.notifyDataSetChanged();
+        for (int i = 0; i < mAdapters.length; i++) {
+            mAdapters[i].notifyDataSetChanged();
+            // calculate page count
+            int cpp = GridConfig.getCountPerPageOfDrawer();
+            if (cpp != 0 && CategoryData.datas != null) {
+                int pageCount = (CategoryData.datas.get(i).size() + cpp) / cpp;
+                mAdapters[i].setCount(pageCount);
+            }
+        }
+        invalidate();
     }
 
-    public void changeTextView(String name) {
-        // TODO: under constructing.
-        Log.v("suyu", "name = " + name);
+    public void setTab(int tab) {
+        mTab = tab;
+
+        for (int i = 0; i < CategoryHelper.COUNT; i++) {
+            if (i != mTab) {
+                getChildAt(i).setVisibility(View.INVISIBLE);
+            } else {
+                getChildAt(i).setVisibility(View.VISIBLE);
+            }
+        }
     }
 
     /**

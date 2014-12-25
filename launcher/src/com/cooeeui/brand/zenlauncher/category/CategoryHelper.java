@@ -13,13 +13,14 @@ import android.database.sqlite.SQLiteDatabase;
 
 public class CategoryHelper {
     // Must start from 0, it will be used as array index.
-    public static int GAME = 0;
-    public static int LIFE = 1;
-    public static int TOOL = 2;
-    public static int SOCIAL = 3;
-    public static int SYSTEM = 4;
+    public static int FAVORITE = 0;
+    public static int GAME = 1;
+    public static int LIFE = 2;
+    public static int TOOL = 3;
+    public static int SOCIAL = 4;
+    public static int SYSTEM = 5;
     // Other must be the last one.
-    public static int OTHER = 5;
+    public static int OTHER = 6;
     public static int COUNT = 6;
 
     public static void init(Context context) {

@@ -4,10 +4,8 @@ package com.cooeeui.brand.zenlauncher.category;
 import java.util.ArrayList;
 
 import android.content.Context;
-import android.util.Log;
 
 import com.cooeeui.brand.zenlauncher.apps.AppInfo;
-import com.cooeeui.brand.zenlauncher.debug.Logger;
 
 public class CategoryData {
     public static ArrayList<ArrayList<AppInfo>> datas;
@@ -36,6 +34,14 @@ public class CategoryData {
 
         CategoryHelper.close();
     }
+    
+    public static int getSize(int index) {
+        if (datas == null) {
+            return 0;
+        } else {
+            return datas.get(index).size();
+        }
+    }
 
     private static void clear() {
         if (datas != null) {
@@ -48,7 +54,7 @@ public class CategoryData {
 
     private static void makeup() {
         datas = new ArrayList<ArrayList<AppInfo>>();
-        for (int i = 0; i < CategoryHelper.COUNT - 1; i++) {
+        for (int i = 0; i < CategoryHelper.COUNT; i++) {
             datas.add(new ArrayList<AppInfo>());
         }
     }

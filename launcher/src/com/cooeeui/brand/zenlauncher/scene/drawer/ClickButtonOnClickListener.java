@@ -13,7 +13,7 @@ import com.cooeeui.brand.zenlauncher.R;
 public class ClickButtonOnClickListener implements OnClickListener {
 
     private Context context = null;
-    private TitleBar nameViewGroup = null;
+    private TitleBar titleBar = null;
     private AppListViewGroup applistGroup = null;
     private AppTabViewGroup tabViewGroup = null;
     private AppListUtil util = null;
@@ -37,11 +37,11 @@ public class ClickButtonOnClickListener implements OnClickListener {
     }
 
     public TitleBar getNameViewGroup() {
-        return nameViewGroup;
+        return titleBar;
     }
 
     public void setNameViewGroup(TitleBar nameViewGroup) {
-        this.nameViewGroup = nameViewGroup;
+        this.titleBar = nameViewGroup;
     }
 
     public AppTabViewGroup getTabViewGroup() {
@@ -114,8 +114,8 @@ public class ClickButtonOnClickListener implements OnClickListener {
                 util.getPreferences().edit().putInt(util.gettabNumKey(), tabNum).commit();
             }
 
-            nameViewGroup.setTextName(nameTag);
-            applistGroup.changeTextView(nameTag);
+            titleBar.setTextName(nameTag);
+            applistGroup.setTab(tabNum);
         }
     }
 

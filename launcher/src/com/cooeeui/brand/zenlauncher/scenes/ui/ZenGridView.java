@@ -1,6 +1,7 @@
 
 package com.cooeeui.brand.zenlauncher.scenes.ui;
 
+import com.cooeeui.brand.zenlauncher.config.GridConfig;
 import com.cooeeui.brand.zenlauncher.config.IconConfig;
 
 import android.content.Context;
@@ -41,6 +42,7 @@ public class ZenGridView extends GridView {
         
         int size = width / columns;
         countPerPage = columns * (height / size);
+        GridConfig.setCountPerPageOfDrawer(countPerPage);
         
         if (isOnePage) {
             // TODO: setTranslationY();

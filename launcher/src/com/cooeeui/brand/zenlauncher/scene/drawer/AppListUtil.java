@@ -7,7 +7,7 @@ import android.util.DisplayMetrics;
 
 public class AppListUtil {
     public final String[] tabName = new String[] {
-            "Favourite", "Communication", "Life", "Soclal", "System", "Tool"
+            "Favorite", "Game", "Life", "Tool", "Communication", "System"
     };
     public final String optionName = "optionName";
     private int allScreenWidth = -1;

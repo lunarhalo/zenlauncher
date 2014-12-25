@@ -210,14 +210,15 @@
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:orientation="vertical" >
+                    android:orientation="vertical"
+                    android:visibility="invisible" >
 
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="4dp" />
 
                     <com.viewpagerindicator.UnderlinePageIndicator
-                        android:id="@+id/indicator"
+                        android:id="@+id/indicator_0"
                         android:layout_width="match_parent"
                         android:layout_height="4dp" />
 
@@ -226,7 +227,147 @@
                         android:layout_height="4dp" />
 
                     <android.support.v4.view.ViewPager
-                        android:id="@+id/pager"
+                        android:id="@+id/pager_0"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:paddingLeft="6dp"
+                        android:paddingRight="6dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:visibility="invisible" >
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <com.viewpagerindicator.UnderlinePageIndicator
+                        android:id="@+id/indicator_1"
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <android.support.v4.view.ViewPager
+                        android:id="@+id/pager_1"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:paddingLeft="6dp"
+                        android:paddingRight="6dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:visibility="invisible" >
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <com.viewpagerindicator.UnderlinePageIndicator
+                        android:id="@+id/indicator_2"
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <android.support.v4.view.ViewPager
+                        android:id="@+id/pager_2"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:paddingLeft="6dp"
+                        android:paddingRight="6dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:visibility="invisible" >
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <com.viewpagerindicator.UnderlinePageIndicator
+                        android:id="@+id/indicator_3"
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <android.support.v4.view.ViewPager
+                        android:id="@+id/pager_3"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:paddingLeft="6dp"
+                        android:paddingRight="6dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:visibility="invisible" >
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <com.viewpagerindicator.UnderlinePageIndicator
+                        android:id="@+id/indicator_4"
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <android.support.v4.view.ViewPager
+                        android:id="@+id/pager_4"
+                        android:layout_width="match_parent"
+                        android:layout_height="0dp"
+                        android:layout_weight="1"
+                        android:paddingLeft="6dp"
+                        android:paddingRight="6dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:orientation="vertical"
+                    android:visibility="invisible" >
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <com.viewpagerindicator.UnderlinePageIndicator
+                        android:id="@+id/indicator_5"
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="4dp" />
+
+                    <android.support.v4.view.ViewPager
+                        android:id="@+id/pager_5"
                         android:layout_width="match_parent"
                         android:layout_height="0dp"
                         android:layout_weight="1"
