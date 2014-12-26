@@ -26,6 +26,7 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.view.ViewGroup.LayoutParams;
+import android.view.animation.AlphaAnimation;
 import android.view.WindowManager;
 import android.widget.Toast;
 
@@ -118,6 +119,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         mWorkspace.setOnClickListener(this);
 
         mWeather = (WeatherClockGroup) findViewById(R.id.weatherclock);
+        mWeather.setup(this);
 
         mDrawer = (Drawer) findViewById(R.id.appHostGroup);
         mDrawer.setup(this);
@@ -231,7 +233,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
 
         mPaused = true;
         mDragController.cancelDrag();
-        if (mSearchUtils != null && mSearchUtils.isSearchState) {
+        if (mSearchUtils != null && SearchUtils.isSearchState) {
             mSearchUtils.clearValue();
         }
     }
@@ -239,7 +241,11 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     @Override
     protected void onResume() {
         super.onResume();
-
+        if (mDragLayer.getVisibility() == View.INVISIBLE) {
+            mDragLayer.setAlpha(0);
+            mDragLayer.setVisibility(View.VISIBLE);
+            startDragLayerAnim();
+        }
         mPaused = false;
 
         if (mOnResumeNeedsLoad) {
@@ -256,6 +262,24 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         if (mWeather != null) {
             mWeather.changeTimeAndDate();
         }
+    }
+
+    /**
+     * 将mDragLayer有
+     */
+    private void startDragLayerAnim() {
+        ValueAnimator valueAnimator = ValueAnimator.ofFloat(0, 1f);
+        valueAnimator.setDuration(500);
+        valueAnimator.addUpdateListener(new AnimatorUpdateListener() {
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                // TODO Auto-generated method stub
+                float alpha = (Float) animation.getAnimatedValue();
+                mDragLayer.setAlpha(alpha);
+            }
+        });
+        valueAnimator.start();
     }
 
     @Override
@@ -487,9 +511,9 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     @Override
     public void bindAllApplications(ArrayList<AppInfo> apps) {
         mApps = apps;
-        
+
         CategoryData.init(this, mApps);
-        
+
         mDrawer.notifyDataSetChanged();
     }
 
