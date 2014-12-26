@@ -42,4 +42,9 @@ public class TitleBar extends RelativeLayout {
         }
     }
 
+    public void clickOptionButton() {
+        if (optionButton != null) {
+            optionButton.performClick();
+        }
+    }
 }
