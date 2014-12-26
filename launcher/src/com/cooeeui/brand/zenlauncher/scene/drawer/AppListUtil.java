@@ -1,22 +1,19 @@
 
-package com.cooeeui.brand.zenlauncher.applistlayout;
+package com.cooeeui.brand.zenlauncher.scene.drawer;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.DisplayMetrics;
 
 public class AppListUtil {
     public final String[] tabName = new String[] {
-            "Favourite", "Communication", "Life", "Soclal", "System", "Tool"
+            "Favorite", "Game", "Life", "Tool", "Communication", "System"
     };
     public final String optionName = "optionName";
-    private Context context = null;
     private int allScreenWidth = -1;
     private int allScreenHeight = -1;
     private final int lineWidth = 2;
     private final int tabWidth = 2;
-    private int oldList = -1;
     private final String preferencesName = "ApplistLayoutName";
     private final String tabNumKey = "tabNum";
     private int tabNum = 0;
@@ -45,14 +42,6 @@ public class AppListUtil {
         return tabNumKey;
     }
 
-    public int getOldList() {
-        return oldList;
-    }
-
-    public void setOldList(int oldList) {
-        this.oldList = oldList;
-    }
-
     public int getTabWidth() {
         return tabWidth;
     }
@@ -76,7 +65,6 @@ public class AppListUtil {
     }
 
     public AppListUtil(Activity activity) {
-        this.context = activity;
         DisplayMetrics metrics = new DisplayMetrics();
         activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
         density = metrics.density;

@@ -225,14 +225,14 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
         mPadding = mSize / 10;
         mIconSize = (mSize - mPadding * 2) / 3;
         mMidPoint[1] += (mIconSize + mPadding);
-        if (mIconSize > IconConfig.ICON_SIZE_MAX) {
-            int offset = mIconSize - IconConfig.ICON_SIZE_MAX;
+        if (mIconSize > IconConfig.iconSizeMax) {
+            int offset = mIconSize - IconConfig.iconSizeMax;
             mPadding += offset;
             mMidPoint[0] += offset / 2;
             mMidPoint[1] += offset / 2;
-            mIconSize = IconConfig.ICON_SIZE_MAX;
-        } else if (mIconSize < IconConfig.ICON_SIZE_MIN) {
-            mIconSize = IconConfig.ICON_SIZE_MIN;
+            mIconSize = IconConfig.iconSizeMax;
+        } else if (mIconSize < IconConfig.iconSizeMin) {
+            mIconSize = IconConfig.iconSizeMin;
         }
 
         // do not forget to change size of bubble views existed.
