@@ -13,6 +13,7 @@ public class TitleBar extends RelativeLayout {
 
     private TextView nameTextView = null;
     private Button optionButton = null;
+    private ClickButtonOnClickListener mOnClickListener;
 
     public TitleBar(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -34,6 +35,8 @@ public class TitleBar extends RelativeLayout {
 
     public void setOnClickListener(ClickButtonOnClickListener onClickListener) {
         optionButton.setOnClickListener(onClickListener);
+
+        mOnClickListener = onClickListener;
     }
 
     public void setTextName(String newName) {
@@ -43,8 +46,10 @@ public class TitleBar extends RelativeLayout {
     }
 
     public void clickOptionButton() {
-        if (optionButton != null) {
-            optionButton.performClick();
+        if (optionButton != null && mOnClickListener != null) {
+            // we do not use perforClick function since it will cause click
+            // sound effect twice.
+            mOnClickListener.onClick(optionButton);
         }
     }
 }

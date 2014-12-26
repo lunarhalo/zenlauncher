@@ -80,7 +80,7 @@ public class Drawer extends LinearLayout implements IAppGroup {
     public void setup(Launcher launcher) {
         mLauncher = launcher;
     }
-    
+
     public void notifyDataSetChanged() {
         applistGroup.notifyDataSetChanged();
     }
