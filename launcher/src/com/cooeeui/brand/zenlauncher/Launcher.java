@@ -82,6 +82,10 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     private SearchUtils mSearchUtils = null;
     public static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
 
+    public static final int STATE_WORKSPACE = 0;
+    public static final int STATE_MAINMNEU = 1;
+    private int mState = STATE_WORKSPACE;
+
     private ValueAnimator mAnimator;
     private float mAnimatorValue;
 
@@ -301,6 +305,10 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         super.onPrepareOptionsMenu(menu);
 
         if (SearchUtils.isSearchState) {
+            return false;
+        }
+
+        if (mState == STATE_MAINMNEU) {
             return false;
         }
 
@@ -548,6 +556,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
             return;
         mAnimator.setFloatValues(mAnimatorValue, 1);
         mAnimator.start();
+        mState = STATE_MAINMNEU;
     }
 
     public void swipeDown() {
@@ -555,6 +564,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
             return;
         mAnimator.setFloatValues(mAnimatorValue, 0);
         mAnimator.start();
+        mState = STATE_WORKSPACE;
     }
 
     @Override
@@ -591,6 +601,12 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
                 mSearchUtils.stopSearchBar();
             } else {
                 swipeDown();
+            }
+        } else if (keyCode == KeyEvent.KEYCODE_MENU) {
+            if (mState == STATE_MAINMNEU) {
+                if (event.getAction() == KeyEvent.ACTION_UP)
+                    mDrawer.clickOption();
+                return true;
             }
         }
         return super.onKeyUp(keyCode, event);

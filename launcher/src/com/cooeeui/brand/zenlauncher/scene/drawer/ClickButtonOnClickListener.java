@@ -4,8 +4,10 @@ package com.cooeeui.brand.zenlauncher.scene.drawer;
 import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
+import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnKeyListener;
 import android.widget.PopupWindow;
 
 import com.cooeeui.brand.zenlauncher.R;
@@ -136,6 +138,17 @@ public class ClickButtonOnClickListener implements OnClickListener {
         int yoff = context.getResources().getDimensionPixelSize(R.dimen.popmenu_yoff);
         mPopupWindow.showAsDropDown(view, xoff, yoff);
 
+        mPopMenuGroup.setFocusableInTouchMode(true);
+        mPopMenuGroup.setOnKeyListener(new OnKeyListener() {
+            @Override
+            public boolean onKey(View v, int keyCode, KeyEvent event) {
+                if ((keyCode == KeyEvent.KEYCODE_MENU) && (event.getAction() == KeyEvent.ACTION_UP)
+                        && mPopupWindow.isShowing()) {
+                    mPopupWindow.dismiss();
+                }
+                return true;
+            }
+        });
     }
 
 }

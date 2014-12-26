@@ -3,7 +3,6 @@ package com.cooeeui.brand.zenlauncher.scenes;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.widget.LinearLayout;
 
@@ -11,10 +10,10 @@ import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.R;
 import com.cooeeui.brand.zenlauncher.scene.drawer.AppListUtil;
 import com.cooeeui.brand.zenlauncher.scene.drawer.AppListViewGroup;
-import com.cooeeui.brand.zenlauncher.scene.drawer.TitleBar;
 import com.cooeeui.brand.zenlauncher.scene.drawer.AppTabViewGroup;
 import com.cooeeui.brand.zenlauncher.scene.drawer.ClickButtonOnClickListener;
 import com.cooeeui.brand.zenlauncher.scene.drawer.IAppGroup;
+import com.cooeeui.brand.zenlauncher.scene.drawer.TitleBar;
 
 public class Drawer extends LinearLayout implements IAppGroup {
 
@@ -74,10 +73,14 @@ public class Drawer extends LinearLayout implements IAppGroup {
         onClickListener.setApplistGroup(applistGroup);
     }
 
+    public void clickOption() {
+        nameViewGroup.clickOptionButton();
+    }
+
     public void setup(Launcher launcher) {
         mLauncher = launcher;
     }
-    
+
     public void notifyDataSetChanged() {
         applistGroup.notifyDataSetChanged();
     }
