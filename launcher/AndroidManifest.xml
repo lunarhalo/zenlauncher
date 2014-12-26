@@ -4,7 +4,12 @@
     android:versionCode="1"
     android:versionName="0.1" >
 
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <uses-sdk
         android:minSdkVersion="14"
@@ -34,6 +39,14 @@
                 <category android:name="android.intent.category.MONKEY" />
             </intent-filter>
         </activity>
+        <activity
+            android:name="com.cooeeui.brand.zenlauncher.weatherdata.ContentActivity"
+            android:theme="@style/NumberClock_ContentTheme"
+            android:windowSoftInputMode="adjustPan" >
+        </activity>
+
+        <service android:name="com.cooeeui.brand.zenlauncher.weatherdata.NumberWeatherDataService" />
+
         <activity
             android:name=".scenes.ZenSetting"
             android:theme="@android:style/Theme.NoTitleBar" />

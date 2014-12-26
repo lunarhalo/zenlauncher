@@ -1,12 +1,12 @@
 
 package com.cooeeui.brand.zenlauncher.weatherclock;
 
+import com.cooeeui.brand.zenlauncher.Launcher;
+
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.text.format.Time;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -25,9 +25,9 @@ public class WeatherClockGroup extends RelativeLayout {
     private MyTimeBroadCast myTimeBroadCast = null;
     private IntentFilter intentFilter;
     private Context mContext;
-    private boolean isConnecNet = false;// 判断手机是否连上网络
-    private ConnectivityManager connectivityManager = null;
+    // private ConnectivityManager connectivityManager = null;
     private ClickIntent clickIntent = null;
+    private Launcher mLauncher;
 
     public WeatherClockGroup(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -45,7 +45,6 @@ public class WeatherClockGroup extends RelativeLayout {
         this.addView(clockGroup);
         this.addView(dateGroup);
         this.addView(weatherGroup);
-        isConnecNet = getConnecNet();
         time = new Time();
         myTimeBroadCast = new MyTimeBroadCast();
         intentFilter = new IntentFilter();
@@ -58,38 +57,34 @@ public class WeatherClockGroup extends RelativeLayout {
 
     public void register() {
         mContext.registerReceiver(myTimeBroadCast, intentFilter);
+        weatherGroup.register();
     }
 
     public void unRegister() {
         mContext.unregisterReceiver(myTimeBroadCast);
+        weatherGroup.unRegister();
     }
 
-    /**
-     * 获得此时手机是否连上网络
-     * 
-     * @return
-     */
-    private boolean getConnecNet() {
-        if (connectivityManager == null) {
-            connectivityManager = (ConnectivityManager) getContext().getSystemService(
-                    Context.CONNECTIVITY_SERVICE);
-        }
-        NetworkInfo info = connectivityManager.getActiveNetworkInfo();
-        if (info != null && info.isAvailable()) {
-            return true;
-        }
-        return false;
-    }
-
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // TODO Auto-generated method stub
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-
-    }
+    //
+    // /**
+    // * 获得此时手机是否连上网络
+    // *
+    // * @return
+    // */
+    // private boolean getConnecNet() {
+    // if (connectivityManager == null) {
+    // connectivityManager = (ConnectivityManager)
+    // getContext().getSystemService(
+    // Context.CONNECTIVITY_SERVICE);
+    // }
+    // NetworkInfo info = connectivityManager.getActiveNetworkInfo();
+    // if (info != null && info.isAvailable()) {
+    // return true;
+    // }
+    // return false;
+    // }
 
     private void setChildViewSize() {
-        // TODO Auto-generated method stub
         int clockWidth = (int) (oldWidth * 0.7f);
         int clockHeight = (int) (oldHeight * 0.67f);
         int dateWidth = oldWidth - clockWidth;
@@ -111,11 +106,11 @@ public class WeatherClockGroup extends RelativeLayout {
         LayoutParams weatherLp = new LayoutParams(weatherWidth, weatherHeight);
         weatherGroup.setLayoutParams(weatherLp);
         weatherGroup.setChildViewSize(weatherWidth, weatherHeight);
+        weatherGroup.setLauncher(mLauncher);
         changeTimeAndDate();
     }
 
     public void changeTimeAndDate() {
-        // TODO Auto-generated method stub
         time.setToNow();
         int hour = time.hour;
         int minute = time.minute;
@@ -132,7 +127,6 @@ public class WeatherClockGroup extends RelativeLayout {
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
-        // TODO Auto-generated method stub
         super.onLayout(changed, l, t, r, b);
         int width = r - l;
         int height = b - t;
@@ -147,7 +141,6 @@ public class WeatherClockGroup extends RelativeLayout {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            // TODO Auto-generated method stub
             String action = intent.getAction();
             if (action.equals(ACTION_TIME_TICK) || action.equals(ACTION_DATE_CHANGED)
                     || action.equals(ACTION_TIME_CHANGED)) {
@@ -155,5 +148,9 @@ public class WeatherClockGroup extends RelativeLayout {
             }
         }
 
+    }
+
+    public void setup(Launcher launcher) {
+        mLauncher = launcher;
     }
 }

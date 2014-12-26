@@ -8,13 +8,16 @@ import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
-import com.cooeeui.brand.zenlauncher.R;
+import com.cooeeui.brand.zenlauncher.Launcher;
+import com.cooeeui.brand.zenlauncher.weatherdata.WeatherGroupUtil;
 
 public class WeatherGroup extends RelativeLayout {
 
     private ImageView weatherIamge = null;
     private TextView cityTextView = null;
     private TextView tempTextView = null;
+    private WeatherGroupUtil mWeatherGroupUtil = null;
+    private Launcher mLauncher = null;
 
     public WeatherGroup(Context context) {
         super(context);
@@ -28,31 +31,14 @@ public class WeatherGroup extends RelativeLayout {
         this.addView(cityTextView);
         this.addView(tempTextView);
         this.addView(weatherIamge);
-        setWeatherImage(R.drawable.weather_sun);
-        setCityName("Newyork");
-        setTemp(-10, 20);
-    }
 
-    private void setTemp(int minTemp, int maxTemp) {
-        // TODO Auto-generated method stub
-        String temp = minTemp + " / " + maxTemp;
-        tempTextView.setText(temp);
-    }
-
-    private void setCityName(String cityName) {
-        // TODO Auto-generated method stub
-        cityTextView.setText(cityName);
-    }
-
-    private void setWeatherImage(int image) {
-        // TODO Auto-generated method stub
-        weatherIamge.setBackgroundResource(image);
+        mWeatherGroupUtil = new WeatherGroupUtil(context, weatherIamge, cityTextView, tempTextView);
     }
 
     public void setChildViewSize(int allWidth, int allHeight) {
         int weatherX = (int) (allWidth * 0.3f);
-        int weatherWidth = allHeight;
-        int weatherheight = weatherWidth;
+        int weatherheight = allHeight;
+        int weatherWidth = (int) (weatherheight * 1.38f);// 1.38，为天气图标的长宽比
         int cityX = (int) ((weatherX + weatherWidth) * 1.04f);
         int cityWidth = allWidth - cityX;
         int cityHeight = (int) (allHeight / 2f);
@@ -69,5 +55,18 @@ public class WeatherGroup extends RelativeLayout {
         tempTextView.setX(tempX);
         tempTextView.setY(tempY);
         tempTextView.setLayoutParams(citylp);
+    }
+
+    public void register() {
+        mWeatherGroupUtil.register();
+    }
+
+    public void unRegister() {
+        mWeatherGroupUtil.unRegister();
+    }
+
+    public void setLauncher(Launcher launcher) {
+        mLauncher = launcher;
+        mWeatherGroupUtil.setLauncher(mLauncher);
     }
 }
