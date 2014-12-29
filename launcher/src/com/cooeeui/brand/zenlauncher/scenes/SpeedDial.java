@@ -3,6 +3,9 @@ package com.cooeeui.brand.zenlauncher.scenes;
 
 import java.util.ArrayList;
 
+import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
+import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -49,6 +52,12 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
 
     private Bitmap mDefaultIcon;
 
+    private static final int SEARCH_DURATION = 200;
+    private static final int EDIT_DURATION = 300;
+    private ValueAnimator mAnimatorSearch;
+    private ValueAnimator mAnimatorEdit;
+    private float mAnimatorValue;
+
     public SpeedDial(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
@@ -84,6 +93,46 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
             v.setOnClickListener(mLauncher);
             v.setTag(tags[i]);
         }
+
+        mAnimatorSearch = ValueAnimator.ofFloat(0, 1f);
+        mAnimatorSearch.addUpdateListener(new AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                Float value = (Float) animation.getAnimatedValue();
+                mSearchBar.setTranslationY(mSearchBar.getHeight() * (1 - value));
+                if (mAnimatorValue == value) {
+                    int v = mSearchBar.getVisibility() == View.VISIBLE ? View.INVISIBLE
+                            : View.VISIBLE;
+                    mSearchBar.setVisibility(v);
+
+                    v = mEditBottomView.getVisibility() == View.VISIBLE ? View.INVISIBLE
+                            : View.VISIBLE;
+                    mEditBottomView.setVisibility(v);
+                    mAnimatorValue = 2f;
+                }
+            }
+
+        });
+
+        mAnimatorEdit = ValueAnimator.ofFloat(0, 1f);
+        mAnimatorEdit.addUpdateListener(new AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                Float value = (Float) animation.getAnimatedValue();
+                mEditBottomView.setTranslationY(mEditBottomView.getHeight() * (1 - value));
+                if (mAnimatorValue == value) {
+                    int v = mSearchBar.getVisibility() == View.VISIBLE ? View.INVISIBLE
+                            : View.VISIBLE;
+                    mSearchBar.setVisibility(v);
+
+                    v = mEditBottomView.getVisibility() == View.VISIBLE ? View.INVISIBLE
+                            : View.VISIBLE;
+                    mEditBottomView.setVisibility(v);
+                    mAnimatorValue = 2f;
+                }
+            }
+
+        });
     }
 
     public void startBind() {
@@ -327,13 +376,27 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
     }
 
     private void showEditViews() {
-        mSearchBar.setVisibility(View.INVISIBLE);
-        mEditBottomView.setVisibility(View.VISIBLE);
+        mAnimatorSearch.setFloatValues(1f, 0);
+        mAnimatorSearch.setDuration(SEARCH_DURATION);
+        mAnimatorValue = 0;
+        mAnimatorEdit.setFloatValues(0, 1f);
+        mAnimatorEdit.setDuration(EDIT_DURATION);
+
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.play(mAnimatorSearch).before(mAnimatorEdit);
+        animatorSet.start();
     }
 
     private void hideEditViews() {
-        mEditBottomView.setVisibility(View.INVISIBLE);
-        mSearchBar.setVisibility(View.VISIBLE);
+        mAnimatorEdit.setFloatValues(1f, 0);
+        mAnimatorEdit.setDuration(EDIT_DURATION);
+        mAnimatorValue = 0;
+        mAnimatorSearch.setFloatValues(0, 1f);
+        mAnimatorSearch.setDuration(SEARCH_DURATION);
+
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.play(mAnimatorEdit).before(mAnimatorSearch);
+        animatorSet.start();
     }
 
     public void startDrag(BubbleView view) {
