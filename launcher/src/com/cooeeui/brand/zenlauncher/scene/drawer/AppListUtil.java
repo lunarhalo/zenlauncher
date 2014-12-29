@@ -18,6 +18,16 @@ public class AppListUtil {
     private final String tabNumKey = "tabNum";
     private int tabNum = 0;
     private SharedPreferences preferences = null;
+    private boolean mIsTabViewAnimDone = true;
+
+    public boolean ismIsTabViewAnimDone() {
+        return mIsTabViewAnimDone;
+    }
+
+    public void setmIsTabViewAnimDone(boolean mIsTabViewAnimDone) {
+        this.mIsTabViewAnimDone = mIsTabViewAnimDone;
+    }
+
     public SharedPreferences getPreferences() {
         return preferences;
     }
