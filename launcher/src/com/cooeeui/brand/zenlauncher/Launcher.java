@@ -7,7 +7,6 @@ import java.util.ArrayList;
 
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
-import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -27,7 +26,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.Toast;
 
 import com.cooeeui.brand.zenlauncher.appIntentUtils.AppIntentUtil;
@@ -40,7 +38,6 @@ import com.cooeeui.brand.zenlauncher.config.IconConfig;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
 import com.cooeeui.brand.zenlauncher.scene.drawer.AppListUtil;
 import com.cooeeui.brand.zenlauncher.scenes.Drawer;
-import com.cooeeui.brand.zenlauncher.scenes.LoadingView;
 import com.cooeeui.brand.zenlauncher.scenes.SpeedDial;
 import com.cooeeui.brand.zenlauncher.scenes.Workspace;
 import com.cooeeui.brand.zenlauncher.scenes.ZenSetting;
@@ -75,7 +72,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
 
     private GestureDetector mGestureDetector;
 
-    private Dialog mLoading;
+    // private Dialog mLoading;
     private boolean mOnResumeNeedsLoad;
     private boolean mPaused = true;
     private ArrayList<Runnable> mBindOnResumeCallbacks = new ArrayList<Runnable>();
@@ -166,7 +163,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         mSearchBarGroup.setSearchUtils(mSearchUtils);
         mSearchBarGroup.initSearchBar();
 
-        showLoadingView();
+        // showLoadingView();
 
         mModel.startLoader(true);
     }
@@ -185,21 +182,22 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         }
     }
 
-    void showLoadingView() {
-        LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-        mLoading = new Dialog(this, R.style.LoadingViewStyle);
-        mLoading.setContentView(new LoadingView(this), params);
-        mLoading.setCancelable(false);
-        mLoading.setCanceledOnTouchOutside(false);
-        mLoading.show();
-    }
+    // void showLoadingView() {
+    // LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT,
+    // LayoutParams.MATCH_PARENT);
+    // mLoading = new Dialog(this, R.style.LoadingViewStyle);
+    // mLoading.setContentView(new LoadingView(this), params);
+    // mLoading.setCancelable(false);
+    // mLoading.setCanceledOnTouchOutside(false);
+    // mLoading.show();
+    // }
 
-    void closeLoadingView() {
-        if (mLoading != null && mLoading.isShowing()) {
-            mLoading.dismiss();
-            mLoading = null;
-        }
-    }
+    // void closeLoadingView() {
+    // if (mLoading != null && mLoading.isShowing()) {
+    // mLoading.dismiss();
+    // mLoading = null;
+    // }
+    // }
 
     @Override
     protected void onStart() {
@@ -512,7 +510,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
 
     protected void onFinishBindingItems() {
         mSpeedDial.finishBind();
-        closeLoadingView();
+        // closeLoadingView();
     }
 
     @Override
