@@ -3,12 +3,17 @@ package com.cooeeui.brand.zenlauncher.scenes;
 
 import java.util.ArrayList;
 
+import android.animation.AnimatorSet;
+import android.animation.ValueAnimator;
+import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
@@ -49,6 +54,12 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
 
     private Bitmap mDefaultIcon;
 
+    private static final int IN_DURATION = 300;
+    private static final int OUT_DURATION = 200;
+    private ValueAnimator mAnimatorSearch;
+    private ValueAnimator mAnimatorEdit;
+    private float mAnimatorValue;
+
     public SpeedDial(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
     }
@@ -84,6 +95,49 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
             v.setOnClickListener(mLauncher);
             v.setTag(tags[i]);
         }
+
+        Interpolator interpolator = AnimationUtils.loadInterpolator(mLauncher,
+                android.R.anim.decelerate_interpolator);
+
+        mAnimatorSearch = ValueAnimator.ofFloat(0, 1f);
+        mAnimatorSearch.addUpdateListener(new AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                Float value = (Float) animation.getAnimatedValue();
+                mSearchBar.setTranslationY(mSearchBar.getHeight() * (1 - value));
+                if (mAnimatorValue == value) {
+                    int v = mSearchBar.getVisibility() == View.VISIBLE ? View.INVISIBLE
+                            : View.VISIBLE;
+                    mSearchBar.setVisibility(v);
+
+                    v = mEditBottomView.getVisibility() == View.VISIBLE ? View.INVISIBLE
+                            : View.VISIBLE;
+                    mEditBottomView.setVisibility(v);
+                    mAnimatorValue = 2f;
+                }
+            }
+        });
+        mAnimatorSearch.setInterpolator(interpolator);
+
+        mAnimatorEdit = ValueAnimator.ofFloat(0, 1f);
+        mAnimatorEdit.addUpdateListener(new AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                Float value = (Float) animation.getAnimatedValue();
+                mEditBottomView.setTranslationY(mEditBottomView.getHeight() * (1 - value));
+                if (mAnimatorValue == value) {
+                    int v = mSearchBar.getVisibility() == View.VISIBLE ? View.INVISIBLE
+                            : View.VISIBLE;
+                    mSearchBar.setVisibility(v);
+
+                    v = mEditBottomView.getVisibility() == View.VISIBLE ? View.INVISIBLE
+                            : View.VISIBLE;
+                    mEditBottomView.setVisibility(v);
+                    mAnimatorValue = 2f;
+                }
+            }
+        });
+        mAnimatorEdit.setInterpolator(interpolator);
     }
 
     public void startBind() {
@@ -327,13 +381,27 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
     }
 
     private void showEditViews() {
-        mSearchBar.setVisibility(View.INVISIBLE);
-        mEditBottomView.setVisibility(View.VISIBLE);
+        mAnimatorSearch.setFloatValues(1f, 0);
+        mAnimatorSearch.setDuration(OUT_DURATION);
+        mAnimatorValue = 0;
+        mAnimatorEdit.setFloatValues(0, 1f);
+        mAnimatorEdit.setDuration(IN_DURATION);
+
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.play(mAnimatorSearch).before(mAnimatorEdit);
+        animatorSet.start();
     }
 
     private void hideEditViews() {
-        mEditBottomView.setVisibility(View.INVISIBLE);
-        mSearchBar.setVisibility(View.VISIBLE);
+        mAnimatorEdit.setFloatValues(1f, 0);
+        mAnimatorEdit.setDuration(OUT_DURATION);
+        mAnimatorValue = 0;
+        mAnimatorSearch.setFloatValues(0, 1f);
+        mAnimatorSearch.setDuration(IN_DURATION);
+
+        AnimatorSet animatorSet = new AnimatorSet();
+        animatorSet.play(mAnimatorEdit).before(mAnimatorSearch);
+        animatorSet.start();
     }
 
     public void startDrag(BubbleView view) {

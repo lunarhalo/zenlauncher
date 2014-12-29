@@ -7,7 +7,6 @@ import java.util.ArrayList;
 
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
-import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Context;
 import android.content.Intent;
@@ -17,6 +16,8 @@ import android.os.Bundle;
 import android.speech.RecognizerIntent;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
+import android.view.ContextMenu;
+import android.view.ContextMenu.ContextMenuInfo;
 import android.view.GestureDetector;
 import android.view.GestureDetector.SimpleOnGestureListener;
 import android.view.KeyEvent;
@@ -25,9 +26,6 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
-import android.view.ViewGroup.LayoutParams;
-import android.view.animation.AlphaAnimation;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.cooeeui.brand.zenlauncher.appIntentUtils.AppIntentUtil;
@@ -40,7 +38,6 @@ import com.cooeeui.brand.zenlauncher.config.IconConfig;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
 import com.cooeeui.brand.zenlauncher.scene.drawer.AppListUtil;
 import com.cooeeui.brand.zenlauncher.scenes.Drawer;
-import com.cooeeui.brand.zenlauncher.scenes.LoadingView;
 import com.cooeeui.brand.zenlauncher.scenes.SpeedDial;
 import com.cooeeui.brand.zenlauncher.scenes.Workspace;
 import com.cooeeui.brand.zenlauncher.scenes.ZenSetting;
@@ -75,7 +72,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
 
     private GestureDetector mGestureDetector;
 
-    private Dialog mLoading;
+    // private Dialog mLoading;
     private boolean mOnResumeNeedsLoad;
     private boolean mPaused = true;
     private ArrayList<Runnable> mBindOnResumeCallbacks = new ArrayList<Runnable>();
@@ -122,6 +119,8 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         mWorkspace = (Workspace) findViewById(R.id.workspace);
         mWorkspace.setOnClickListener(this);
 
+        registerForContextMenu(mWorkspace);
+
         mWeather = (WeatherClockGroup) findViewById(R.id.weatherclock);
         mWeather.setup(this);
 
@@ -164,29 +163,9 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         mSearchBarGroup.setSearchUtils(mSearchUtils);
         mSearchBarGroup.initSearchBar();
 
-        showLoadingView();
+        // showLoadingView();
 
         mModel.startLoader(true);
-
-        showOptionMenu();
-    }
-
-    public void showOptionMenu() {
-        try {
-            getWindow().addFlags(
-                    WindowManager.LayoutParams.class.getField("FLAG_NEEDS_MENU_KEY").getInt(null));
-        } catch (Exception e) {
-            // Ignore
-        }
-    }
-
-    public void hideOptionMenu() {
-        try {
-            getWindow().clearFlags(
-                    WindowManager.LayoutParams.class.getField("FLAG_NEEDS_MENU_KEY").getInt(null));
-        } catch (Exception e) {
-            // Ignore
-        }
     }
 
     @Override
@@ -203,21 +182,22 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         }
     }
 
-    void showLoadingView() {
-        LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT);
-        mLoading = new Dialog(this, R.style.LoadingViewStyle);
-        mLoading.setContentView(new LoadingView(this), params);
-        mLoading.setCancelable(false);
-        mLoading.setCanceledOnTouchOutside(false);
-        mLoading.show();
-    }
+    // void showLoadingView() {
+    // LayoutParams params = new LayoutParams(LayoutParams.MATCH_PARENT,
+    // LayoutParams.MATCH_PARENT);
+    // mLoading = new Dialog(this, R.style.LoadingViewStyle);
+    // mLoading.setContentView(new LoadingView(this), params);
+    // mLoading.setCancelable(false);
+    // mLoading.setCanceledOnTouchOutside(false);
+    // mLoading.show();
+    // }
 
-    void closeLoadingView() {
-        if (mLoading != null && mLoading.isShowing()) {
-            mLoading.dismiss();
-            mLoading = null;
-        }
-    }
+    // void closeLoadingView() {
+    // if (mLoading != null && mLoading.isShowing()) {
+    // mLoading.dismiss();
+    // mLoading = null;
+    // }
+    // }
 
     @Override
     protected void onStart() {
@@ -293,6 +273,37 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         if (mModel != null) {
             mModel.unbindItemInfosAndClearQueuedBindRunnables();
         }
+    }
+
+    @Override
+    public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
+        super.onCreateContextMenu(menu, v, menuInfo);
+        getMenuInflater().inflate(R.menu.launcher_menu, menu);
+        if (mSpeedDial.isFull()) {
+            menu.findItem(R.id.add).setVisible(false);
+        }
+    }
+
+    @Override
+    public boolean onContextItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.add:
+                new PopupDialog(this, PopupDialog.ADD_VIEW).show();
+                return true;
+
+            case R.id.wallpaper:
+                startWallpaper();
+                return true;
+
+            case R.id.settings:
+                startSetting();
+                return true;
+
+            case R.id.zen:
+                entryZenSetting();
+                return true;
+        }
+        return super.onContextItemSelected(item);
     }
 
     @Override
@@ -499,7 +510,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
 
     protected void onFinishBindingItems() {
         mSpeedDial.finishBind();
-        closeLoadingView();
+        // closeLoadingView();
     }
 
     @Override
