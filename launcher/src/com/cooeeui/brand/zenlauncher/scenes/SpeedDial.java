@@ -12,6 +12,8 @@ import android.graphics.Bitmap;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
@@ -52,8 +54,8 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
 
     private Bitmap mDefaultIcon;
 
-    private static final int SEARCH_DURATION = 200;
-    private static final int EDIT_DURATION = 300;
+    private static final int IN_DURATION = 300;
+    private static final int OUT_DURATION = 200;
     private ValueAnimator mAnimatorSearch;
     private ValueAnimator mAnimatorEdit;
     private float mAnimatorValue;
@@ -94,6 +96,9 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
             v.setTag(tags[i]);
         }
 
+        Interpolator interpolator = AnimationUtils.loadInterpolator(mLauncher,
+                android.R.anim.decelerate_interpolator);
+
         mAnimatorSearch = ValueAnimator.ofFloat(0, 1f);
         mAnimatorSearch.addUpdateListener(new AnimatorUpdateListener() {
             @Override
@@ -111,8 +116,8 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
                     mAnimatorValue = 2f;
                 }
             }
-
         });
+        mAnimatorSearch.setInterpolator(interpolator);
 
         mAnimatorEdit = ValueAnimator.ofFloat(0, 1f);
         mAnimatorEdit.addUpdateListener(new AnimatorUpdateListener() {
@@ -131,8 +136,8 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
                     mAnimatorValue = 2f;
                 }
             }
-
         });
+        mAnimatorEdit.setInterpolator(interpolator);
     }
 
     public void startBind() {
@@ -377,10 +382,10 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
 
     private void showEditViews() {
         mAnimatorSearch.setFloatValues(1f, 0);
-        mAnimatorSearch.setDuration(SEARCH_DURATION);
+        mAnimatorSearch.setDuration(OUT_DURATION);
         mAnimatorValue = 0;
         mAnimatorEdit.setFloatValues(0, 1f);
-        mAnimatorEdit.setDuration(EDIT_DURATION);
+        mAnimatorEdit.setDuration(IN_DURATION);
 
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.play(mAnimatorSearch).before(mAnimatorEdit);
@@ -389,10 +394,10 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
 
     private void hideEditViews() {
         mAnimatorEdit.setFloatValues(1f, 0);
-        mAnimatorEdit.setDuration(EDIT_DURATION);
+        mAnimatorEdit.setDuration(OUT_DURATION);
         mAnimatorValue = 0;
         mAnimatorSearch.setFloatValues(0, 1f);
-        mAnimatorSearch.setDuration(SEARCH_DURATION);
+        mAnimatorSearch.setDuration(IN_DURATION);
 
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.play(mAnimatorEdit).before(mAnimatorSearch);
