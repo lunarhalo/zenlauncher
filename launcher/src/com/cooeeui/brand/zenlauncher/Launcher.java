@@ -13,7 +13,6 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.speech.RecognizerIntent;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
 import android.view.ContextMenu;
@@ -47,7 +46,6 @@ import com.cooeeui.brand.zenlauncher.scenes.ui.PopupDialog;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer;
 import com.cooeeui.brand.zenlauncher.searchbar.SearchBarGroup;
-import com.cooeeui.brand.zenlauncher.searchbar.SearchUtils;
 import com.cooeeui.brand.zenlauncher.weatherclock.WeatherClockGroup;
 
 public class Launcher extends FragmentActivity implements View.OnClickListener,
@@ -77,8 +75,6 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     private boolean mPaused = true;
     private ArrayList<Runnable> mBindOnResumeCallbacks = new ArrayList<Runnable>();
     private SearchBarGroup mSearchBarGroup = null;
-    private SearchUtils mSearchUtils = null;
-    public static final int VOICE_RECOGNITION_REQUEST_CODE = 1234;
 
     public static final int STATE_WORKSPACE = 0;
     public static final int STATE_MAINMNEU = 1;
@@ -158,9 +154,6 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         mAnimatorValue = 0.0f;
 
         mSearchBarGroup = (SearchBarGroup) this.findViewById(R.id.search_bar);
-        mSearchUtils = new SearchUtils(this, mWeather, mSpeedDial, mSearchBarGroup);
-        mSearchBarGroup.setActivity(this);
-        mSearchBarGroup.setSearchUtils(mSearchUtils);
         mSearchBarGroup.initSearchBar();
 
         // showLoadingView();
@@ -171,15 +164,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK && requestCode == VOICE_RECOGNITION_REQUEST_CODE) {
-            ArrayList<String> matchResults = data
-                    .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-            String voice_str = matchResults.get(0).toString();// 只要最相似的就行，去第一个
-            Log.v("", "voice_str is " + voice_str);
-            if (voice_str != null && !voice_str.equals("")) {
-                mSearchBarGroup.searchByText(voice_str);
-            }
-        }
+
     }
 
     // void showLoadingView() {
@@ -217,9 +202,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
 
         mPaused = true;
         mDragController.cancelDrag();
-        if (mSearchUtils != null && SearchUtils.isSearchState) {
-            mSearchUtils.clearValue();
-        }
+
     }
 
     @Override
@@ -339,10 +322,6 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     public boolean onPrepareOptionsMenu(Menu menu) {
         super.onPrepareOptionsMenu(menu);
 
-        if (SearchUtils.isSearchState) {
-            return false;
-        }
-
         if (mState == STATE_MAINMNEU) {
             return false;
         }
@@ -392,10 +371,6 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     @Override
     public void onClick(View v) {
         Object tag = v.getTag();
-
-        if (SearchUtils.isSearchState) {
-            return;
-        }
 
         if (tag instanceof Integer) {
             Integer num = (Integer) v.getTag();
@@ -579,8 +554,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
 
     boolean canSwipe() {
         boolean ret = true;
-        if (mSearchUtils != null && SearchUtils.isSearchState)
-            ret = false;
+
         if (mDragController.isDragging())
             ret = false;
         return ret;
@@ -632,11 +606,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
-            if (mSearchUtils != null && SearchUtils.isSearchState) {
-                mSearchUtils.stopSearchBar();
-            } else {
-                swipeDown();
-            }
+            swipeDown();
         } else if (keyCode == KeyEvent.KEYCODE_MENU) {
             if (mState == STATE_MAINMNEU) {
                 if (event.getAction() == KeyEvent.ACTION_UP)

@@ -14,5 +14,6 @@
     <string name="classify">重新分类</string>
     <string name="unload">卸载应用</string>
     <string name="hideicon">隐藏图标</string>
+    <string name="sounds_not_install">未安装google语音搜索</string>
 
 </resources>

@@ -6,8 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-import com.cooeeui.brand.zenlauncher.searchbar.SearchUtils;
-
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -60,23 +58,23 @@ public class ClickIntent implements OnClickListener {
         Object tag = v.getTag();
         if (tag instanceof String) {
             String keyName = (String) tag;
-            if (!SearchUtils.isSearchState) {
-                if (clockName.equals(keyName)) {
-                    if (clockIntent == null) {
-                        clockIntent = getIntentByValue(keyName, clockpkgName, clockclsName);
-                    }
-                    if (clockIntent != null) {
-                        context.startActivity(clockIntent);
-                    }
-                } else if (calendarName.equals(keyName)) {
-                    if (calendarIntent == null) {
-                        calendarIntent = getIntentByValue(keyName, calendarpkgName, calendarclsName);
-                    }
-                    if (calendarIntent != null) {
-                        context.startActivity(calendarIntent);
-                    }
+
+            if (clockName.equals(keyName)) {
+                if (clockIntent == null) {
+                    clockIntent = getIntentByValue(keyName, clockpkgName, clockclsName);
+                }
+                if (clockIntent != null) {
+                    context.startActivity(clockIntent);
+                }
+            } else if (calendarName.equals(keyName)) {
+                if (calendarIntent == null) {
+                    calendarIntent = getIntentByValue(keyName, calendarpkgName, calendarclsName);
+                }
+                if (calendarIntent != null) {
+                    context.startActivity(calendarIntent);
                 }
             }
+
         }
 
     }
