@@ -1,13 +1,14 @@
 
 package com.cooeeui.brand.zenlauncher.scene.drawer;
 
-import android.content.Intent;
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.BaseAdapter;
@@ -15,6 +16,7 @@ import android.widget.GridView;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.R;
 import com.cooeeui.brand.zenlauncher.apps.AppInfo;
 import com.cooeeui.brand.zenlauncher.category.CategoryData;
@@ -108,6 +110,7 @@ public class GridFragment extends Fragment {
             return 0;
         }
 
+        @SuppressLint("NewApi")
         @Override
         public View getView(int position, View convertView, ViewGroup parent) {
             View icon;
@@ -125,13 +128,24 @@ public class GridFragment extends Fragment {
                 // set icon text.
                 TextView text = (TextView) icon.findViewById(R.id.icon_text);
                 text.setText(info.title);
-                // set intent
-                icon.setTag(info.intent);
+                // set info to icon tag.
+                icon.setTag(info);
                 icon.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent intent = (Intent) v.getTag();
-                        startActivity(intent);
+                        AppInfo i = (AppInfo) v.getTag();
+                        Launcher l = (Launcher) GridFragment.this.getActivity();
+                        l.startActivitySafely(i.intent);
+                    }
+                });
+				// TODO: move uninstall action to click at uninstall state.
+                icon.setOnLongClickListener(new OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View v) {
+                        AppInfo i = (AppInfo) v.getTag();
+                        Launcher l = (Launcher) GridFragment.this.getActivity();
+                        l.startApplicationUninstallActivity(i.componentName, i.flags);
+                        return true;
                     }
                 });
             } else {

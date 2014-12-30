@@ -112,7 +112,7 @@ public class LauncherModel extends BroadcastReceiver {
     // shortcuts created by LauncherModel that are directly on the home screen.
     static final ArrayList<ItemInfo> sBgWorkspaceItems = new ArrayList<ItemInfo>();
 
-    // </ only access in worker thread >
+    private static int mMaxPosition;
 
     private IconCache mIconCache;
     private Bitmap mDefaultIcon;
@@ -140,10 +140,6 @@ public class LauncherModel extends BroadcastReceiver {
                 boolean matchPackageNamesOnly);
 
         public void bindSearchablesChanged();
-
-        public boolean isAllAppsButtonRank(int rank);
-
-        public void onPageBoundSynchronously(int page);
     }
 
     public interface ItemInfoFilter {
@@ -219,6 +215,11 @@ public class LauncherModel extends BroadcastReceiver {
 
     public Bitmap getFallbackIcon() {
         return Bitmap.createBitmap(mDefaultIcon);
+    }
+
+    public static int generateNewPosition() {
+        mMaxPosition++;
+        return mMaxPosition;
     }
 
     public void unbindItemInfosAndClearQueuedBindRunnables() {
@@ -321,15 +322,15 @@ public class LauncherModel extends BroadcastReceiver {
     /**
      * Add an item to the database in a specified container.
      */
-    public static void addItemToDatabase(Context context, final ShortcutInfo item, int position) {
+    public static void addItemToDatabase(Context context, final ShortcutInfo item) {
         final ContentValues values = new ContentValues();
         final ContentResolver cr = context.getContentResolver();
 
         item.onAddToDatabase(values);
         item.id = LauncherAppState.getLauncherProvider().generateNewItemId();
+        item.position = generateNewPosition();
         values.put(LauncherSettings.Favorites._ID, item.id);
-        values.put(LauncherSettings.Favorites.POSITION, position);
-        item.position = position;
+        values.put(LauncherSettings.Favorites.POSITION, item.position);
 
         Runnable r = new Runnable() {
             public void run() {
@@ -806,6 +807,7 @@ public class LauncherModel extends BroadcastReceiver {
 
             synchronized (sBgLock) {
                 clearSBgDataStructures();
+                mMaxPosition = -1;
 
                 final Uri contentUri = LauncherSettings.Favorites.CONTENT_URI;
                 if (DEBUG_LOADERS)
@@ -863,6 +865,7 @@ public class LauncherModel extends BroadcastReceiver {
                                 info.id = id;
                                 info.intent = intent;
                                 info.position = position;
+                                mMaxPosition++;
 
                                 sBgWorkspaceItems.add(info);
                                 if ("*BROWSER*".equalsIgnoreCase(intentDescription)) {
