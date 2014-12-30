@@ -578,17 +578,6 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
 
     }
 
-    @Override
-    public boolean isAllAppsButtonRank(int rank) {
-        // TODO Auto-generated method stub
-        return false;
-    }
-
-    @Override
-    public void onPageBoundSynchronously(int page) {
-        // TODO Auto-generated method stub
-    }
-
     void entryZenSetting() {
         Intent intent = new Intent(this, ZenSetting.class);
         startActivity(intent);

@@ -140,10 +140,6 @@ public class LauncherModel extends BroadcastReceiver {
                 boolean matchPackageNamesOnly);
 
         public void bindSearchablesChanged();
-
-        public boolean isAllAppsButtonRank(int rank);
-
-        public void onPageBoundSynchronously(int page);
     }
 
     public interface ItemInfoFilter {
