@@ -64,11 +64,11 @@ public class ClickButtonOnClickListener implements OnClickListener {
         Object tag = v.getTag();
         if (tag instanceof String) {
             String nameTag = (String) tag;
-            doneChangeByValue(nameTag, v);
+            doneClickByValue(nameTag, v);
         }
     }
 
-    public void doneChangeByValue(String nameTag, View v) {
+    private void doneClickByValue(String nameTag, View v) {
         if (nameTag.equals(util.optionName)) {
             doneSomethingInOption(v);
         } else if (mPopMenuGroup != null && (nameTag.contains(mPopMenuGroup.mPopTag))) {
@@ -88,37 +88,18 @@ public class ClickButtonOnClickListener implements OnClickListener {
             if (mPopupWindow != null && mPopupWindow.isShowing()) {
                 mPopupWindow.dismiss();
             }
-
         }
-        else {
-            int tabNum = 0;
-            if (nameTag.equals(util.tabName[0])) {
-                tabViewGroup.changeTabLeft(0);
-                tabNum = 0;
-            } else if (nameTag.equals(util.tabName[1])) {
-                tabViewGroup.changeTabLeft(1);
-                tabNum = 1;
-            } else if (nameTag.equals(util.tabName[2])) {
-                tabViewGroup.changeTabLeft(2);
-                tabNum = 2;
-            } else if (nameTag.equals(util.tabName[3])) {
-                tabViewGroup.changeTabLeft(3);
-                tabNum = 3;
-            } else if (nameTag.equals(util.tabName[4])) {
-                tabViewGroup.changeTabLeft(4);
-                tabNum = 4;
-            } else if (nameTag.equals(util.tabName[5])) {
-                tabViewGroup.changeTabLeft(5);
-                tabNum = 5;
-            }
-            util.setTabNum(tabNum);
-            if (util.getPreferences() != null) {
-                util.getPreferences().edit().putInt(util.gettabNumKey(), tabNum).commit();
-            }
+    }
 
-            titleBar.setTextName(nameTag);
-            applistGroup.setTab(tabNum);
+    public void changeTabByNum(int tabNum) {
+
+        util.setTabNum(tabNum);
+        if (util.getPreferences() != null) {
+            util.getPreferences().edit().putInt(util.gettabNumKey(), tabNum).commit();
         }
+        titleBar.setTextName(util.tabName[tabNum]);
+        applistGroup.setTab(tabNum);
+
     }
 
     private void doneSomethingInOption(View view) {

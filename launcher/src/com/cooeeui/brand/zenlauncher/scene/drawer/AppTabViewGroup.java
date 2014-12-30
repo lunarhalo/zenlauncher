@@ -1,10 +1,15 @@
 
 package com.cooeeui.brand.zenlauncher.scene.drawer;
 
+import android.animation.Animator;
+import android.animation.Animator.AnimatorListener;
+import android.animation.ValueAnimator;
+import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.content.Context;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 
@@ -32,6 +37,7 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
     private int[] tabPotion = new int[tabIconId.length];
     private MyButton[] myButtons = new MyButton[tabIconId.length];
 
+    // private int oldNum = -1;
     public AppTabViewGroup(Context context, AttributeSet attrs) {
         super(context, attrs);
     }
@@ -85,26 +91,34 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
                 LayoutParams lp = new LayoutParams(tabButtonWidth, tabButtonWidth);
                 tabButton.setLayoutParams(lp);
             }
-            changeTabLeft(util.getTabNum());
+            setTabX(util.getTabNum());
         }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         int x = (int) event.getX();
-        Log.v("", "AppTabViewGroup onTouchEvent x is " + x + " action is " + event.getAction());
+        int startX = (int) tabImageView.getX();
+        changeTabNumByX(x);
+        int endX = getTabPotion(getNumByX(x));
+        // Log.v("", "AppTabViewGroup onTouchEvent x is " + x + " action is " +
+        // event.getAction());
         switch (event.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                if (util.ismIsTabViewAnimDone()) {
+                    startViewTranslateAnim(startX, endX, tabImageView);
+                }
+                break;
             case MotionEvent.ACTION_MOVE:
                 if (tabImageView != null) {
                     tabImageView.setX(x);
                     invalidate();
-                    changeValueByX(x);
                 }
-
                 break;
             case MotionEvent.ACTION_UP:
-                changeValueByX(x);
-                changeTabLeft(oldNum);
+                if (util.ismIsTabViewAnimDone()) {
+                    startViewTranslateAnim(startX, endX, tabImageView);
+                }
                 break;
             default:
                 break;
@@ -112,13 +126,48 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
         return true;
     }
 
-    private void changeValueByX(int x) {
+    private void startViewTranslateAnim(int startX, int endX, final View view) {
+        ValueAnimator valueAnimator = ValueAnimator.ofInt(startX, endX);
+        valueAnimator.setDuration(200);
+        valueAnimator.addListener(new AnimatorListener() {
+
+            @Override
+            public void onAnimationStart(Animator animation) {
+                util.setmIsTabViewAnimDone(false);
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                util.setmIsTabViewAnimDone(true);
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+        });
+        valueAnimator.addUpdateListener(new AnimatorUpdateListener() {
+
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                int valueX = (Integer) animation.getAnimatedValue();
+                view.setTranslationX(valueX);
+            }
+        });
+        valueAnimator.start();
+    }
+
+    private void changeTabNumByX(int x) {
         int num = getNumByX(x);
-        Log.v("", "whj num is " + num);
+        Log.v("", "whj num is " + num + " x is " + x);
         if (oldNum != num && num >= 0 && num < util.tabName.length) {
             oldNum = num;
-            String value = util.tabName[num];
-            onClickListener.doneChangeByValue(value, null);
+            onClickListener.changeTabByNum(num);
         }
     }
 
@@ -135,11 +184,19 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
         return 0;
     }
 
-    public void changeTabLeft(int num) {
-        if (tabImageView != null && num < tabPotion.length) {
-            int x = tabPotion[num] - tabButtonWidth;
-            tabImageView.setX(x);
+    private void setTabX(int num) {
+        if (tabImageView != null) {
+            int px = getTabPotion(num);
+            tabImageView.setX(px);
         }
+    }
+
+    private int getTabPotion(int num) {
+        int x = 0;
+        if (num < tabPotion.length) {
+            x = tabPotion[num] - tabButtonWidth;
+        }
+        return x;
     }
 
     @Override
@@ -148,7 +205,7 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
         this.addView(tabImageView);
         for (int i = 0; i < myButtons.length; i++) {
             MyButton tabButton = new MyButton(getContext());
-            tabButton.setOnClickListener(onClickListener);
+            // tabButton.setOnClickListener(onClickListener);
             tabButton.setTag(util.tabName[i]);
             tabButton.setBackgroundResource(tabIconId[i]);
             myButtons[i] = tabButton;
