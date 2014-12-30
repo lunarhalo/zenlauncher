@@ -128,22 +128,18 @@ public class GridFragment extends Fragment {
                 // set icon text.
                 TextView text = (TextView) icon.findViewById(R.id.icon_text);
                 text.setText(info.title);
-                // set intent
-                // icon.setTag(info.intent);
+                // set info to icon tag.
                 icon.setTag(info);
                 icon.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        // Intent intent = (Intent) v.getTag();
                         AppInfo i = (AppInfo) v.getTag();
-                        // startActivity(i.intent);
                         Launcher l = (Launcher) GridFragment.this.getActivity();
                         l.startActivitySafely(i.intent);
                     }
                 });
-				//temp for test
+				// TODO: move uninstall action to click at uninstall state.
                 icon.setOnLongClickListener(new OnLongClickListener() {
-
                     @Override
                     public boolean onLongClick(View v) {
                         AppInfo i = (AppInfo) v.getTag();
