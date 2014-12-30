@@ -217,6 +217,11 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
         }
 
         addBubbleView(info, b);
+
+        int p = mBubbleViews.size() - 1;
+        if (info.position != p) {
+            LauncherModel.modifyItemInDatabase(mLauncher, info, p);
+        }
     }
 
     public void addBubbleView(ShortcutInfo info) {
@@ -226,7 +231,7 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
         addBubbleView(info, b);
         mSelect = mBubbleViews.get(position);
 
-        LauncherModel.addItemToDatabase(mLauncher, info, position);
+        LauncherModel.addItemToDatabase(mLauncher, info);
     }
 
     private Bitmap getDefaultIcon() {
@@ -475,11 +480,12 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
             ShortcutInfo ti = (ShortcutInfo) target.getTag();
             int tIndex = mBubbleViews.indexOf(target);
             int sIndex = mBubbleViews.indexOf(mSelect);
-
-            LauncherModel.modifyItemInDatabase(mLauncher, si, tIndex);
+            int sp = si.position;
+            int tp = ti.position;
+            LauncherModel.modifyItemInDatabase(mLauncher, si, tp);
             mBubbleViews.set(tIndex, mSelect);
             mBubbleViews.set(sIndex, target);
-            LauncherModel.modifyItemInDatabase(mLauncher, ti, sIndex);
+            LauncherModel.modifyItemInDatabase(mLauncher, ti, sp);
         }
         mLauncher.getDragLayer().removeView(mSelect);
         mDragController.addDropTarget(mSelect);
