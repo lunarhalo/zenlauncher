@@ -8,10 +8,12 @@ import java.util.ArrayList;
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.content.ActivityNotFoundException;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -348,6 +350,22 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         startActivitySafely(settings);
     }
 
+    public boolean startApplicationUninstallActivity(ComponentName componentName, int flags) {
+        if ((flags & AppInfo.DOWNLOADED_FLAG) == 0) {
+            // System applications cannot be uninstall.
+            return false;
+        } else {
+            String packageName = componentName.getPackageName();
+            String className = componentName.getClassName();
+            Intent intent = new Intent(
+                    Intent.ACTION_DELETE, Uri.fromParts("package", packageName, className));
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
+                    Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            startActivity(intent);
+            return true;
+        }
+    }
+
     @Override
     public boolean onLongClick(View v) {
         if (v instanceof BubbleView) {
@@ -357,7 +375,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         return true;
     }
 
-    boolean startActivitySafely(Intent intent) {
+    public boolean startActivitySafely(Intent intent) {
         try {
             startActivity(intent);
             return true;
@@ -512,22 +530,46 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     }
 
     @Override
-    public void bindAppsAdded(ArrayList<AppInfo> addedApps) {
-        // TODO Auto-generated method stub
+    public void bindAppsAdded(final ArrayList<AppInfo> addedApps) {
+        Runnable r = new Runnable() {
+            public void run() {
+                bindAppsAdded(addedApps);
+            }
+        };
+        if (waitUntilResume(r)) {
+            return;
+        }
 
     }
 
     @Override
-    public void bindAppsUpdated(ArrayList<AppInfo> apps) {
-        // TODO Auto-generated method stub
+    public void bindAppsUpdated(final ArrayList<AppInfo> apps) {
+        Runnable r = new Runnable() {
+            public void run() {
+                bindAppsUpdated(apps);
+            }
+        };
+        if (waitUntilResume(r)) {
+            return;
+        }
 
+        mSpeedDial.updateFromBind(apps);
     }
 
     @Override
-    public void bindComponentsRemoved(ArrayList<String> packageNames, ArrayList<AppInfo> appInfos,
-            boolean matchPackageNamesOnly) {
-        // TODO Auto-generated method stub
+    public void bindComponentsRemoved(final ArrayList<String> packageNames,
+            final ArrayList<AppInfo> appInfos,
+            final boolean packageRemoved) {
+        Runnable r = new Runnable() {
+            public void run() {
+                bindComponentsRemoved(packageNames, appInfos, packageRemoved);
+            }
+        };
+        if (waitUntilResume(r)) {
+            return;
+        }
 
+        mSpeedDial.removeBubbleViewFromBind(appInfos);
     }
 
     @Override

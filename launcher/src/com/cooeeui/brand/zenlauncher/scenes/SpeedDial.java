@@ -2,10 +2,12 @@
 package com.cooeeui.brand.zenlauncher.scenes;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
@@ -17,20 +19,23 @@ import android.view.animation.Interpolator;
 import android.widget.FrameLayout;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
+import com.cooeeui.brand.zenlauncher.LauncherAppState;
 import com.cooeeui.brand.zenlauncher.LauncherModel;
 import com.cooeeui.brand.zenlauncher.R;
+import com.cooeeui.brand.zenlauncher.apps.AppInfo;
+import com.cooeeui.brand.zenlauncher.apps.IconCache;
 import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
 import com.cooeeui.brand.zenlauncher.config.IconConfig;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 import com.cooeeui.brand.zenlauncher.scenes.utils.BitmapUtils;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragSource;
-import com.cooeeui.brand.zenlauncher.scenes.utils.DropTarget;
 
 public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchListener {
 
     private Launcher mLauncher;
     private DragController mDragController;
+    private IconCache mIconCache;
 
     private static final int SPEED_DIAL_STATE_NORMAL = 0;
     private static final int SPEED_DIAL_STATE_DRAG = 1;
@@ -76,6 +81,9 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
         mLauncher = launcher;
         mDragController = controller;
         mSearchBar = mLauncher.getDragLayer().findViewById(R.id.search_bar);
+
+        LauncherAppState app = LauncherAppState.getInstance();
+        mIconCache = app.getIconCache();
 
         // setup edit bottom view.
         mEditBottomView = mLauncher.getDragLayer().findViewById(R.id.edit_bottom_view);
@@ -141,20 +149,49 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
     }
 
     public void startBind() {
-        int childCount = getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            View v = getChildAt(i);
-            if (v instanceof BubbleView) {
-                mDragController.removeDropTarget((DropTarget) v);
-                BubbleView view = (BubbleView) v;
-                view.clearBitmap();
-                removeView(view);
-            }
+        int count = mBubbleViews.size() - 1;
+        for (int i = count; i >= 0; i--) {
+            BubbleView view = mBubbleViews.get(i);
+            removeBubbleView(view);
         }
-        mBubbleViews.clear();
     }
 
     public void finishBind() {
+        update();
+    }
+
+    public void updateFromBind(ArrayList<AppInfo> appInfos) {
+        HashSet<ComponentName> cns = new HashSet<ComponentName>();
+        for (AppInfo info : appInfos) {
+            cns.add(info.componentName);
+        }
+
+        int count = mBubbleViews.size() - 1;
+        for (int i = count; i >= 0; i--) {
+            BubbleView view = mBubbleViews.get(i);
+            ShortcutInfo info = (ShortcutInfo) view.getTag();
+            if (cns.contains(info.intent.getComponent())) {
+                info.mIcon = mIconCache.getIcon(info.intent);
+                view.changeBitmap(info.mIcon);
+            }
+        }
+    }
+
+    public void removeBubbleViewFromBind(ArrayList<AppInfo> appInfos) {
+        HashSet<ComponentName> cns = new HashSet<ComponentName>();
+        for (AppInfo info : appInfos) {
+            cns.add(info.componentName);
+        }
+
+        int count = mBubbleViews.size() - 1;
+        for (int i = count; i >= 0; i--) {
+            BubbleView view = mBubbleViews.get(i);
+            ShortcutInfo info = (ShortcutInfo) view.getTag();
+            if (cns.contains(info.intent.getComponent())) {
+                removeBubbleView(view);
+                LauncherModel.deleteItemFromDatabase(mLauncher, info);
+            }
+        }
         update();
     }
 
@@ -240,20 +277,25 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
         LauncherModel.updateItemInDatabase(mLauncher, i);
     }
 
+    public void removeBubbleView(BubbleView view) {
+        ShortcutInfo i = (ShortcutInfo) view.getTag();
+        mBubbleViews.remove(view);
+        removeView(view);
+        mDragController.removeDropTarget(view);
+
+        if (i.mRecycle) {
+            view.clearBitmap();
+            i.mRecycle = false;
+        }
+    }
+
     public void removeBubbleView() {
         ShortcutInfo i = (ShortcutInfo) mSelect.getTag();
         int index = mBubbleViews.indexOf(mSelect);
 
-        mBubbleViews.remove(mSelect);
-        removeView(mSelect);
-        mDragController.removeDropTarget(mSelect);
+        removeBubbleView(mSelect);
         update();
         LauncherModel.deleteItemFromDatabase(mLauncher, i);
-
-        if (i.mRecycle) {
-            mSelect.clearBitmap();
-            i.mRecycle = false;
-        }
 
         if (mBubbleViews.size() <= 0) {
             stopDrag();
