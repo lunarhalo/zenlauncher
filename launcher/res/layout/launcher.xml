@@ -77,7 +77,7 @@
                     <com.cooeeui.brand.zenlauncher.scenes.ui.FitCenterLayout
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
-                        zenlauncher:aspect_ratio="8.73" >
+                        zenlauncher:aspect_ratio="6.31" >
 
                         <com.cooeeui.brand.zenlauncher.searchbar.SearchBarGroup
                             android:id="@+id/search_bar"
@@ -86,16 +86,13 @@
                             android:background="@drawable/search_back"
                             android:scaleType="fitXY" >
 
-                            <EditText
-                                android:id="@+id/searchText"
+                            <ImageView
+                                android:id="@+id/im_search_back"
                                 android:layout_width="match_parent"
                                 android:layout_height="match_parent"
+                                android:layout_alignParentLeft="true"
                                 android:layout_centerVertical="true"
-                                android:layout_marginLeft="15dp"
-                                android:background="@color/transparent"
-                                android:hint="@string/goole_search_hint"
-                                android:maxLength="10"
-                                android:textSize="20sp" />
+                                android:background="@drawable/search_back" />
 
                             <Button
                                 android:id="@+id/soundsButton"

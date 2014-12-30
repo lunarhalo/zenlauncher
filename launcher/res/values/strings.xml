@@ -20,7 +20,6 @@
     <string name="always">Always</string>
     <string name="once">For once</string>
     <string name="chooseApp">Choose to use the application:</string>
-    <string name="goole_search_hint">Google</string>
     <string name="classify">Reclassify</string>
     <string name="unload">UnloadApp</string>
     <string name="hideicon">HideIcon</string>
@@ -57,5 +56,6 @@
     <string name="sevenweek_foreign">Sun.</string>
     <string name="flush_Prompt_foreign">Refreshing Please wait....</string>
     <string name="notsetcity_foreign">You have not set the city,Please set the city first</string>
+    <string name="sounds_not_install">Not installed Google voice search</string>
 
 </resources>
