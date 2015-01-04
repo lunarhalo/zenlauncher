@@ -35,12 +35,10 @@ public class BubbleView extends View implements DropTarget {
 
     @Override
     protected void onDraw(Canvas canvas) {
-        if (mBitmap != null) {
+        if (mBitmap != null && !mBitmap.isRecycled()) {
             float scale = (float) mSize / (float) mBitmap.getWidth();
             mMatrix.setScale(scale, scale);
-            if (mBitmap != null && !mBitmap.isRecycled()) {
-                canvas.drawBitmap(mBitmap, mMatrix, mPaint);
-            }
+            canvas.drawBitmap(mBitmap, mMatrix, mPaint);
         }
     }
 

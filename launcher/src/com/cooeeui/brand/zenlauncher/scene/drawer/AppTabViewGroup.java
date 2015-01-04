@@ -305,7 +305,11 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
         mDragExitOldnum = oldNum;
     }
 
-    public void onDropCompleted(View targetView) {
+    public boolean isTabChange() {
+        return mDragExitOldnum != oldNum;
+    }
+
+    public void changeTab() {
         if (mDragExitOldnum != oldNum) {
             onClickListener.getApplistGroup().changeTabNum(mDragExitOldnum, oldNum);
             mDragExitOldnum = oldNum;

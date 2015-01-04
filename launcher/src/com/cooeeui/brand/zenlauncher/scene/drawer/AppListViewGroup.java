@@ -210,13 +210,14 @@ public class AppListViewGroup extends FrameLayout {
         }
     }
 
-    public void onDropCompleted(View target) {
-        if (target != null) {
-
-        }
+    public void showIcon() {
         mSelectIcon.setVisibility(View.VISIBLE);
         mLauncher.getDragLayer().removeView(mBubbleView);
-        // mBubbleView.clearBitmap();
+        mBubbleView = null;
+    }
+
+    public void removeIcon() {
+        mLauncher.getDragLayer().removeView(mBubbleView);
         mBubbleView = null;
     }
 

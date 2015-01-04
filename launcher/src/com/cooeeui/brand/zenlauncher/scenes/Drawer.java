@@ -103,7 +103,11 @@ public class Drawer extends LinearLayout implements IAppGroup, DragSource {
 
     @Override
     public void onDropCompleted(View targetView) {
-        applistGroup.onDropCompleted(targetView);
-        tabViewGroup.onDropCompleted(targetView);
+        if (tabViewGroup.isTabChange()) {
+            applistGroup.removeIcon();
+            tabViewGroup.changeTab();
+        } else {
+            applistGroup.showIcon();
+        }
     }
 }
