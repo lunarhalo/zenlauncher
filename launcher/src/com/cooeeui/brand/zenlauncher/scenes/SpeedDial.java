@@ -579,26 +579,21 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
     @Override
     public void onDropCompleted(View targetView) {
         if (targetView instanceof BubbleView) {
-            {
-                BubbleView target = (BubbleView) targetView;
-                if (target != null) {
-                    ShortcutInfo si = (ShortcutInfo) mSelect.getTag();
-                    ShortcutInfo ti = (ShortcutInfo) target.getTag();
-                    int tIndex = mBubbleViews.indexOf(target);
-                    int sIndex = mBubbleViews.indexOf(mSelect);
-                    int sp = si.position;
-                    int tp = ti.position;
-                    LauncherModel.modifyItemInDatabase(mLauncher, si, tp);
-                    mBubbleViews.set(tIndex, mSelect);
-                    mBubbleViews.set(sIndex, target);
-                    LauncherModel.modifyItemInDatabase(mLauncher, ti, sp);
-                }
-                mLauncher.getDragLayer().removeView(mSelect);
-                mDragController.addDropTarget(mSelect);
-                addView(mSelect);
-                update();
-            }
+            BubbleView target = (BubbleView) targetView;
+            ShortcutInfo si = (ShortcutInfo) mSelect.getTag();
+            ShortcutInfo ti = (ShortcutInfo) target.getTag();
+            int tIndex = mBubbleViews.indexOf(target);
+            int sIndex = mBubbleViews.indexOf(mSelect);
+            int sp = si.position;
+            int tp = ti.position;
+            LauncherModel.modifyItemInDatabase(mLauncher, si, tp);
+            mBubbleViews.set(tIndex, mSelect);
+            mBubbleViews.set(sIndex, target);
+            LauncherModel.modifyItemInDatabase(mLauncher, ti, sp);
         }
-
+        mLauncher.getDragLayer().removeView(mSelect);
+        mDragController.addDropTarget(mSelect);
+        addView(mSelect);
+        update();
     }
 }
