@@ -123,7 +123,7 @@ public class DragController {
         for (int i = 0; i < count; i++) {
             DropTarget target = dropTargets.get(i);
             target.getHitRectRelativeToDragLayer(r);
-            if (r.contains(x - mMidOffsetX, y - mMidOffsetY)) {
+            if (r.contains(x, y)) {
                 return target;
             }
         }
@@ -131,10 +131,9 @@ public class DragController {
     }
 
     private void drop(int x, int y) {
-        final DropTarget dropTarget = findDropTarget(x, y);
+        final DropTarget dropTarget = findDropTarget(x - mMidOffsetX, y - mMidOffsetY);
 
         if (dropTarget != null) {
-            dropTarget.onDragExit(mDragObject);
             dropTarget.onDrop(mDragObject);
         }
         mDragObject.dragSource.onDropCompleted((View) dropTarget);
@@ -195,7 +194,7 @@ public class DragController {
     private void handleMoveEvent(int x, int y) {
         mDragObject.dragView.move(x - mOffsetX, y - mOffsetY);
 
-        DropTarget dropTarget = findDropTarget(x, y);
+        DropTarget dropTarget = findDropTarget(x - mMidOffsetX, y - mMidOffsetY);
         checkTouchMove(dropTarget);
 
     }
