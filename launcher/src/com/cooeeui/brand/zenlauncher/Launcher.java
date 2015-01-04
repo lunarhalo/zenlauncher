@@ -120,7 +120,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         mWorkspace = (Workspace) findViewById(R.id.workspace);
         mWorkspace.setOnClickListener(this);
 
-        registerForContextMenu(mWorkspace);
+        showContextMenu();
 
         mWeather = (WeatherClockGroup) findViewById(R.id.weatherclock);
         mWeather.setup(this);
@@ -170,6 +170,14 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+    }
+
+    public void showContextMenu() {
+        registerForContextMenu(mWorkspace);
+    }
+
+    public void hideContextMenu() {
+        unregisterForContextMenu(mWorkspace);
     }
 
     // void showLoadingView() {
@@ -266,7 +274,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         getMenuInflater().inflate(R.menu.launcher_menu, menu);
-        if (mSpeedDial.isFull()) {
+        if (mSpeedDial.isFull() || mApps == null) {
             menu.findItem(R.id.add).setVisible(false);
         }
     }
@@ -330,7 +338,11 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
             return false;
         }
 
-        if (mSpeedDial.isFull()) {
+        if (mSpeedDial.isDragState()) {
+            return false;
+        }
+
+        if (mSpeedDial.isFull() || mApps == null) {
             menu.findItem(R.id.add).setVisible(false);
         } else {
             menu.findItem(R.id.add).setVisible(true);
@@ -409,7 +421,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
                     new PopupDialog(this, PopupDialog.CHANGE_VIEW).show();
                     break;
                 case SpeedDial.EDIT_VIEW_DELETE:
-                    mSpeedDial.removeBubbleView();
+                    mSpeedDial.deleteBubbleView();
                     break;
             }
             return;

@@ -4,6 +4,8 @@ package com.cooeeui.brand.zenlauncher.scenes;
 import java.util.ArrayList;
 import java.util.HashSet;
 
+import android.animation.Animator;
+import android.animation.Animator.AnimatorListener;
 import android.animation.AnimatorSet;
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
@@ -53,6 +55,8 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
     public static final int EDIT_VIEW_CHANGE = 0x101;
     public static final int EDIT_VIEW_DELETE = 0x102;
 
+    private float mSelectX;
+    private float mSelectY;
     private BubbleView mSelect;
     private View mSearchBar;
     private View mEditBottomView;
@@ -64,6 +68,13 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
     private ValueAnimator mAnimatorSearch;
     private ValueAnimator mAnimatorEdit;
     private float mAnimatorValue;
+    private Interpolator mDecelerate;
+    private Interpolator mAccelerate;
+
+    private static final int ALPHA_DURATION = 200;
+    private BubbleView mAlphaView;
+    private ValueAnimator mAlphaAnimator;
+    private ValueAnimator mDelAnimator;
 
     public SpeedDial(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
@@ -104,8 +115,11 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
             v.setTag(tags[i]);
         }
 
-        Interpolator interpolator = AnimationUtils.loadInterpolator(mLauncher,
+        mDecelerate = AnimationUtils.loadInterpolator(mLauncher,
                 android.R.anim.decelerate_interpolator);
+
+        mAccelerate = AnimationUtils.loadInterpolator(mLauncher,
+                android.R.anim.accelerate_interpolator);
 
         mAnimatorSearch = ValueAnimator.ofFloat(0, 1f);
         mAnimatorSearch.addUpdateListener(new AnimatorUpdateListener() {
@@ -125,7 +139,6 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
                 }
             }
         });
-        mAnimatorSearch.setInterpolator(interpolator);
 
         mAnimatorEdit = ValueAnimator.ofFloat(0, 1f);
         mAnimatorEdit.addUpdateListener(new AnimatorUpdateListener() {
@@ -145,7 +158,58 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
                 }
             }
         });
-        mAnimatorEdit.setInterpolator(interpolator);
+
+        mAlphaView = null;
+        mAlphaAnimator = ValueAnimator.ofFloat(0, 0.7f);
+        mAlphaAnimator.setDuration(ALPHA_DURATION);
+        mAlphaAnimator.addUpdateListener(new AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float alpha = (Float) animation.getAnimatedValue();
+                if (mAlphaView != null) {
+                    mAlphaView.setAlpha(1f - alpha);
+                } else {
+                    int count = mBubbleViews.size() - 1;
+                    for (int i = count; i >= 0; i--) {
+                        BubbleView view = mBubbleViews.get(i);
+                        if (view != mSelect)
+                            view.setAlpha(1f - alpha);
+                    }
+                }
+            }
+        });
+
+        mDelAnimator = ValueAnimator.ofFloat(1f, 0);
+        mDelAnimator.setDuration(OUT_DURATION);
+        mDelAnimator.addUpdateListener(new AnimatorUpdateListener() {
+            @Override
+            public void onAnimationUpdate(ValueAnimator animation) {
+                float alpha = (Float) animation.getAnimatedValue();
+                mSelect.setAlpha(alpha);
+            }
+        });
+        mDelAnimator.addListener(new AnimatorListener() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                removeBubbleView();
+            }
+
+            @Override
+            public void onAnimationCancel(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationRepeat(Animator animation) {
+
+            }
+
+            @Override
+            public void onAnimationStart(Animator animation) {
+
+            }
+
+        });
     }
 
     public void startBind() {
@@ -170,7 +234,7 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
         for (int i = count; i >= 0; i--) {
             BubbleView view = mBubbleViews.get(i);
             ShortcutInfo info = (ShortcutInfo) view.getTag();
-            if (cns.contains(info.intent.getComponent())) {
+            if (info.intent != null && cns.contains(info.intent.getComponent())) {
                 info.mIcon = mIconCache.getIcon(info.intent);
                 view.changeBitmap(info.mIcon);
             }
@@ -187,7 +251,7 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
         for (int i = count; i >= 0; i--) {
             BubbleView view = mBubbleViews.get(i);
             ShortcutInfo info = (ShortcutInfo) view.getTag();
-            if (cns.contains(info.intent.getComponent())) {
+            if (info.intent != null && cns.contains(info.intent.getComponent())) {
                 removeBubbleView(view);
                 LauncherModel.deleteItemFromDatabase(mLauncher, info);
             }
@@ -198,7 +262,7 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
     private void addBubbleView(ShortcutInfo info, Bitmap b) {
         BubbleView v = new BubbleView(mLauncher, b);
         v.setTag(info);
-        v.setSize(mIconSize);
+        v.setSize(mIconSize, mPadding);
         addView(v);
         mBubbleViews.add(v);
         v.setOnClickListener(mLauncher);
@@ -296,21 +360,25 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
 
     public void removeBubbleView() {
         ShortcutInfo i = (ShortcutInfo) mSelect.getTag();
-        int index = mBubbleViews.indexOf(mSelect);
 
         removeBubbleView(mSelect);
-        update();
         LauncherModel.deleteItemFromDatabase(mLauncher, i);
 
-        if (mBubbleViews.size() <= 0) {
+        int s = mBubbleViews.size();
+
+        if (s <= 0) {
             stopDrag();
             return;
         }
-        if (index == mBubbleViews.size()) {
-            mSelect = mBubbleViews.get(index - 1);
-        } else {
-            mSelect = mBubbleViews.get(index);
-        }
+        update();
+        mSelect = mBubbleViews.get(s - 1);
+        mAlphaView = mSelect;
+        mAlphaAnimator.setFloatValues(0.7f, 0);
+        mAlphaAnimator.start();
+    }
+
+    public void deleteBubbleView() {
+        mDelAnimator.start();
     }
 
     private void moveBubbleView(int position, float x, float y) {
@@ -338,7 +406,7 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
 
         // do not forget to change size of bubble views existed.
         for (BubbleView v : mBubbleViews) {
-            v.setSize(mIconSize);
+            v.setSize(mIconSize, mPadding);
         }
 
         update();
@@ -421,6 +489,7 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
 
         if (action == MotionEvent.ACTION_DOWN && v instanceof BubbleView) {
             BubbleView bv = (BubbleView) v;
+            mAlphaView = mSelect;
             startDrag(bv);
             return true;
         }
@@ -430,9 +499,11 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
     private void showEditViews() {
         mAnimatorSearch.setFloatValues(1f, 0);
         mAnimatorSearch.setDuration(OUT_DURATION);
+        mAnimatorSearch.setInterpolator(mAccelerate);
         mAnimatorValue = 0;
         mAnimatorEdit.setFloatValues(0, 1f);
         mAnimatorEdit.setDuration(IN_DURATION);
+        mAnimatorEdit.setInterpolator(mDecelerate);
 
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.play(mAnimatorSearch).before(mAnimatorEdit);
@@ -442,9 +513,11 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
     private void hideEditViews() {
         mAnimatorEdit.setFloatValues(1f, 0);
         mAnimatorEdit.setDuration(OUT_DURATION);
+        mAnimatorEdit.setInterpolator(mAccelerate);
         mAnimatorValue = 0;
         mAnimatorSearch.setFloatValues(0, 1f);
         mAnimatorSearch.setDuration(IN_DURATION);
+        mAnimatorSearch.setInterpolator(mDecelerate);
 
         AnimatorSet animatorSet = new AnimatorSet();
         animatorSet.play(mAnimatorEdit).before(mAnimatorSearch);
@@ -455,18 +528,48 @@ public class SpeedDial extends FrameLayout implements DragSource, View.OnTouchLi
         if (mState != SPEED_DIAL_STATE_DRAG) {
             mState = SPEED_DIAL_STATE_DRAG;
             showEditViews();
+            mLauncher.hideContextMenu();
         }
         mSelect = view;
+        mSelectX = mSelect.getTranslationX();
+        mSelectY = mSelect.getTranslationY();
         removeView(view);
         mDragController.removeDropTarget(view);
         mDragController.startDrag(this, view);
+
+        if (mAlphaView == view) {
+            return;
+        }
+        mSelect.setAlpha(1f);
+        mAlphaAnimator.setFloatValues(0, 0.7f);
+        mAlphaAnimator.start();
     }
 
     public void stopDrag() {
         if (mState != SPEED_DIAL_STATE_NORMAL) {
             mState = SPEED_DIAL_STATE_NORMAL;
             hideEditViews();
+            mAlphaView = null;
+            mAlphaAnimator.setFloatValues(0.7f, 0);
+            mAlphaAnimator.start();
+
+            mLauncher.showContextMenu();
         }
+    }
+
+    public float getSelectX() {
+        return mSelectX;
+    }
+
+    public float getSelectY() {
+        return mSelectY;
+    }
+
+    public boolean isDragState() {
+        if (mState == SPEED_DIAL_STATE_DRAG) {
+            return true;
+        }
+        return false;
     }
 
     public boolean isFull() {
