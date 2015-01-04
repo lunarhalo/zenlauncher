@@ -27,7 +27,7 @@ import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragSource;
 import com.viewpagerindicator.UnderlinePageIndicator;
 
-public class AppListViewGroup extends FrameLayout implements DragSource {
+public class AppListViewGroup extends FrameLayout {
     PageAdapter mAdapters[];
     Context mContext;
     int mTab;
@@ -196,7 +196,7 @@ public class AppListViewGroup extends FrameLayout implements DragSource {
      * @param v
      * @param parentGridView
      */
-    public void startDrag(FrameLayout v, ZenGridView parentGridView) {
+    public void startDrag(DragSource source, FrameLayout v, ZenGridView parentGridView) {
         if (v.getTag() instanceof AppInfo) {
             mSelectIcon = v;
             mSelectGridView = parentGridView;
@@ -206,11 +206,10 @@ public class AppListViewGroup extends FrameLayout implements DragSource {
             Bitmap bitmap = info.iconBitmap;
             mSelectIcon.setVisibility(View.INVISIBLE);
             mBubbleView = new BubbleView(mContext, bitmap, width);
-            mDragController.startDrag(this, mBubbleView, width);
+            mDragController.startDrag(source, mBubbleView, width);
         }
     }
 
-    @Override
     public void onDropCompleted(View target) {
         if (target != null) {
 

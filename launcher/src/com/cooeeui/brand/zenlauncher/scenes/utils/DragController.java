@@ -13,7 +13,6 @@ import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 
 public class DragController {
-    public static boolean isUp = false;
 
     public static int DRAG_ACTION_MOVE = 0;
 
@@ -219,13 +218,11 @@ public class DragController {
                 handleMoveEvent(dragLayerX, dragLayerY);
                 break;
             case MotionEvent.ACTION_MOVE:
-                isUp = false;
                 handleMoveEvent(dragLayerX, dragLayerY);
                 break;
             case MotionEvent.ACTION_UP:
                 // Ensure that we've processed a move event at the current
                 // pointer location.
-                isUp = true;
                 handleMoveEvent(dragLayerX, dragLayerY);
                 if (mDragging) {
                     drop(dragLayerX, dragLayerY);

@@ -30,6 +30,7 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
     private int paddingLeft = -1;
     private int tabButtonWidth = -1;
     private int oldNum = -1;
+
     /**
      * 用于在DragExit时候原先旧的GridView和现在新的GridView的一个比较
      */
@@ -288,13 +289,6 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
 
         @Override
         public void onDragExit(DragObject dragObject) {
-            if (DragController.isUp) {
-                int tabNum = getNumByTag((String) (this.getTag()));
-                if (mDragExitOldnum != tabNum) {
-                    onClickListener.getApplistGroup().changeTabNum(mDragExitOldnum, tabNum);
-                    mDragExitOldnum = tabNum;
-                }
-            }
             mIsAppTabDragging = false;
         }
 
@@ -311,4 +305,10 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
         mDragExitOldnum = oldNum;
     }
 
+    public void onDropCompleted(View targetView) {
+        if (mDragExitOldnum != oldNum) {
+            onClickListener.getApplistGroup().changeTabNum(mDragExitOldnum, oldNum);
+            mDragExitOldnum = oldNum;
+        }
+    }
 }

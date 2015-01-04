@@ -4,6 +4,7 @@ package com.cooeeui.brand.zenlauncher.scenes;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.AttributeSet;
+import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
@@ -17,8 +18,9 @@ import com.cooeeui.brand.zenlauncher.scene.drawer.IAppGroup;
 import com.cooeeui.brand.zenlauncher.scene.drawer.TitleBar;
 import com.cooeeui.brand.zenlauncher.scenes.ui.ZenGridView;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DragSource;
 
-public class Drawer extends LinearLayout implements IAppGroup {
+public class Drawer extends LinearLayout implements IAppGroup, DragSource {
 
     private TitleBar nameViewGroup = null;
     private AppTabViewGroup tabViewGroup = null;
@@ -95,7 +97,13 @@ public class Drawer extends LinearLayout implements IAppGroup {
     }
 
     public void startDrag(FrameLayout v, ZenGridView parentGridView) {
-        applistGroup.startDrag(v, parentGridView);
+        applistGroup.startDrag(this, v, parentGridView);
         tabViewGroup.startDrag();
+    }
+
+    @Override
+    public void onDropCompleted(View targetView) {
+        applistGroup.onDropCompleted(targetView);
+        tabViewGroup.onDropCompleted(targetView);
     }
 }
