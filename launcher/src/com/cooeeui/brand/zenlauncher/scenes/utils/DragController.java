@@ -7,6 +7,7 @@ import android.graphics.Rect;
 import android.view.HapticFeedbackConstants;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.View;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
@@ -65,6 +66,7 @@ public class DragController {
         mLauncher.getDragLayer().addView(view);
         mDragObject.dragSource = source;
         mLauncher.getDragLayer().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+
         mOffsetX = mMotionDownX - (int) view.getTranslationX()
                 - r.left;
         mOffsetY = mMotionDownY - (int) view.getTranslationY()
@@ -74,6 +76,24 @@ public class DragController {
         mMidOffsetY = mOffsetY - view.getHeight() / 2
                 + r.top;
         mDragObject.dragView.move(mMotionDownX - mOffsetX, mMotionDownY - mOffsetY);
+    }
+
+    public void startDrag(DragSource source, BubbleView view, int width) {
+
+        mDragging = true;
+        mDragObject = new DropTarget.DragObject();
+        mDragObject.dragView = view;
+        mLauncher.getDragLayer().addView(view);
+        mDragObject.dragSource = source;
+        mLauncher.getDragLayer().performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
+
+        mOffsetX = width / 2;
+        mOffsetY = width / 2;
+        mMidOffsetX = 0;
+        mMidOffsetY = 0;
+
+        mDragObject.dragView.move(mMotionDownX - mOffsetX, mMotionDownY - mOffsetY);
+
     }
 
     public boolean isDragging() {
@@ -102,9 +122,7 @@ public class DragController {
         final int count = dropTargets.size();
         for (int i = 0; i < count; i++) {
             DropTarget target = dropTargets.get(i);
-
             target.getHitRectRelativeToDragLayer(r);
-
             if (r.contains(x - mMidOffsetX, y - mMidOffsetY)) {
                 return target;
             }
@@ -119,7 +137,7 @@ public class DragController {
             dropTarget.onDragExit(mDragObject);
             dropTarget.onDrop(mDragObject);
         }
-        mDragObject.dragSource.onDropCompleted((BubbleView) dropTarget);
+        mDragObject.dragSource.onDropCompleted((View) dropTarget);
     }
 
     private int[] getClampedDragLayerPos(float x, float y) {
@@ -197,7 +215,6 @@ public class DragController {
                 // Remember where the motion event started
                 mMotionDownX = dragLayerX;
                 mMotionDownY = dragLayerY;
-
                 handleMoveEvent(dragLayerX, dragLayerY);
                 break;
             case MotionEvent.ACTION_MOVE:

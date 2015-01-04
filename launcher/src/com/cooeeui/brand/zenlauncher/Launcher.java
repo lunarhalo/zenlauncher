@@ -27,6 +27,8 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
+import android.view.ViewParent;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.cooeeui.brand.zenlauncher.appIntentUtils.AppIntentUtil;
@@ -45,6 +47,7 @@ import com.cooeeui.brand.zenlauncher.scenes.ZenSetting;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 import com.cooeeui.brand.zenlauncher.scenes.ui.ChangeIcon;
 import com.cooeeui.brand.zenlauncher.scenes.ui.PopupDialog;
+import com.cooeeui.brand.zenlauncher.scenes.ui.ZenGridView;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer;
 import com.cooeeui.brand.zenlauncher.searchbar.SearchBarGroup;
@@ -123,7 +126,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         mWeather.setup(this);
 
         mDrawer = (Drawer) findViewById(R.id.appHostGroup);
-        mDrawer.setup(this);
+        mDrawer.setup(this, mDragController);
         AppListUtil util = new AppListUtil(this);
         mDrawer.setUtil(util);
         mDrawer.initViewData();
@@ -243,7 +246,6 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
 
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                // TODO Auto-generated method stub
                 float alpha = (Float) animation.getAnimatedValue();
                 mDragLayer.setAlpha(alpha);
             }
@@ -371,6 +373,13 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         if (v instanceof BubbleView) {
             BubbleView view = (BubbleView) v;
             mSpeedDial.startDrag(view);
+        } else if (v instanceof FrameLayout) {
+            ViewParent parent = v.getParent();
+            if (parent instanceof ZenGridView) {
+                FrameLayout frameLayout = (FrameLayout) v;
+                ZenGridView parentGridView = (ZenGridView) parent;
+                mDrawer.startDrag(frameLayout, parentGridView);
+            }
         }
         return true;
     }
