@@ -8,6 +8,8 @@
         android:minSdkVersion="14"
         android:targetSdkVersion="19" />
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
@@ -92,6 +94,15 @@
         <activity
             android:name=".page.PageActivity"
             android:label="page" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".chat.ChatActivity"
+            android:label="@string/chat" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
