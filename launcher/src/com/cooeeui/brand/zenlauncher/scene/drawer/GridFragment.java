@@ -8,7 +8,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.View.OnLongClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import android.widget.BaseAdapter;
@@ -71,7 +70,7 @@ public class GridFragment extends Fragment {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        
+
         outState.putInt(KEY_TAB, mTab);
         outState.putInt(KEY_POSITION, mPosition);
     }
@@ -130,6 +129,8 @@ public class GridFragment extends Fragment {
                 text.setText(info.title);
                 // set info to icon tag.
                 icon.setTag(info);
+                Launcher l = (Launcher) GridFragment.this.getActivity();
+                icon.setOnLongClickListener(l);
                 icon.setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -138,16 +139,17 @@ public class GridFragment extends Fragment {
                         l.startActivitySafely(i.intent);
                     }
                 });
-				// TODO: move uninstall action to click at uninstall state.
-                icon.setOnLongClickListener(new OnLongClickListener() {
-                    @Override
-                    public boolean onLongClick(View v) {
-                        AppInfo i = (AppInfo) v.getTag();
-                        Launcher l = (Launcher) GridFragment.this.getActivity();
-                        l.startApplicationUninstallActivity(i.componentName, i.flags);
-                        return true;
-                    }
-                });
+                // // TODO: move uninstall action to click at uninstall state.
+                // icon.setOnLongClickListener(new OnLongClickListener() {
+                // @Override
+                // public boolean onLongClick(View v) {
+                // AppInfo i = (AppInfo) v.getTag();
+                // Launcher l = (Launcher) GridFragment.this.getActivity();
+                // l.startApplicationUninstallActivity(i.componentName,
+                // i.flags);
+                // return true;
+                // }
+                // });
             } else {
                 icon = convertView;
             }

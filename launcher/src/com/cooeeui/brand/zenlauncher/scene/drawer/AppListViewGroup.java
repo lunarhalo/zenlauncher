@@ -2,6 +2,7 @@
 package com.cooeeui.brand.zenlauncher.scene.drawer;
 
 import android.content.Context;
+import android.graphics.Bitmap;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
@@ -12,25 +13,50 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
+import android.widget.ImageView;
 
+import com.cooeeui.brand.zenlauncher.Launcher;
 import com.cooeeui.brand.zenlauncher.R;
+import com.cooeeui.brand.zenlauncher.apps.AppInfo;
 import com.cooeeui.brand.zenlauncher.category.CategoryData;
 import com.cooeeui.brand.zenlauncher.category.CategoryHelper;
 import com.cooeeui.brand.zenlauncher.config.GridConfig;
+import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
+import com.cooeeui.brand.zenlauncher.scenes.ui.ZenGridView;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DragSource;
 import com.viewpagerindicator.UnderlinePageIndicator;
 
 public class AppListViewGroup extends FrameLayout {
     PageAdapter mAdapters[];
     Context mContext;
     int mTab;
+    private Launcher mLauncher = null;
+    private DragController mDragController = null;
+    private BubbleView mBubbleView = null;
+    private FrameLayout mSelectIcon = null;
+    private ZenGridView mSelectGridView = null;
+
+    public DragController getmDragController() {
+        return mDragController;
+    }
+
+    public void setmDragController(DragController mDragController) {
+        this.mDragController = mDragController;
+    }
+
+    public Launcher getmLauncher() {
+        return mLauncher;
+    }
+
+    public void setmLauncher(Launcher mLauncher) {
+        this.mLauncher = mLauncher;
+    }
 
     public AppListViewGroup(Context context, AttributeSet attrs) {
         super(context, attrs);
-
         mContext = context;
-        // TODO: should we read it from preference?
         mTab = 0;
-
         mAdapters = new PageAdapter[CategoryHelper.COUNT];
     }
 
@@ -162,5 +188,48 @@ public class AppListViewGroup extends FrameLayout {
     public void ZenSettings() {
         // TODO Auto-generated method stub
         Log.v("", "popmenu ZenSettings");
+    }
+
+    /**
+     * 开始长按拖动的一些操作
+     * 
+     * @param v
+     * @param parentGridView
+     */
+    public void startDrag(DragSource source, FrameLayout v, ZenGridView parentGridView) {
+        if (v.getTag() instanceof AppInfo) {
+            mSelectIcon = v;
+            mSelectGridView = parentGridView;
+            ImageView image = (ImageView) v.findViewById(R.id.icon_image);
+            int width = image.getRight() - image.getLeft();
+            AppInfo info = (AppInfo) v.getTag();
+            Bitmap bitmap = info.iconBitmap;
+            mSelectIcon.setVisibility(View.INVISIBLE);
+            mBubbleView = new BubbleView(mContext, bitmap, width);
+            mDragController.startDrag(source, mBubbleView, width);
+        }
+    }
+
+    public void showIcon() {
+        mSelectIcon.setVisibility(View.VISIBLE);
+        mLauncher.getDragLayer().removeView(mBubbleView);
+        mBubbleView = null;
+    }
+
+    public void removeIcon() {
+        mLauncher.getDragLayer().removeView(mBubbleView);
+        mBubbleView = null;
+    }
+
+    /**
+     * 处理由上一页抽屉转移到下一页抽屉的操作
+     * 
+     * @param oldTabNum
+     * @param tabNum
+     */
+    public void changeTabNum(int oldTabNum, int tabNum) {
+        // TODO
+        // 将oldTabNum中的mSelectGridView删除掉mSelectIcon，以及在tabNum中的GridView添加mSelectIcon
+        Log.v("", "oldTabNum is " + oldTabNum + " tabNum is " + tabNum);
     }
 }
