@@ -4,6 +4,7 @@ package com.cooeeui.brand.zenlauncher.scenes;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.util.AttributeSet;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 
 import com.cooeeui.brand.zenlauncher.Launcher;
@@ -14,6 +15,8 @@ import com.cooeeui.brand.zenlauncher.scene.drawer.AppTabViewGroup;
 import com.cooeeui.brand.zenlauncher.scene.drawer.ClickButtonOnClickListener;
 import com.cooeeui.brand.zenlauncher.scene.drawer.IAppGroup;
 import com.cooeeui.brand.zenlauncher.scene.drawer.TitleBar;
+import com.cooeeui.brand.zenlauncher.scenes.ui.ZenGridView;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 
 public class Drawer extends LinearLayout implements IAppGroup {
 
@@ -23,6 +26,7 @@ public class Drawer extends LinearLayout implements IAppGroup {
     private ClickButtonOnClickListener onClickListener = null;
     private AppListUtil util = null;
     private Launcher mLauncher;
+    private DragController mDragController = null;
 
     public Drawer(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -64,10 +68,14 @@ public class Drawer extends LinearLayout implements IAppGroup {
         // Tab View Group
         tabViewGroup = (AppTabViewGroup) this.findViewById(R.id.appTabGroup);
         tabViewGroup.setOnClickListener(onClickListener);
+        tabViewGroup.setmDragController(mDragController);
         tabViewGroup.setUtil(util);
         tabViewGroup.initViewData();
         // App List Group
         applistGroup = (AppListViewGroup) this.findViewById(R.id.appListGroup);
+        applistGroup.setmLauncher(mLauncher);
+        applistGroup.setmDragController(mDragController);
+        applistGroup.setTab(tabNum);
         onClickListener.setNameViewGroup(nameViewGroup);
         onClickListener.setTabViewGroup(tabViewGroup);
         onClickListener.setApplistGroup(applistGroup);
@@ -77,11 +85,17 @@ public class Drawer extends LinearLayout implements IAppGroup {
         nameViewGroup.clickOptionButton();
     }
 
-    public void setup(Launcher launcher) {
+    public void setup(Launcher launcher, DragController dragController) {
         mLauncher = launcher;
+        mDragController = dragController;
     }
 
     public void notifyDataSetChanged() {
         applistGroup.notifyDataSetChanged();
+    }
+
+    public void startDrag(FrameLayout v, ZenGridView parentGridView) {
+        applistGroup.startDrag(v, parentGridView);
+        tabViewGroup.startDrag();
     }
 }

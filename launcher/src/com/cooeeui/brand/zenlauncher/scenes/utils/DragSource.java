@@ -1,9 +1,9 @@
 
 package com.cooeeui.brand.zenlauncher.scenes.utils;
 
-import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
+import android.view.View;
 
 public interface DragSource {
 
-    void onDropCompleted(BubbleView target);
+    void onDropCompleted(View targetView);
 }
