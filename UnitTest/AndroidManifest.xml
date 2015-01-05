@@ -24,7 +24,7 @@
 
         <!-- Category -->
         <activity
-            android:name=".category.Categorizer"
+            android:name=".category.CategorizerClassic"
             android:label="@string/categorizer_classic" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

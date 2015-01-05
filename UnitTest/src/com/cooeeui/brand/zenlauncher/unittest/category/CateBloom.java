@@ -17,14 +17,13 @@ public class CateBloom extends CateBloomJni {
         mContext = context;
     }
 
-    public static CateBloom init(Context context) {
+    public static void init(Context context) {
         if (_instance == null) {
             _instance = new CateBloom(context);
             if (!_instance.init()) {
                 _instance = null;
             }
         }
-        return _instance;
     }
 
     public static void close() {
@@ -47,10 +46,15 @@ public class CateBloom extends CateBloomJni {
     }
 
     protected void finalize() {
-        this.free(this.blocks);
+        // Think: why the finalize be called 2 times sometimes.
+        // Notice: the guard is necessary.
+        if (blocks != 0) {
+            this.free(blocks);
+            blocks = 0;
+        }
     }
 
-    private Boolean initByPath(String block_path) {
+    protected Boolean initByPath(String block_path) {
         long blocks = 0;
         if (0 < (blocks = this.initpath(block_path))) {
             this.blocks = blocks;
