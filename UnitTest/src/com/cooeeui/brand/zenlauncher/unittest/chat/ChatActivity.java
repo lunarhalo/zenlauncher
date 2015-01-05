@@ -25,6 +25,7 @@ import android.os.Message;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.TextView;
@@ -36,12 +37,14 @@ public class ChatActivity extends Activity {
     final String channel = "zenparty";
     final String target = "*";
 
-    String[] users;
+    ArrayList<String> users = new ArrayList<String>();
     String name;
     String content;
     PomeloClient client;
     ArrayList<Map<String, String>> dialog = new ArrayList<Map<String, String>>();
+    int state;
 
+    EditText edit;
     TextView tv;
     Button button;
     ListView lv;
@@ -51,6 +54,13 @@ public class ChatActivity extends Activity {
     final int MSG_SEND = 1;
     final int MSG_RECEIVE = 2;
     final int MSG_DISCONNECT = 3;
+    final int MSG_ADD = 4;
+    final int MSG_LEAVE = 5;
+
+    final int STATE_LOGIN = 0;
+    final int STATE_ENTRY = 1;
+    final int STATE_READY = 2;
+    final int STATE_DISCONNECT = 3;
 
     class ChatContent {
         public String from;
@@ -72,7 +82,8 @@ public class ChatActivity extends Activity {
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.chat_layout);
-        tv = (TextView) findViewById(R.id.entry);
+        edit = (EditText) findViewById(R.id.entry);
+        tv = (TextView) findViewById(R.id.bar);
         button = (Button) findViewById(R.id.send);
         button.setEnabled(false);
         button.setOnClickListener(new OnClickListener() {
@@ -86,8 +97,18 @@ public class ChatActivity extends Activity {
         // get name from device.
         name = String.valueOf(DeviceUtil.getUniqueId(this).hashCode());
 
+        tv.setText("login...");
+        state = STATE_LOGIN;
         client = new PomeloClient(host, port);
         client.init();
+        client.on("disconnect", new DataListener() {
+            @Override
+            public void receiveData(DataEvent event) {
+                Message message = myHandler.obtainMessage();
+                message.what = MSG_DISCONNECT;
+                myHandler.sendMessage(message);
+            }
+        });
         queryEntry();
     }
 
@@ -96,7 +117,11 @@ public class ChatActivity extends Activity {
         super.onDestroy();
 
         if (client != null) {
-            client.disconnect();
+            try {
+                client.disconnect();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         dialog.clear();
@@ -110,6 +135,7 @@ public class ChatActivity extends Activity {
                     new DataCallBack() {
                         @Override
                         public void responseData(JSONObject msg) {
+                            state = STATE_ENTRY;
                             client.disconnect();
                             try {
                                 String ip = msg.getString("host");
@@ -148,11 +174,11 @@ public class ChatActivity extends Activity {
                 }
                 try {
                     JSONArray jr = msg.getJSONArray("users");
-                    users = new String[jr.length() + 1];
+                    users.clear();
                     // * represent all users
-                    users[0] = "*";
+                    users.add("*");
                     for (int i = 1; i <= jr.length(); i++) {
-                        users[i] = jr.getString(i - 1);
+                        users.add(jr.getString(i - 1));
                     }
                     // tell handler
                     Message message = myHandler.obtainMessage();
@@ -171,13 +197,45 @@ public class ChatActivity extends Activity {
                 myHandler.sendMessage(message);
             }
         });
+        client.on("onAdd", new DataListener() {
+            @Override
+            public void receiveData(DataEvent event) {
+                JSONObject msg = event.getMessage();
+                try {
+                    msg = msg.getJSONObject("body");
+                    String user = msg.getString("user");
+                    users.add(user);
+                    Message message = myHandler.obtainMessage();
+                    message.what = MSG_ADD;
+                    myHandler.sendMessage(message);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        client.on("onLeave", new DataListener() {
+            @Override
+            public void receiveData(DataEvent event) {
+                JSONObject msg = event.getMessage();
+                try {
+                    msg = msg.getJSONObject("body");
+                    String user = msg.getString("user");
+                    users.remove(user);
+                    Message message = myHandler.obtainMessage();
+                    message.what = MSG_LEAVE;
+                    myHandler.sendMessage(message);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 
     private void sendMessage() {
-        content = tv.getText().toString();
+        content = edit.getText().toString();
         if (content.equals(""))
             return;
-        tv.setText("");
+        edit.setText("");
 
         JSONObject msg = new JSONObject();
         try {
@@ -236,14 +294,22 @@ public class ChatActivity extends Activity {
             super.handleMessage(msg);
             switch (msg.what) {
                 case MSG_ERROR:
-                    Toast.makeText(ChatActivity.this, "please change your name to login.",
-                            Toast.LENGTH_LONG).show();
+                    switch (state) {
+                        case STATE_LOGIN:
+                            tv.setText("login failed");
+                            button.setEnabled(false);
+                            break;
+                        default:
+                            tv.setText("error");
+                            button.setEnabled(false);
+                            break;
+                    }
                     break;
                 case MSG_READY:
+                    state = STATE_READY;
                     button.setEnabled(true);
+                    tv.setText("online: " + String.valueOf(users.size() - 1));
                     dialog.clear();
-                    Toast.makeText(ChatActivity.this, "ready.",
-                            Toast.LENGTH_LONG).show();
 
                     // wait from broadcast message
                     client.on("onChat", new DataListener() {
@@ -279,7 +345,22 @@ public class ChatActivity extends Activity {
                     break;
                 }
                 case MSG_DISCONNECT:
+                    switch (state) {
+                        case STATE_LOGIN:
+                            tv.setText("login failed");
+                            break;
+                        case STATE_ENTRY:
+                            tv.setText("entry...");
+                            break;
+                        default:
+                            tv.setText("disconnect");
+                            break;
+                    }
                     button.setEnabled(false);
+                    break;
+                case MSG_ADD:
+                case MSG_LEAVE:
+                    tv.setText("online: " + String.valueOf(users.size() - 1));
                     break;
             }
         };
