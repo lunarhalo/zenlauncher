@@ -25,9 +25,6 @@ public class Categorizer extends FragmentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Init category helper.
-        CategoryHelper.init(getApplicationContext());
-
         setContentView(R.layout.categorizer);
         mTabHost = (TabHost) findViewById(android.R.id.tabhost);
         mTabHost.setup();
