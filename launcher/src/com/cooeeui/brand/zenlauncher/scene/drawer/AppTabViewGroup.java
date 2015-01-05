@@ -6,6 +6,7 @@ import android.animation.Animator.AnimatorListener;
 import android.animation.ValueAnimator;
 import android.animation.ValueAnimator.AnimatorUpdateListener;
 import android.content.Context;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.MotionEvent;
@@ -14,6 +15,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 
 import com.cooeeui.brand.zenlauncher.R;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
+import com.cooeeui.brand.zenlauncher.scenes.utils.DropTarget;
 
 public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
 
@@ -22,10 +25,17 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
     private AppListUtil util = null;
     private ImageView tabImageView = null;
     private ClickButtonOnClickListener onClickListener = null;
+    private DragController mDragController = null;
     private int paddingTop = -1;
     private int paddingLeft = -1;
     private int tabButtonWidth = -1;
     private int oldNum = -1;
+
+    /**
+     * 用于在DragExit时候原先旧的GridView和现在新的GridView的一个比较
+     */
+    private int mDragExitOldnum = -1;
+
     private int[] tabIconId = new int[] {
             R.drawable.applayout_favourite,
             R.drawable.applayout_communication,
@@ -36,6 +46,15 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
     };
     private int[] tabPotion = new int[tabIconId.length];
     private MyButton[] myButtons = new MyButton[tabIconId.length];
+    private boolean mIsAppTabDragging = false;
+
+    public DragController getmDragController() {
+        return mDragController;
+    }
+
+    public void setmDragController(DragController mDragController) {
+        this.mDragController = mDragController;
+    }
 
     // private int oldNum = -1;
     public AppTabViewGroup(Context context, AttributeSet attrs) {
@@ -91,18 +110,21 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
                 LayoutParams lp = new LayoutParams(tabButtonWidth, tabButtonWidth);
                 tabButton.setLayoutParams(lp);
             }
-            setTabX(util.getTabNum());
+            oldNum = util.getTabNum();
+            setTabX(oldNum);
         }
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (mIsAppTabDragging) {
+            return true;
+        }
         int x = (int) event.getX();
         int startX = (int) tabImageView.getX();
         changeTabNumByX(x);
         int endX = getTabPotion(getNumByX(x));
-        // Log.v("", "AppTabViewGroup onTouchEvent x is " + x + " action is " +
-        // event.getAction());
+
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
                 if (util.ismIsTabViewAnimDone()) {
@@ -164,7 +186,7 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
 
     private void changeTabNumByX(int x) {
         int num = getNumByX(x);
-        Log.v("", "whj num is " + num + " x is " + x);
+        // Log.v("", "whj num is " + num + " x is " + x);
         if (oldNum != num && num >= 0 && num < util.tabName.length) {
             oldNum = num;
             onClickListener.changeTabByNum(num);
@@ -182,6 +204,16 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
             }
         }
         return 0;
+    }
+
+    private int getNumByTag(String tagName) {
+        int num = 0;
+        for (int i = 0; i < util.tabName.length; i++) {
+            if (util.tabName[i].equals(tagName)) {
+                return i;
+            }
+        }
+        return num;
     }
 
     private void setTabX(int num) {
@@ -208,12 +240,13 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
             // tabButton.setOnClickListener(onClickListener);
             tabButton.setTag(util.tabName[i]);
             tabButton.setBackgroundResource(tabIconId[i]);
+            mDragController.addDropTarget(tabButton);
             myButtons[i] = tabButton;
             this.addView(tabButton);
         }
     }
 
-    private class MyButton extends Button {
+    private class MyButton extends Button implements DropTarget {
 
         public MyButton(Context context) {
             super(context);
@@ -225,6 +258,61 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
             Log.e("", "MyButton onTouchEvent action is " + event.getAction() + " ret is " + ret);
             return false;
         }
+
+        @Override
+        public void onDrop(DragObject dragObject) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void onDragEnter(DragObject dragObject) {
+            mIsAppTabDragging = true;
+            int tabNum = getNumByTag((String) (this.getTag()));
+            if (oldNum != tabNum) {
+                onClickListener.changeTabByNum(tabNum);
+                int endX = getTabPotion(tabNum);
+                tabImageView.setTranslationX(endX);
+                // int startX = getTabPotion(oldNum);
+                // if (util.ismIsTabViewAnimDone()) {
+                // startViewTranslateAnim(startX, endX, tabImageView);
+                // }
+                oldNum = tabNum;
+            }
+        }
+
+        @Override
+        public void onDragOver(DragObject dragObject) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void onDragExit(DragObject dragObject) {
+            mIsAppTabDragging = false;
+        }
+
+        @Override
+        public void getHitRectRelativeToDragLayer(Rect outRect) {
+            outRect.left = (int) this.getX();
+            outRect.top = this.getTop() + AppTabViewGroup.this.getTop();
+            outRect.right = (int) this.getX() + this.getWidth();
+            outRect.bottom = this.getBottom() + AppTabViewGroup.this.getTop();
+        }
     }
 
+    public void startDrag() {
+        mDragExitOldnum = oldNum;
+    }
+
+    public boolean isTabChange() {
+        return mDragExitOldnum != oldNum;
+    }
+
+    public void changeTab() {
+        if (mDragExitOldnum != oldNum) {
+            onClickListener.getApplistGroup().changeTabNum(mDragExitOldnum, oldNum);
+            mDragExitOldnum = oldNum;
+        }
+    }
 }

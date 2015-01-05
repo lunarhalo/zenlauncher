@@ -27,6 +27,8 @@ import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnLongClickListener;
+import android.view.ViewParent;
+import android.widget.FrameLayout;
 import android.widget.Toast;
 
 import com.cooeeui.brand.zenlauncher.appIntentUtils.AppIntentUtil;
@@ -45,6 +47,7 @@ import com.cooeeui.brand.zenlauncher.scenes.ZenSetting;
 import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 import com.cooeeui.brand.zenlauncher.scenes.ui.ChangeIcon;
 import com.cooeeui.brand.zenlauncher.scenes.ui.PopupDialog;
+import com.cooeeui.brand.zenlauncher.scenes.ui.ZenGridView;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragController;
 import com.cooeeui.brand.zenlauncher.scenes.utils.DragLayer;
 import com.cooeeui.brand.zenlauncher.searchbar.SearchBarGroup;
@@ -117,13 +120,13 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         mWorkspace = (Workspace) findViewById(R.id.workspace);
         mWorkspace.setOnClickListener(this);
 
-        registerForContextMenu(mWorkspace);
+        showContextMenu();
 
         mWeather = (WeatherClockGroup) findViewById(R.id.weatherclock);
         mWeather.setup(this);
 
         mDrawer = (Drawer) findViewById(R.id.appHostGroup);
-        mDrawer.setup(this);
+        mDrawer.setup(this, mDragController);
         AppListUtil util = new AppListUtil(this);
         mDrawer.setUtil(util);
         mDrawer.initViewData();
@@ -167,6 +170,14 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
+    }
+
+    public void showContextMenu() {
+        registerForContextMenu(mWorkspace);
+    }
+
+    public void hideContextMenu() {
+        unregisterForContextMenu(mWorkspace);
     }
 
     // void showLoadingView() {
@@ -243,7 +254,6 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
 
             @Override
             public void onAnimationUpdate(ValueAnimator animation) {
-                // TODO Auto-generated method stub
                 float alpha = (Float) animation.getAnimatedValue();
                 mDragLayer.setAlpha(alpha);
             }
@@ -264,7 +274,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
     public void onCreateContextMenu(ContextMenu menu, View v, ContextMenuInfo menuInfo) {
         super.onCreateContextMenu(menu, v, menuInfo);
         getMenuInflater().inflate(R.menu.launcher_menu, menu);
-        if (mSpeedDial.isFull()) {
+        if (mSpeedDial.isFull() || mApps == null) {
             menu.findItem(R.id.add).setVisible(false);
         }
     }
@@ -328,7 +338,11 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
             return false;
         }
 
-        if (mSpeedDial.isFull()) {
+        if (mSpeedDial.isDragState()) {
+            return false;
+        }
+
+        if (mSpeedDial.isFull() || mApps == null) {
             menu.findItem(R.id.add).setVisible(false);
         } else {
             menu.findItem(R.id.add).setVisible(true);
@@ -371,6 +385,13 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         if (v instanceof BubbleView) {
             BubbleView view = (BubbleView) v;
             mSpeedDial.startDrag(view);
+        } else if (v instanceof FrameLayout) {
+            ViewParent parent = v.getParent();
+            if (parent instanceof ZenGridView) {
+                FrameLayout frameLayout = (FrameLayout) v;
+                ZenGridView parentGridView = (ZenGridView) parent;
+                mDrawer.startDrag(frameLayout, parentGridView);
+            }
         }
         return true;
     }
@@ -400,7 +421,7 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
                     new PopupDialog(this, PopupDialog.CHANGE_VIEW).show();
                     break;
                 case SpeedDial.EDIT_VIEW_DELETE:
-                    mSpeedDial.removeBubbleView();
+                    mSpeedDial.deleteBubbleView();
                     break;
             }
             return;

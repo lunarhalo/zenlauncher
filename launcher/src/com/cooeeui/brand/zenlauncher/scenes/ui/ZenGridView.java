@@ -1,12 +1,12 @@
 
 package com.cooeeui.brand.zenlauncher.scenes.ui;
 
-import com.cooeeui.brand.zenlauncher.config.GridConfig;
-import com.cooeeui.brand.zenlauncher.config.IconConfig;
-
 import android.content.Context;
 import android.util.AttributeSet;
 import android.widget.GridView;
+
+import com.cooeeui.brand.zenlauncher.config.GridConfig;
+import com.cooeeui.brand.zenlauncher.config.IconConfig;
 
 public class ZenGridView extends GridView {
 
@@ -39,11 +39,11 @@ public class ZenGridView extends GridView {
             columns = width / minWidth;
         }
         setNumColumns(columns);
-        
+
         int size = width / columns;
         countPerPage = columns * (height / size);
         GridConfig.setCountPerPageOfDrawer(countPerPage);
-        
+
         if (isOnePage) {
             // TODO: setTranslationY();
         }
@@ -54,11 +54,11 @@ public class ZenGridView extends GridView {
     public void setDefaultColumns(int defaultColumns) {
         this.defaultColumns = defaultColumns;
     }
-    
+
     public void setIsOnePage(boolean isOnePage) {
         this.isOnePage = isOnePage;
     }
-    
+
     public int getCountPerPage() {
         return countPerPage;
     }
