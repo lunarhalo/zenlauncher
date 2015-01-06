@@ -14,8 +14,6 @@ import com.cooeeui.brand.zenlauncher.scenes.ui.BubbleView;
 
 public class DragController {
 
-    public static int DRAG_ACTION_MOVE = 0;
-
     private Launcher mLauncher;
 
     private boolean mDragging;
@@ -36,7 +34,11 @@ public class DragController {
 
     private DropTarget.DragObject mDragObject;
 
-    private ArrayList<DropTarget> mDropTargets = new ArrayList<DropTarget>();
+    private ArrayList<DropTarget> mDropWorkSpace = new ArrayList<DropTarget>();
+
+    private ArrayList<DropTarget> mDropMainMenu = new ArrayList<DropTarget>();
+
+    private ArrayList<DropTarget> mDropTargets;
 
     private DropTarget mLastDropTarget;
 
@@ -44,15 +46,25 @@ public class DragController {
         mLauncher = launcher;
     }
 
-    public void addDropTarget(DropTarget target) {
-        mDropTargets.add(target);
+    public void addDropWorkSpace(DropTarget target) {
+        mDropWorkSpace.add(target);
     }
 
-    public void removeDropTarget(DropTarget target) {
-        mDropTargets.remove(target);
+    public void removeDropWorkSpace(DropTarget target) {
+        mDropWorkSpace.remove(target);
+    }
+
+    public void addDropMainMenu(DropTarget target) {
+        mDropMainMenu.add(target);
+    }
+
+    public void removeDropMainMenu(DropTarget target) {
+        mDropMainMenu.remove(target);
     }
 
     public void startDrag(DragSource source, BubbleView view) {
+        mDropTargets = mDropWorkSpace;
+
         // get a offset rectangle of workspace.
         Rect r = new Rect();
         mLauncher.getSpeedDial().getGlobalVisibleRect(r);
@@ -79,6 +91,7 @@ public class DragController {
     }
 
     public void startDrag(DragSource source, BubbleView view, int width) {
+        mDropTargets = mDropMainMenu;
 
         mDragging = true;
         mDragObject = new DropTarget.DragObject();

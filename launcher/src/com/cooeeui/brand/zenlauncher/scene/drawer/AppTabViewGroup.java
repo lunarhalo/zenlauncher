@@ -240,7 +240,7 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
             // tabButton.setOnClickListener(onClickListener);
             tabButton.setTag(util.tabName[i]);
             tabButton.setBackgroundResource(tabIconId[i]);
-            mDragController.addDropTarget(tabButton);
+            mDragController.addDropMainMenu(tabButton);
             myButtons[i] = tabButton;
             this.addView(tabButton);
         }
