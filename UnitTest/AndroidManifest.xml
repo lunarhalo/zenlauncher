@@ -26,16 +26,25 @@
         </activity>
 
         <!-- Category -->
-
         <activity
-            android:name=".category.Categorizer"
-            android:label="@string/categorizer" >
+            android:name=".category.CategorizerClassic"
+            android:label="@string/categorizer_classic" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".category.CategorizerBloom"
+            android:label="@string/categorizer_bloom" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="com.cooeeui.brand.zenlauncher.unittest.UNIT_TEST" />
+            </intent-filter>
+        </activity>
+        <!-- App Intent -->
         <activity
             android:name="com.cooeeui.brand.zenlauncher.unittest.appintent.AppIntentActivity"
             android:label="@string/appintent" >
