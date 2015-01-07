@@ -1,6 +1,9 @@
 
 package com.cooeeui.brand.zenlauncher.scene.drawer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.support.v4.app.Fragment;
@@ -34,8 +37,9 @@ public class AppListViewGroup extends FrameLayout {
     private Launcher mLauncher = null;
     private DragController mDragController = null;
     private BubbleView mBubbleView = null;
-    private FrameLayout mSelectIcon = null;
+    private View mSelectIcon = null;
     private ZenGridView mSelectGridView = null;
+    private List<ViewPager> mViewPagers = null;
 
     public DragController getmDragController() {
         return mDragController;
@@ -51,6 +55,7 @@ public class AppListViewGroup extends FrameLayout {
 
     public void setmLauncher(Launcher mLauncher) {
         this.mLauncher = mLauncher;
+        ZenGridViewUtil.mLauncher = mLauncher;
     }
 
     public AppListViewGroup(Context context, AttributeSet attrs) {
@@ -58,6 +63,7 @@ public class AppListViewGroup extends FrameLayout {
         mContext = context;
         mTab = 0;
         mAdapters = new PageAdapter[CategoryHelper.COUNT];
+        mViewPagers = new ArrayList<ViewPager>();
     }
 
     @Override
@@ -69,6 +75,7 @@ public class AppListViewGroup extends FrameLayout {
             mAdapters[i] = new PageAdapter(activity.getSupportFragmentManager(), i);
 
             ViewPager pager = (ViewPager) findViewById(R.id.pager_0 + 2 * i);
+            mViewPagers.add(pager);
             pager.setAdapter(mAdapters[i]);
 
             UnderlinePageIndicator indicator = (UnderlinePageIndicator) findViewById(R.id.indicator_0
@@ -102,7 +109,6 @@ public class AppListViewGroup extends FrameLayout {
 
         @Override
         public Object instantiateItem(ViewGroup container, int position) {
-            Log.v("suyu", "instantiateItem: " + position);
             GridFragment fragment = (GridFragment) super.instantiateItem(container, position);
             if (fragment != null) {
                 fragment.notifyDataSetChanged();
@@ -112,12 +118,12 @@ public class AppListViewGroup extends FrameLayout {
 
         @Override
         public int getItemPosition(Object object) {
-            Log.v("suyu", "getItemPosition: " + object);
             GridFragment fragment = (GridFragment) object;
             if (fragment != null) {
                 fragment.notifyDataSetChanged();
             }
             return super.getItemPosition(object);
+            // return POSITION_NONE;
         }
 
         public void setCount(int count) {
@@ -130,12 +136,36 @@ public class AppListViewGroup extends FrameLayout {
         public int getTab() {
             return mTab;
         }
+
+        @Override
+        public void startUpdate(View paramView) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public Object instantiateItem(View paramView, int paramInt) {
+            // TODO Auto-generated method stub
+            return null;
+        }
+
+        @Override
+        public void destroyItem(View paramView, int paramInt, Object paramObject) {
+            // TODO Auto-generated method stub
+
+        }
+
+        @Override
+        public void finishUpdate(View paramView) {
+            // TODO Auto-generated method stub
+
+        }
     }
 
     public void notifyDataSetChanged() {
         Log.v("suyu", "AppListViewGroup notifyDataSetChanged");
         for (int i = 0; i < mAdapters.length; i++) {
-            mAdapters[i].notifyDataSetChanged();
+            // mAdapters[i].notifyDataSetChanged();
             // calculate page count
             int cpp = GridConfig.getCountPerPageOfDrawer();
             if (cpp != 0 && CategoryData.datas != null) {
@@ -196,7 +226,7 @@ public class AppListViewGroup extends FrameLayout {
      * @param v
      * @param parentGridView
      */
-    public void startDrag(DragSource source, FrameLayout v, ZenGridView parentGridView) {
+    public void startDrag(DragSource source, View v, ZenGridView parentGridView) {
         if (v.getTag() instanceof AppInfo) {
             mSelectIcon = v;
             mSelectGridView = parentGridView;
@@ -228,8 +258,68 @@ public class AppListViewGroup extends FrameLayout {
      * @param tabNum
      */
     public void changeTabNum(int oldTabNum, int tabNum) {
-        // TODO
-        // 将oldTabNum中的mSelectGridView删除掉mSelectIcon，以及在tabNum中的GridView添加mSelectIcon
-        Log.v("", "oldTabNum is " + oldTabNum + " tabNum is " + tabNum);
+        removeIconView(oldTabNum, mSelectIcon, mSelectGridView);
+        addNewView(tabNum, mSelectIcon);
+        if (mSelectIcon.getTag() instanceof AppInfo) {
+            AppInfo app = (AppInfo) mSelectIcon.getTag();
+            CategoryData.addApp(tabNum, app);
+            CategoryData.removeApp(oldTabNum, app);
+        }
+    }
+
+    /**
+     * 将移动的view添加到新的抽屉中，要是改页不够加，则添加到下一页或者生成新的一页再添加
+     * 
+     * @param tabNum
+     */
+    private void addNewView(int tabNum, View selectIcon) {
+
+        ZenGridView newGridView = ZenGridViewUtil.getZenGridViewByKey(tabNum);
+        if (newGridView == null) {// 添加新一页，再加该view添加到该页中
+            addNewGridView(tabNum);
+            newGridView = ZenGridViewUtil.getZenGridViewByKey(tabNum);
+            mViewPagers.get(tabNum).setCurrentItem(newGridView.getmPosition());
+        }
+        if (newGridView != null) {
+            mViewPagers.get(tabNum).setCurrentItem(newGridView.getmPosition());
+            newGridView.addZenGridChildView(selectIcon);
+        }
+    }
+
+    /**
+     * 添加新的一个GridView
+     * 
+     * @param tabNum
+     */
+    private void addNewGridView(int tabNum) {
+        int count = mAdapters[tabNum].getCount() + 1;
+        mAdapters[tabNum].setCount(count);
+        invalidate();
+    }
+
+    /**
+     * 将原先抽屉中的view删除，并将原先的抽屉中的view替换位置
+     * 
+     * @param tabNum
+     */
+    public void removeIconView(int tabNum, View selectIcon, ZenGridView gridview) {
+        gridview.removeZenGridChildView(selectIcon);
+        if (gridview.getmPosition() > 0 && gridview.getChildCount() == 0) {
+            mViewPagers.get(tabNum).setCurrentItem(gridview.getmPosition() - 1);
+            mAdapters[tabNum].setCount(mAdapters[tabNum].getCount() - 1);
+        }
+        String key = tabNum + "";
+        List<ZenGridView> zenList = ZenGridViewUtil.mAllZenGridViews.get(key);
+        for (int i = gridview.getmPosition() + 1; i < zenList.size(); i++) {
+            ZenGridView gridView = zenList.get(i);
+            View selectView = gridView.getChildAt(0);
+            gridView.removeZenGridChildView(selectView);
+            if (gridView.getmPosition() > 0 && gridView.getChildCount() == 0) {
+                mAdapters[tabNum].setCount(mAdapters[tabNum].getCount() - 1);
+                mViewPagers.get(tabNum).setCurrentItem(mAdapters[tabNum].getCount() - 1);
+            }
+            ZenGridView gridPreView = zenList.get(i - 1);
+            gridPreView.addZenGridChildView(selectView);
+        }
     }
 }

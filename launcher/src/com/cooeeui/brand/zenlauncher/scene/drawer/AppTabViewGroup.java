@@ -48,6 +48,10 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
     private MyButton[] myButtons = new MyButton[tabIconId.length];
     private boolean mIsAppTabDragging = false;
 
+    public void setmIsAppTabDragging(boolean isAppTabDragging) {
+        this.mIsAppTabDragging = isAppTabDragging;
+    }
+
     public DragController getmDragController() {
         return mDragController;
     }
@@ -186,7 +190,6 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
 
     private void changeTabNumByX(int x) {
         int num = getNumByX(x);
-        // Log.v("", "whj num is " + num + " x is " + x);
         if (oldNum != num && num >= 0 && num < util.tabName.length) {
             oldNum = num;
             onClickListener.changeTabByNum(num);
@@ -267,7 +270,6 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
 
         @Override
         public void onDragEnter(DragObject dragObject) {
-            mIsAppTabDragging = true;
             int tabNum = getNumByTag((String) (this.getTag()));
             if (oldNum != tabNum) {
                 onClickListener.changeTabByNum(tabNum);
@@ -289,7 +291,7 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
 
         @Override
         public void onDragExit(DragObject dragObject) {
-            mIsAppTabDragging = false;
+
         }
 
         @Override
@@ -302,6 +304,7 @@ public class AppTabViewGroup extends MyRelativeLayout implements IAppGroup {
     }
 
     public void startDrag() {
+        mIsAppTabDragging = true;
         mDragExitOldnum = oldNum;
     }
 

@@ -34,12 +34,24 @@ public class CategoryData {
 
         CategoryHelper.close();
     }
-    
+
     public static int getSize(int index) {
         if (datas == null) {
             return 0;
         } else {
             return datas.get(index).size();
+        }
+    }
+
+    public static void addApp(int tabNum, AppInfo app) {
+        if (datas.size() > tabNum) {
+            datas.get(tabNum).add(app);
+        }
+    }
+
+    public static void removeApp(int tabNum, AppInfo app) {
+        if (datas.size() > tabNum) {
+            datas.get(tabNum).remove(app);
         }
     }
 

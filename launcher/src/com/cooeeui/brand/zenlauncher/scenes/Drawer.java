@@ -96,18 +96,18 @@ public class Drawer extends LinearLayout implements IAppGroup, DragSource {
         applistGroup.notifyDataSetChanged();
     }
 
-    public void startDrag(FrameLayout v, ZenGridView parentGridView) {
+    public void startDrag(View v, ZenGridView parentGridView) {
         applistGroup.startDrag(this, v, parentGridView);
         tabViewGroup.startDrag();
     }
 
     @Override
     public void onDropCompleted(View targetView) {
+        tabViewGroup.setmIsAppTabDragging(false);
+        applistGroup.showIcon();
         if (tabViewGroup.isTabChange()) {
             applistGroup.removeIcon();
             tabViewGroup.changeTab();
-        } else {
-            applistGroup.showIcon();
         }
     }
 }

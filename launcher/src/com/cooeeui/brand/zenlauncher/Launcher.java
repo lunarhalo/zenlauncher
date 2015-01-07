@@ -39,6 +39,7 @@ import com.cooeeui.brand.zenlauncher.apps.ShortcutInfo;
 import com.cooeeui.brand.zenlauncher.category.CategoryData;
 import com.cooeeui.brand.zenlauncher.config.IconConfig;
 import com.cooeeui.brand.zenlauncher.debug.Logger;
+import com.cooeeui.brand.zenlauncher.scene.drawer.AppIcon;
 import com.cooeeui.brand.zenlauncher.scene.drawer.AppListUtil;
 import com.cooeeui.brand.zenlauncher.scenes.Drawer;
 import com.cooeeui.brand.zenlauncher.scenes.SpeedDial;
@@ -385,12 +386,11 @@ public class Launcher extends FragmentActivity implements View.OnClickListener,
         if (v instanceof BubbleView) {
             BubbleView view = (BubbleView) v;
             mSpeedDial.startDrag(view);
-        } else if (v instanceof FrameLayout) {
+        } else if (v instanceof AppIcon) {
             ViewParent parent = v.getParent();
             if (parent instanceof ZenGridView) {
-                FrameLayout frameLayout = (FrameLayout) v;
                 ZenGridView parentGridView = (ZenGridView) parent;
-                mDrawer.startDrag(frameLayout, parentGridView);
+                mDrawer.startDrag(v, parentGridView);
             }
         }
         return true;

@@ -27,10 +27,7 @@ public class MyRelativeLayout extends RelativeLayout {
         positionY = t;
         groupHeight = b - t;
         groupWidth = r - l;
-        // Log.v("", "whj onLayout positionX is " + positionX + " positionY is "
-        // + positionY
-        // + " groupHeight is " + groupHeight + " groupWidth is " + groupWidth);
-    }
+   }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
@@ -39,9 +36,5 @@ public class MyRelativeLayout extends RelativeLayout {
         spaceSizeWidth = MeasureSpec.getSize(widthMeasureSpec);
         spaceModeheight = MeasureSpec.getMode(heightMeasureSpec);
         spaceSizeheight = MeasureSpec.getSize(heightMeasureSpec);
-        // Log.w("", "whj onMeasure spaceModeWidth is " + spaceModeWidth
-        // + " spaceSizeWidth is " + spaceSizeWidth + " spaceModeheight is " +
-        // spaceModeheight
-        // + " spaceSizeheight is " + spaceSizeheight);
-    }
+   }
 }

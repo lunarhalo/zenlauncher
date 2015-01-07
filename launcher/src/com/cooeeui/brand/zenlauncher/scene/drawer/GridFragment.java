@@ -1,38 +1,29 @@
 
 package com.cooeeui.brand.zenlauncher.scene.drawer;
 
-import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
-import android.widget.BaseAdapter;
-import android.widget.GridView;
-import android.widget.ImageView;
-import android.widget.TextView;
 
-import com.cooeeui.brand.zenlauncher.Launcher;
-import com.cooeeui.brand.zenlauncher.R;
-import com.cooeeui.brand.zenlauncher.apps.AppInfo;
 import com.cooeeui.brand.zenlauncher.category.CategoryData;
-import com.cooeeui.brand.zenlauncher.config.GridConfig;
 import com.cooeeui.brand.zenlauncher.scenes.ui.ZenGridView;
 
 public class GridFragment extends Fragment {
     private static final String KEY_TAB = "GridFragment:tab";
     private static final String KEY_POSITION = "GridFragment:position";
-
+    private ZenGridView mGridView = null;
     int mPosition;
     int mTab;
-    BaseAdapter mAdapter;
 
     public static GridFragment newInstance(int tab, int position) {
         GridFragment fragment = new GridFragment();
-        Log.v("suyu", "new grid fragment: " + position);
+        Log.e("suyu", "create a new view grid fragment: " + position +
+                " tab is " + tab);
         Bundle args = new Bundle();
         args.putInt(KEY_TAB, tab);
         args.putInt(KEY_POSITION, position);
@@ -44,26 +35,19 @@ public class GridFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        ZenGridView grid = new ZenGridView(getActivity());
-        grid.setHorizontalSpacing(0);
-        grid.setVerticalSpacing(0);
-        mAdapter = new GridAdapter();
-        grid.setAdapter(mAdapter);
-        grid.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
-        Log.v("suyu", "create a new view, position = " + mPosition);
-
-        return grid;
+        if (mGridView == null) {
+            mGridView = getmGridView(ZenGridViewUtil.mLauncher, mTab, mPosition);
+        }
+        return mGridView;
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         if ((savedInstanceState != null) && savedInstanceState.containsKey(KEY_TAB)
                 && savedInstanceState.containsKey(KEY_POSITION)) {
             mTab = savedInstanceState.getInt(KEY_TAB);
             mPosition = savedInstanceState.getInt(KEY_POSITION);
-            Log.v("suyu", "get bundle tab: " + mTab + ", position: " + mPosition);
         }
     }
 
@@ -76,84 +60,22 @@ public class GridFragment extends Fragment {
     }
 
     public void notifyDataSetChanged() {
-        if (mAdapter != null) {
-            Log.v("suyu", "GridFragment notifyDataSetChanged");
-            mAdapter.notifyDataSetChanged();
+        if (CategoryData.getSize(mTab) > 0) {
+            if (mGridView == null) {
+                mGridView = getmGridView(ZenGridViewUtil.mLauncher, mTab, mPosition);
+            }
+            if (mGridView.getChildCount() == 0) {
+                mGridView.addChildView();
+            }
         }
+
     }
 
-    class GridAdapter extends BaseAdapter {
-        @Override
-        public int getCount() {
-            int count = 0;
-            int size = CategoryData.getSize(mTab);
-            int cpp = GridConfig.getCountPerPageOfDrawer();
-            if (size > 0 && cpp > 0) {
-                if ((mPosition + 1) * cpp < size) {
-                    count = cpp;
-                } else {
-                    count = size % cpp;
-                }
-            }
-            Log.v("suyu", "count = " + count);
-            return count;
-        }
-
-        @Override
-        public Object getItem(int position) {
-            return null;
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return 0;
-        }
-
-        @SuppressLint("NewApi")
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View icon;
-            if (convertView == null) {
-                icon = View.inflate(GridFragment.this.getActivity(), R.layout.icon_layout, null);
-                GridView grid = (GridView) parent;
-                icon.setLayoutParams(new GridView.LayoutParams(grid.getColumnWidth(), grid
-                        .getColumnWidth()));
-                // get app info.
-                AppInfo info = CategoryData.datas.get(mTab).get(
-                        position + GridConfig.getCountPerPageOfDrawer() * mPosition);
-                // set icon image.
-                ImageView image = (ImageView) icon.findViewById(R.id.icon_image);
-                image.setImageBitmap(info.iconBitmap);
-                // set icon text.
-                TextView text = (TextView) icon.findViewById(R.id.icon_text);
-                text.setText(info.title);
-                // set info to icon tag.
-                icon.setTag(info);
-                Launcher l = (Launcher) GridFragment.this.getActivity();
-                icon.setOnLongClickListener(l);
-                icon.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        AppInfo i = (AppInfo) v.getTag();
-                        Launcher l = (Launcher) GridFragment.this.getActivity();
-                        l.startActivitySafely(i.intent);
-                    }
-                });
-                // // TODO: move uninstall action to click at uninstall state.
-                // icon.setOnLongClickListener(new OnLongClickListener() {
-                // @Override
-                // public boolean onLongClick(View v) {
-                // AppInfo i = (AppInfo) v.getTag();
-                // Launcher l = (Launcher) GridFragment.this.getActivity();
-                // l.startApplicationUninstallActivity(i.componentName,
-                // i.flags);
-                // return true;
-                // }
-                // });
-            } else {
-                icon = convertView;
-            }
-            return icon;
-        }
+    private ZenGridView getmGridView(Activity mLauncher, int tab, int position) {
+        ZenGridView gridView = new ZenGridView(mLauncher, tab, position);
+        gridView.setLayoutParams(new LayoutParams(LayoutParams.MATCH_PARENT,
+                LayoutParams.MATCH_PARENT));
+        return gridView;
     }
+
 }
